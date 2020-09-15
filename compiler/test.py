@@ -3,48 +3,33 @@ from antlr4 import *
 from generated.BiPaGeLexer import BiPaGeLexer
 from generated.BiPaGeParser import BiPaGeParser
 from generated.BiPaGeListener import BiPaGeListener
-
-class Element:
-    def __init__(self, identifier):
-        self.fields = []
-        self.identifier = str(identifier)
-
-    def add_field(self,field):
-        self.fields.append(field)
-
-    def __str__(self):
-        s = self.identifier + "\n"
-        for field in self.fields:
-            s += f"\t{field.name} : {field.type}\n"
-        return s
-
-class Field:
-    def __init__(self, name, type):
-        self.name = str(name)
-        self.type = str(type)
-
-class Test(BiPaGeListener):
-    def enterField(self, ctx:BiPaGeParser.FieldContext):
-        elements[-1].add_field(Field(ctx.Identifier(), ctx.Type()))
-
-    def enterElement(self, ctx:BiPaGeParser.ElementContext):
-        elements.append(Element(ctx.Identifier()))
-
-    def exitElements(self, ctx):
-        for element in elements:
-            print(element)
-
-
-elements = []
+from Model.Builder import Builder
+from compiler.BackEnd.cpp.Generator import Generator
  
 def main(argv):
-    input_stream = FileStream("../grammar/input.txt")
+    input_stream = InputStream('''
+    Foo {
+    field1: int32;
+    field2: float64;
+    field3 : uint8;
+    }
+    
+    Bar {
+    field1: int8;
+    field2: float32;
+    field3 : uint64;
+    }
+    ''')
     lexer = BiPaGeLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = BiPaGeParser(stream)
-    tree = parser.elements()
+    tree = parser.definition()
     walker = ParseTreeWalker()
-    walker.walk(Test(), tree)
- 
+    modelbuilder = Builder()
+    walker.walk(modelbuilder, tree)
+    model = modelbuilder.model()
+    codegen = Generator("compiler_output")
+    codegen.Generate(model)
+
 if __name__ == '__main__':
     main(sys.argv)
