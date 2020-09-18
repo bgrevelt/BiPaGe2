@@ -45,27 +45,32 @@ namespace BiPaGe
 {{
     {offsets}
 
-    class {typename}
+    class {view}
     {{
     public:
-        {typename}() = delete;
-        ~{typename}() = delete;
+        // You should not create or copy this class as it's just a view on raw data
+        // Creating or copying this class will give you a class with one byte of data.
+        {view}() = delete;
+        ~{view}() = delete;
+        {view}(const {view}&) = delete;
+        {view}& operator=(const {view}&) = delete;
+        
         {fields}
     
     private:
         const std::uint8_t data_;
     }};
     
-    const {typename}& Parse{typename}(const std::uint8_t& data) 
+    const {view}& Parse{typename}(const std::uint8_t& data) 
     {{ 
-        return reinterpret_cast<const {typename}&>(data);
+        return reinterpret_cast<const {view}&>(data);
     }}
 
 }}
 '''
         offsets = "\n\t".join(self.GetOffsets(DataType.fields))
         fields = "\n".join([self.GetFieldGetter(field) for field in DataType.fields])
-        header.write(template.format(offsets = offsets, typename = DataType.identifier, fields = fields))
+        header.write(template.format(offsets = offsets, typename = DataType.identifier, fields = fields, view=f'{DataType.identifier}_view'))
 
     def WriteGetters(self, Fields, header):
         for field in Fields:
