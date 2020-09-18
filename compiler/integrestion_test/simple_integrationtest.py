@@ -80,7 +80,7 @@ class Simple(unittest.TestCase):
             p = serialize(p, 1.234);
             p = serialize(p, static_cast<std::uint8_t>(33));
 
-            const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(*buffer);
+            const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(buffer);
 
             check_equal(parsed.field1(), -35643);
             check_equal(parsed.field2(), 1.234);

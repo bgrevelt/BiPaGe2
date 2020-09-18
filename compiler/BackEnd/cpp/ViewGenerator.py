@@ -5,6 +5,7 @@ class ViewGenerator(GeneratorCommon):
 
     def GenerateDataTypeParser(self, DataType):
         template = '''#include <cstdint>
+#include <assert.h>
 
 namespace BiPaGe
 {{
@@ -26,9 +27,10 @@ namespace BiPaGe
         const std::uint8_t data_;
     }};
 
-    const {view}& Parse{typename}(const std::uint8_t& data) 
+    const {view}& Parse{typename}(const std::uint8_t* data) 
     {{ 
-        return reinterpret_cast<const {view}&>(data);
+        assert(data);
+        return reinterpret_cast<const {view}&>(*data);
     }}
 
 }}
