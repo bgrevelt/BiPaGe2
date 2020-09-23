@@ -1,51 +1,42 @@
-from .GeneratorCommon import GeneratorCommon
-import os
+from .HelperFunctions import *
 
-class ViewGenerator(GeneratorCommon):
+class ViewGenerator:
 
     def GenerateDataTypeParser(self, DataType):
-        template = '''#include <cstdint>
-#include <assert.h>
-
-namespace BiPaGe
+        template = '''class {typename}_view
 {{
-    {offsets}
+public:
+    // You should not create or copy this class as it's just a view on raw data
+    // Creating or copying this class will give you a class with one byte of data.
+    {typename}_view() = delete;
+    ~{typename}_view() = delete;
+    {typename}_view(const {typename}_view&) = delete;
+    {typename}_view& operator=(const {typename}_view&) = delete;
 
-    class {view}
-    {{
-    public:
-        // You should not create or copy this class as it's just a view on raw data
-        // Creating or copying this class will give you a class with one byte of data.
-        {view}() = delete;
-        ~{view}() = delete;
-        {view}(const {view}&) = delete;
-        {view}& operator=(const {view}&) = delete;
+    {fields}
 
-        {fields}
+private:
+    const std::uint8_t data_;
+}};
 
-    private:
-        const std::uint8_t data_;
-    }};
-
-    const {view}& Parse{typename}(const std::uint8_t* data) 
-    {{ 
-        assert(data);
-        return reinterpret_cast<const {view}&>(*data);
-    }}
-
+const {typename}_view& Parse{typename}(const std::uint8_t* data) 
+{{ 
+    assert(data);
+    return reinterpret_cast<const {typename}_view&>(*data);
 }}
 '''
-        offsets = "\n\t".join(self.GetOffsets(DataType.fields))
         fields = "\n".join([self.GetFieldGetter(field) for field in DataType.fields])
-        return template.format(offsets=offsets, typename=DataType.identifier, fields=fields,
-                                     view=f'{DataType.identifier}_view')
+        return template.format(typename=DataType.identifier, fields=fields)
 
 
     def GetFieldGetter(self, Field):
         template = '''
-        {type} {fieldname}() const
-        {{
-            return *reinterpret_cast<const {type}*>(&data_ + {offset});
-        }}'''
-        return template.format(type=self.TypeToCppType(Field.type), fieldname=Field.name,
-                               offset=self.FieldOffsetName(Field))
+    {type} {fieldname}() const
+    {{
+        return *reinterpret_cast<const {type}*>(&data_ + {offset});
+    }}'''
+        return template.format(type=TypeToCppType(Field.type), fieldname=Field.name,
+                               offset=FieldOffsetName(Field))
+
+    def GetIncludes(self):
+        return ['<cstdint>', '<assert.h>']
