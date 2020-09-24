@@ -34,9 +34,9 @@ class Simple(unittest.TestCase):
             f.write('''
         Foo
         {
-            field1: int32;
-            field2: float64;
-            field3 : uint8;
+            field1: s32;
+            field2: f64;
+            field3: u8;
         }
         
         Bar
