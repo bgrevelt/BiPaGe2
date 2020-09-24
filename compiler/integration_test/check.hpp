@@ -1,11 +1,13 @@
 #pragma once
 
+#define check_equal(l,r) check_equal_func(l,r,__FUNCTION__, __LINE__)
+
 template<typename T1, typename T2>
-void check_equal(const T1& l, const T2& r)
+void check_equal_func(const T1& l, const T2& r, const char* caller, int line)
 {
     if(l != r)
     {
-        std::cout << l << " is not equal to " << r << std::endl;
+        std::cerr << "check_equal called from " << caller << ", line " << line << ": " << l << " is not equal to " << r << std::endl;
         exit(-1);
     }
 }

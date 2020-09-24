@@ -70,9 +70,8 @@ class Simple(unittest.TestCase):
         #include <iostream>
         #include <vector>
         #include "../check.hpp"
-
-
-        int main(int argc, char* argv[])
+        
+        void test_foo_view()
         {
             std::uint8_t buffer[1024];
             auto p = buffer;
@@ -85,8 +84,27 @@ class Simple(unittest.TestCase):
             check_equal(parsed.field1(), -35643);
             check_equal(parsed.field2(), 1.234);
             check_equal(parsed.field3(), 33);
+        }
+        
+        void test_bar_view()
+        {
+            // TODO
+        }
+        
+        void test_foo_builder()
+        {
+            // TODO
+        }
+        
+        void test_bar_builder()
+        {
+            // TODO
+        }
 
-            return 0;
+
+        int main(int argc, char* argv[])
+        {
+            test_foo_view();
         }''')
 
 

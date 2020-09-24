@@ -3,7 +3,8 @@ from .HelperFunctions import *
 class ViewGenerator:
 
     def GenerateDataTypeParser(self, DataType):
-        template = '''class {typename}_view
+        template = \
+'''class {typename}_view
 {{
 public:
     // You should not create or copy this class as it's just a view on raw data
@@ -30,11 +31,11 @@ const {typename}_view& Parse{typename}(const std::uint8_t* data)
 
 
     def GetFieldGetter(self, Field):
-        template = '''
-    {type} {fieldname}() const
-    {{
-        return *reinterpret_cast<const {type}*>(&data_ + {offset});
-    }}'''
+        template = \
+'''{type} {fieldname}() const
+{{
+    return *reinterpret_cast<const {type}*>(&data_ + {offset});
+}}'''
         return template.format(type=TypeToCppType(Field.type), fieldname=Field.name,
                                offset=FieldOffsetName(Field))
 
