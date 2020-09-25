@@ -7,6 +7,7 @@ class Builder(BiPaGeListener):
     def __init__(self):
         self._offset = 0
         self.elements = []
+        self.noderesult = {}
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
@@ -20,14 +21,20 @@ class Builder(BiPaGeListener):
             'f64': 'float64',
         }
 
-    def enterField(self, ctx:BiPaGeParser.FieldContext):
-        field = Field(str(ctx.Identifier()), self.remove_aliases(str(ctx.Type())), self._offset)
-        self.elements[-1].add_field(field)
-        self._offset += field.size()
-
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         self._offset = 0
-        self.elements.append(DataType(str(ctx.Identifier())))
+
+    def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
+        node = DataType(str(ctx.Identifier()), [self.noderesult[field] for field in ctx.field()])
+        self.elements.append(node)
+
+    def exitField(self, ctx:BiPaGeParser.FieldContext):
+        id = str(ctx.Identifier())
+        type = self.remove_aliases(str(ctx.Type()))
+        field = Field(id, type, self._offset)
+        self._offset += field.size()
+        self.noderesult[ctx] = field
+
 
     def model(self):
         return self.elements

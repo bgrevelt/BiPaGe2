@@ -1,10 +1,7 @@
 class DataType:
-    def __init__(self, identifier):
-        self.fields = []
+    def __init__(self, identifier, fields = []):
+        self.fields = fields
         self.identifier = identifier
-
-    def add_field(self,field):
-        self.fields.append(field)
 
     def __str__(self):
         s = self.identifier + "\n"
