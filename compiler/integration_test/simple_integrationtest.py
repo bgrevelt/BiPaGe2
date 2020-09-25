@@ -41,9 +41,10 @@ class Simple(unittest.TestCase):
         
         Bar
         {
-            field1: int8;
-            field2: float32;
-            field3 : uint64;
+            Corey: int8;
+            Max: float32;
+            James : uint64;
+            Billy : uint64;
         }
         ''')
 
@@ -66,46 +67,96 @@ class Simple(unittest.TestCase):
     def write_test_cpp_file(self):
         with open(f'temp/{self.test_name}.cpp', 'w+') as f:
             f.write('''
-        #include "Foo_generated.h"
-        #include <iostream>
-        #include <vector>
-        #include "../check.hpp"
-        
-        void test_foo_view()
-        {
-            std::uint8_t buffer[1024];
-            auto p = buffer;
-            p = serialize(p, static_cast<std::int32_t>(-35643));
-            p = serialize(p, 1.234);
-            p = serialize(p, static_cast<std::uint8_t>(33));
+#include "Foo_generated.h"
+#include "Bar_generated.h"
+#include <iostream>
+#include <vector>
+#include <limits>
+#include "../check.hpp"
 
-            const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(buffer);
+void test_foo_view()
+{            
+    std::uint8_t buffer[1024];
+    auto p = buffer;
+    p = serialize(p, static_cast<std::int32_t>(-35643));
+    p = serialize(p, 1.234);
+    p = serialize(p, static_cast<std::uint8_t>(33));
 
-            check_equal(parsed.field1(), -35643);
-            check_equal(parsed.field2(), 1.234);
-            check_equal(parsed.field3(), 33);
-        }
-        
-        void test_bar_view()
-        {
-            // TODO
-        }
-        
-        void test_foo_builder()
-        {
-            // TODO
-        }
-        
-        void test_bar_builder()
-        {
-            // TODO
-        }
+    const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(buffer);
+
+    check_equal(parsed.field1(), -35643);
+    check_equal(parsed.field2(), 1.234);
+    check_equal(parsed.field3(), 33);
+}
+
+void test_bar_view()
+{
+    std::uint8_t buffer[1024];
+    auto p = buffer;
+    p = serialize(p, static_cast<std::int8_t>(-25));
+    p = serialize(p, 1.234f);
+    p = serialize(p, static_cast<std::int64_t>(std::numeric_limits<int64_t>::max()));
+    p = serialize(p, static_cast<std::int64_t>(std::numeric_limits<int64_t>::min()));
+
+    const BiPaGe::Bar_view& parsed = BiPaGe::ParseBar(buffer);
+
+    check_equal(parsed.Corey(), -25);
+    check_equal(parsed.Max(), 1.234f);
+    check_equal(parsed.James(), uint64_t(std::numeric_limits<int64_t>::max()));
+    check_equal(parsed.Billy(), uint64_t(std::numeric_limits<int64_t>::min()));
+}
+
+void test_foo_builder()
+{
+    int32_t field1 = 12345;
+    double field2 = 123.456;
+    uint8_t field3 = 255;
+    BiPaGe::Foo_builder builder(field1, field2, field3);
+    
+    std::vector<uint8_t> expected(13);
+    auto p = expected.data();
+    p = serialize(p, static_cast<std::int32_t>(12345));
+    p = serialize(p, 123.456);
+    serialize(p, static_cast<std::uint8_t>(255));
+    
+    auto result = builder.build();
+    check_equal(result, expected);
+}
+
+void test_bar_builder()
+{
+    int8_t Corey = -128;
+    float Max = 123.456;
+    uint64_t James = std::numeric_limits<int64_t>::max();
+    uint64_t Billy = std::numeric_limits<int64_t>::min();
+    
+    BiPaGe::Bar_builder builder; // default ctor.
+    // All values should be default initialized to zero.
+    std::vector<uint8_t> expected(21, 0);
+    check_equal(builder.build(), expected);
+    
+    builder.Corey(Corey);
+    builder.Max(Max);
+    builder.James(James);
+    builder.Billy(Billy);
+    
+    auto p = expected.data();
+    p = serialize(p, Corey);
+    p = serialize(p, Max);
+    p = serialize(p, James);
+    serialize(p, Billy);
+    
+    check_equal(builder.build(), expected);
+}
 
 
-        int main(int argc, char* argv[])
-        {
-            test_foo_view();
-        }''')
+int main(int argc, char* argv[])
+{
+    test_foo_view();
+    test_bar_view();
+    test_foo_builder();
+    test_bar_builder();
+}''')
 
 
 if __name__ == '__main__':
