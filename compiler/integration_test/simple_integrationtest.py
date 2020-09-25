@@ -34,13 +34,19 @@ class Simple(unittest.TestCase):
             f.write('''
         Foo
         {
-            field1: s32;
-            field2: f64;
-            field3: u8;
+            field1: s32;  // Some info
+            field2: f64;  // About 
+            field3: u8;   // These fields
         }
         
         Bar
         {
+            /*
+            A
+            multi
+            line
+            comment
+            */
             Corey: int8;
             Max: float32;
             James : uint64;

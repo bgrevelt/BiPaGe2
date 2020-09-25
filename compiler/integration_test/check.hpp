@@ -8,7 +8,7 @@ void check_equal_func(const T1& l, const T2& r, const char* caller, int line)
 {
     if(l != r)
     {
-        std::cerr << "check_equal called from " << caller << ", line " << line << ": " << l << " is not equal to " << r << std::endl;
+        std::cerr << "check_equal called from " << caller << ", line " << line << ": " << +l << " is not equal to " << +r << std::endl;
         exit(-1);
     }
 }
