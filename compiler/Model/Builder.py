@@ -31,11 +31,15 @@ class Builder(BiPaGeListener):
         self._offset = 0
 
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
-        node = DataType(str(ctx.Identifier()), [self.noderesult[field] for field in ctx.field()], ctx.start)
+        fields = []
+        for field in ctx.field():
+            if self.noderesult[field].name is not None:
+                fields.append(self.noderesult[field])
+        node = DataType(str(ctx.Identifier()), fields, ctx.start)
         self.noderesult[ctx] = node
 
     def exitField(self, ctx:BiPaGeParser.FieldContext):
-        id = str(ctx.Identifier())
+        id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
         type = self.remove_aliases(str(ctx.Type()))
         field = Field(id, type, self._offset, ctx.start)
         self._offset += field.size()
