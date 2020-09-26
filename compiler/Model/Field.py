@@ -4,8 +4,8 @@ from .BuildMessage import BuildMessage
 class Field(Node):
     def __init__(self, name, type, offset, token):
         super().__init__(token)
-        self.name = str(name)
-        self.type = str(type)
+        self.name = name
+        self.type = type
         self.offset = offset
         # At this time only float|int|uint 8|16|32|64 are supported. So the size (in bits) is always at the end
         self._bits = int("".join([c for c in self.type if c.isnumeric()]))
