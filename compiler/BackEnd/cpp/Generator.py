@@ -26,7 +26,7 @@ namespace BiPaGe
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
 
-        for DataType in model:
+        for DataType in model._datatypes:
             headerpath = os.path.join(self.output_dir, f"{DataType.identifier}_generated.h")
             with open(headerpath, 'w+') as header:
                 includes = "\n".join([f'#include {include}' for include in self._GetIncludes()])
