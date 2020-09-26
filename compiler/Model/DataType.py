@@ -13,15 +13,10 @@ class DataType(Node):
             s += f"\t{field.name} : {field.type} at {field.offset}\n"
         return s
 
-    def check_semantics(self):
-        warnings = []
-        errors = []
-
+    def check_semantics(self, warnings, errors):
         self.check_empty(warnings, errors)
         self.check_unique_field_names(warnings, errors)
         self.check_fields(warnings, errors)
-
-        return (warnings, errors)
 
     def check_empty(self, warnings, errors):
         if len(self.fields) == 0:
@@ -41,6 +36,4 @@ class DataType(Node):
 
     def check_fields(self, warnings, errors):
         for field in self.fields:
-            ws, es = field.check_semantics()
-            warnings.extend(ws)
-            errors.extend(es)
+            field.check_semantics(warnings, errors)

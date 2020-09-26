@@ -66,9 +66,7 @@ class Builder(BiPaGeListener):
             walker = ParseTreeWalker()
             walker.walk(self, tree)
             model = self._definition
-            semantic_warnings, semantic_errors = model.check_semantics()
-            warnings.extend(semantic_warnings)
-            errors.extend(semantic_errors)
+            model.check_semantics(warnings, errors)
 
         return warnings, errors, model
 
