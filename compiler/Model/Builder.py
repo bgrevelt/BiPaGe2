@@ -1,8 +1,11 @@
-from generated.BiPaGeParser import BiPaGeParser
 from generated.BiPaGeListener import BiPaGeListener
 from .DataType import DataType
 from .Field import Field
 from .Definition import Definition
+from .ErrorListener import BiPaGeErrorListener
+from antlr4 import *
+from generated.BiPaGeLexer import BiPaGeLexer
+from generated.BiPaGeParser import BiPaGeParser
 
 class Builder(BiPaGeListener):
     def __init__(self):
@@ -38,6 +41,32 @@ class Builder(BiPaGeListener):
         self._offset += field.size()
         self.noderesult[ctx] = field
 
+    def setErrorListener(self, target, listener):
+        target.removeErrorListeners()
+        target.addErrorListener(listener)
+
+    def build(self, text):
+        errors = []
+        warnings = []
+        model = None
+        errorlistener = BiPaGeErrorListener()
+        lexer = BiPaGeLexer(InputStream(text))
+        self.setErrorListener(lexer, errorlistener)
+
+        parser = BiPaGeParser(CommonTokenStream(lexer))
+        self.setErrorListener(parser, errorlistener)
+        tree = parser.definition()
+
+        errors.extend(errorlistener.errors())
+        if len(errors) == 0:
+            walker = ParseTreeWalker()
+            walker.walk(self, tree)
+            model = self._definition
+            semantic_warnings, semantic_errors = model.check_semantics()
+            warnings.extend(semantic_warnings)
+            errors.extend(semantic_errors)
+
+        return warnings, errors, model
 
     def model(self):
         return self._definition

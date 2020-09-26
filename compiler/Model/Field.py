@@ -1,5 +1,5 @@
 from .Node import Node
-from .SemanticMessage import SemanticMessage
+from .BuildMessage import BuildMessage
 
 class Field(Node):
     def __init__(self, name, type, offset, token):
@@ -19,7 +19,7 @@ class Field(Node):
         errors = []
 
         if self.type.startswith('float') and self._bits not in (32,64):
-            errors.append(SemanticMessage(self._token.line, self._token.column,
+            errors.append(BuildMessage(self._token.line, self._token.column,
                                           f"Width {self._bits} not supported for float type. Only 32 and 64 bit float types are supported"))
 
         return warnings, errors

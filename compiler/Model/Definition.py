@@ -1,5 +1,5 @@
 from .Node import Node
-from .SemanticMessage import SemanticMessage
+from .BuildMessage import BuildMessage
 
 class Definition(Node):
     def __init__(self, datatypes, token):
@@ -17,7 +17,7 @@ class Definition(Node):
                 for datatype in datatypes:
                     msg = f"Semantic error: Duplicate datatype name {datatype.identifier} found."
                     line, column = datatype.location()
-                    errors.append(SemanticMessage(line, column, msg))
+                    errors.append(BuildMessage(line, column, msg))
 
         for datatype in self._datatypes:
             ws, es = datatype.check_semantics()
