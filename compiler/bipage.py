@@ -25,20 +25,6 @@ class BiPaGeErrorListener(ErrorListener):
     def errors(self):
         return self._errors
 
-def create_tree(file):
-    errorlistener = BiPaGeErrorListener(file)
-
-    input_stream = FileStream(file)
-    lexer = BiPaGeLexer(input_stream)
-    lexer.removeErrorListeners()
-    lexer.addErrorListener(errorlistener)
-    stream = CommonTokenStream(lexer)
-    parser = BiPaGeParser(stream)
-    parser.removeErrorListeners()
-    parser.addErrorListener(errorlistener)
-    tree = parser.definition()
-    return (errorlistener.errors(), tree)
-
 def print_semantic_messages(file, warnings, errors):
     for error in errors:
         print(f'{file}:{error.line}:{error.column} ERROR {error.message}')
@@ -51,19 +37,9 @@ def main(argv):
     codegen = CppGen(args.output)
 
     for file in args.input:
-        errors, tree = create_tree(file)
+        builder = Builder()
+        warnings, errors, model = builder.build(open(file).read())
 
-        if len(errors) > 0:
-            for error in errors:
-                print(error)
-            continue
-
-        walker = ParseTreeWalker()
-        modelbuilder = Builder()
-        walker.walk(modelbuilder, tree)
-        model = modelbuilder.model()
-
-        warnings, errors = model.check_semantics()
         print_semantic_messages(file, warnings, errors)
         if len(errors) > 0:
             continue

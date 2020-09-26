@@ -29,6 +29,5 @@ class Beautifier:
         for char in line:
             if any(char == inc_char for inc_char in inc_chars):
                 self.indent += 1
-            if any(char == dec_char for dec_char in _chars):
-                self.indent += 1
-        self.indent = self.indent + line.count('{') + line.count('(') - line.count('}') - line.count(')')
+            if any(char == dec_char for dec_char in dec_chars):
+                self.indent -= 1
