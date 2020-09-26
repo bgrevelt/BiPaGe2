@@ -17,6 +17,18 @@ class DataType(Node):
         warnings = []
         errors = []
 
+        self.check_empty(warnings, errors)
+        self.check_unique_field_names(warnings, errors)
+        self.check_fields(warnings, errors)
+
+        return (warnings, errors)
+
+    def check_empty(self, warnings, errors):
+        if len(self.fields) == 0:
+            line, column = self.location()
+            errors.append(BuildMessage(line, column, f'Datatype {self.identifier} has no (non-padding) fields'))
+
+    def check_unique_field_names(self, warnings, errors):
         # check if we don't have muliple fields with the same name
         unique_field_names = {field.name for field in self.fields}
         for field_name in unique_field_names:
@@ -27,9 +39,8 @@ class DataType(Node):
                     line, column = field.location()
                     errors.append(BuildMessage(line, column, msg))
 
+    def check_fields(self, warnings, errors):
         for field in self.fields:
             ws, es = field.check_semantics()
             warnings.extend(ws)
             errors.extend(es)
-
-        return (warnings, errors)
