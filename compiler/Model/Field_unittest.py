@@ -3,16 +3,16 @@ from .Field import Field
 
 class Field_unittests(unittest.TestCase):
     def test_size(self):
-        self.validate_type_size('uint8', 1)
-        self.validate_type_size('int8', 1)
-        self.validate_type_size('uint16', 2)
-        self.validate_type_size('int16', 2)
-        self.validate_type_size('uint32', 4)
-        self.validate_type_size('int32', 4)
-        self.validate_type_size('float32', 4)
-        self.validate_type_size('uint64', 8)
-        self.validate_type_size('int64', 8)
-        self.validate_type_size('float64', 8)
+        self.validate_type_size('uint8', 8)
+        self.validate_type_size('int8', 8)
+        self.validate_type_size('uint16', 16)
+        self.validate_type_size('int16', 16)
+        self.validate_type_size('uint32', 32)
+        self.validate_type_size('int32', 32)
+        self.validate_type_size('float32', 32)
+        self.validate_type_size('uint64', 64)
+        self.validate_type_size('int64', 64)
+        self.validate_type_size('float64', 64)
 
     def validate_type_size(self, type, expected_size):
         size = Field("", type, 0, None).size()

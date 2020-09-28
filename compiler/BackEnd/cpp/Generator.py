@@ -43,7 +43,7 @@ namespace BiPaGe
         return list(set(self.view_generator.GetIncludes() + self.builder_generator.GetIncludes()))
 
     def _GetOffsets(self, DataType):
-        return [(FieldOffsetName(field), field.offset) for field in DataType.fields]
+        return [(FieldOffsetName(field), field.offset // 8) for field in DataType.fields]
 
     def _Tabify(self, text, depth):
         return "\n".join([('\t' * depth) + line for line in text.splitlines()])

@@ -95,7 +95,7 @@ f'''{TypeToCppType(field.type)} {field.name}() const
 
     def GenerateSizeFunction(self, DataType):
         last_field = DataType.fields[-1]
-        size = last_field.offset + last_field.size()
+        size = last_field.offset // 8 + last_field.size() // 8
         return \
 f'''size_t size() const // return the size of the serialized data
 {{

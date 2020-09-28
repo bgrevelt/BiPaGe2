@@ -23,16 +23,16 @@ SomeDataType
         datatype = model._datatypes[0]
 
         self.verify_datatype(datatype, "SomeDataType", [
-            ("field1", "int8", 0, 1),
-            ("field2", "int16", 1, 2),
-            ("field3", "int32", 3, 4),
-            ("field4", "int64", 7, 8),
-            ("field5", "uint8", 15, 1),
-            ("field6", "uint16", 16, 2),
-            ("field7", "uint32", 18, 4),
-            ("field8", "uint64", 22, 8),
-            ("field9", "float32", 30, 4),
-            ("field10", "float64", 34, 8)
+            ("field1", "int8", 0, 8),
+            ("field2", "int16", 8, 16),
+            ("field3", "int32", 24, 32),
+            ("field4", "int64", 56, 64),
+            ("field5", "uint8", 120, 8),
+            ("field6", "uint16", 128, 16),
+            ("field7", "uint32", 144, 32),
+            ("field8", "uint64", 176, 64),
+            ("field9", "float32", 240, 32),
+            ("field10", "float64", 272, 64)
         ])
 
     def test_alias(self):
@@ -58,16 +58,16 @@ SomeDataType
             # Aliases get turned into their counterpart types in the builder so the backend only needs to be worried
             # about those typessou
             self.verify_datatype(datatype, "SomeDataType", [
-                ("field1", "int8", 0, 1),
-                ("field2", "int16", 1, 2),
-                ("field3", "int32", 3, 4),
-                ("field4", "int64", 7, 8),
-                ("field5", "uint8", 15, 1),
-                ("field6", "uint16", 16, 2),
-                ("field7", "uint32", 18, 4),
-                ("field8", "uint64", 22, 8),
-                ("field9", "float32", 30, 4),
-                ("field10", "float64", 34, 8)
+                ("field1", "int8", 0, 8),
+                ("field2", "int16", 8, 16),
+                ("field3", "int32", 24, 32),
+                ("field4", "int64", 56, 64),
+                ("field5", "uint8", 120, 8),
+                ("field6", "uint16", 128, 16),
+                ("field7", "uint32", 144, 32),
+                ("field8", "uint64", 176, 64),
+                ("field9", "float32", 240, 32),
+                ("field10", "float64", 272, 64)
             ])
 
     def test_reserved_fields(self):
@@ -92,11 +92,11 @@ SomeDataType
 
             # Reserved fields are not part of the model since we don't need to do anything with them in the backend
             self.verify_datatype(datatype, "SomeDataType", [
-                ("field1", "int8", 0, 1),
-                ("field3", "int32", 3, 4),
-                ("field5", "uint8", 15, 1),
-                ("field7", "uint32", 18, 4),
-                ("field9", "float32", 30, 4)
+                ("field1", "int8", 0, 8),
+                ("field3", "int32", 24, 32),
+                ("field5", "uint8", 120, 8),
+                ("field7", "uint32", 144, 32),
+                ("field9", "float32", 240, 32)
             ])
 
 

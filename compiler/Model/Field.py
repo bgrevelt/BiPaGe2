@@ -11,8 +11,7 @@ class Field(Node):
         self._bits = int("".join([c for c in self.type if c.isnumeric()]))
 
     def size(self):
-        assert self._bits % 8 == 0, "Size should be multitude of 8. This should be enforced by the parser rules"
-        return self._bits // 8
+        return self._bits
 
     def check_semantics(self, warnings, errors):
         if self.type.startswith('float') and self._bits not in (32,64):
