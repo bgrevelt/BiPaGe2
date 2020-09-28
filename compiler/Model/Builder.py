@@ -21,6 +21,8 @@ class Builder(BiPaGeListener):
             's16': 'int16',
             'u32': 'uint32',
             's32': 'int32',
+            'u64': 'uint64',
+            's64': 'int64',
             'f32': 'float32',
             'f64': 'float64',
         }
