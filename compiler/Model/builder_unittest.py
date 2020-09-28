@@ -99,15 +99,55 @@ SomeDataType
                 ("field9", "float32", 240, 32)
             ])
 
+    def test_non_standard_width(self):
+        _, _, model = Builder().build('''
+    SomeDataType
+    {
+        field1 : int5;
+        field2 : uint20;
+        field3 : int7;
+    }
+            ''')
+
+        self.verify_datatype(model._datatypes[0], 'SomeDataType', [
+            ('field1', 'int5',   0,  5,  8,  0,  0x1f),
+            ('field2', 'uint20', 5,  20, 32, 0,  0x1ffffe0),
+            ('field3', 'int7',   25, 7,  8,  24, 0xfe)
+        ])
+
+    def test_non_standard_width_alias(self):
+        _, _, model = Builder().build('''
+    SomeDataType
+    {
+        field1 : s5;
+        field2 : u20;
+        field3 : s7;
+    }
+            ''')
+
+        self.verify_datatype(model._datatypes[0], 'SomeDataType', [
+            ('field1', 'int5',   0,  5,  8,  0,  0x1f),
+            ('field2', 'uint20', 5,  20, 32, 0,  0x1ffffe0),
+            ('field3', 'int7',   25, 7,  8,  24, 0xfe)
+        ])
+
 
     def verify_datatype(self, datatype, expected_name, expected_fields):
         self.assertEqual(datatype.identifier, expected_name)
         self.assertEqual(len(datatype.fields), len(expected_fields))
-        for field, (name, type, offset, size) in zip(datatype.fields, expected_fields):
-            self.verify_field(field, name, type, offset, size)
+        for field, expected in zip(datatype.fields, expected_fields):
+            expected = expected + tuple([None] * (7-len(expected)))
+            name, type, offset, size, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask = expected
+            self.verify_field(field, name, type, offset, size, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask)
 
-    def verify_field(self, field, name, type, offset, size):
+    def verify_field(self, field, name, type, offset, size, encapsulating_type_size, encapsulating_type_offset, encapsulating_type_mask):
         self.assertEqual(field.name, name)
         self.assertEqual(field.type, type)
         self.assertEqual(field.offset, offset)
         self.assertEqual(field.size(), size)
+        if encapsulating_type_size is not None:
+            self.assertEqual(field.encapsulating_type_size(), encapsulating_type_size)
+        if encapsulating_type_offset is not None:
+            self.assertEqual(field.encapsulating_type_offset(), encapsulating_type_offset)
+        if encapsulating_type_mask is not None:
+            self.assertEqual(field.encapsulated_type_mask(), encapsulating_type_mask)

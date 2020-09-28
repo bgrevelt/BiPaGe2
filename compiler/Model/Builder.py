@@ -6,6 +6,7 @@ from .ErrorListener import BiPaGeErrorListener
 from antlr4 import *
 from generated.BiPaGeLexer import BiPaGeLexer
 from generated.BiPaGeParser import BiPaGeParser
+import re
 
 class Builder(BiPaGeListener):
     def __init__(self):
@@ -15,16 +16,9 @@ class Builder(BiPaGeListener):
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
-            'u8': 'uint8',
-            's8': 'int8',
-            'u16': 'uint16',
-            's16': 'int16',
-            'u32': 'uint32',
-            's32': 'int32',
-            'u64': 'uint64',
-            's64': 'int64',
-            'f32': 'float32',
-            'f64': 'float64',
+            'u' : 'uint',
+            's' : 'int',
+            'f' : 'float'
         }
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
         self._definition = Definition([self.noderesult[d] for d in ctx.datatype()], ctx.start)
@@ -76,7 +70,7 @@ class Builder(BiPaGeListener):
         return self._definition
 
     def remove_aliases(self, type):
-        if type in self.fieldtype_translation:
-            return self.fieldtype_translation[type]
-        else:
+        if not re.search("^[a-zA-Z]\d+$",type):
             return type
+
+        return self.fieldtype_translation[type[0]] + type[1:]
