@@ -61,10 +61,10 @@ SomeDataType
     f2 : float16;
     f3 : float32;
 }''')
-        self.checkErrors(errors, [(5, 4, '16')])
+        self.checkErrors(errors, [(5, 9, 'float16')], True)
 
 
-    def checkErrors(self, errors, expected):
+    def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
         matched_expected = []
         for ex in expected:
@@ -75,9 +75,10 @@ SomeDataType
                     matched_expected.append(ex)
                     break
 
-        not_expected_errors = [e for e in errors if e not in matched_errors]
         not_matched_expectations = [e for e in expected if e not in matched_expected]
-
-        self.assertEqual(len(not_expected_errors), 0, "\n".join([str(e) for e in not_expected_errors]))
         self.assertEqual(len(not_matched_expectations), 0, "\n".join(not_matched_expectations))
+
+        if not allow_extra_errors:
+            not_expected_errors = [e for e in errors if e not in matched_errors]
+            self.assertEqual(len(not_expected_errors), 0, "\n".join([str(e) for e in not_expected_errors]))
 
