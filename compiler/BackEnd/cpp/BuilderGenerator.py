@@ -86,18 +86,16 @@ f'''{TypeToCppType(field.type)} {field.name}() const
         r = \
 '''void build(uint8_t * sink) const // serialize the data to the given buffer
 {
-    auto p = sink;
 '''
         for n, field in enumerate(DataType.fields):
-            r+= f'*reinterpret_cast<{TypeToCppType(field.type)}*>(p) = {field.name}_;\n'
-            if(n < (len(DataType.fields) -1)):
-                r+= f'p += sizeof({field.name}_);\n'
+            r+= f'*reinterpret_cast<{TypeToCppType(field.type)}*>(sink + {FieldOffsetName(field)}) = {field.name}_;\n'
 
         r += '\t}'
         return r
 
     def GenerateSizeFunction(self, DataType):
-        size = sum(field.size() for field in DataType.fields)
+        last_field = DataType.fields[-1]
+        size = last_field.offset + last_field.size()
         return \
 f'''size_t size() const // return the size of the serialized data
 {{
