@@ -23,16 +23,16 @@ SomeDataType
         datatype = model._datatypes[0]
 
         self.verify_datatype(datatype, "SomeDataType", [
-            ("field1", "int8", 0, 8),
-            ("field2", "int16", 8, 16),
-            ("field3", "int32", 24, 32),
-            ("field4", "int64", 56, 64),
-            ("field5", "uint8", 120, 8),
-            ("field6", "uint16", 128, 16),
-            ("field7", "uint32", 144, 32),
-            ("field8", "uint64", 176, 64),
-            ("field9", "float32", 240, 32),
-            ("field10", "float64", 272, 64)
+            ("field1", "int", 0, 8),
+            ("field2", "int", 8, 16),
+            ("field3", "int", 24, 32),
+            ("field4", "int", 56, 64),
+            ("field5", "uint", 120, 8),
+            ("field6", "uint", 128, 16),
+            ("field7", "uint", 144, 32),
+            ("field8", "uint", 176, 64),
+            ("field9", "float", 240, 32),
+            ("field10", "float", 272, 64)
         ])
 
     def test_alias(self):
@@ -58,16 +58,16 @@ SomeDataType
             # Aliases get turned into their counterpart types in the builder so the backend only needs to be worried
             # about those typessou
             self.verify_datatype(datatype, "SomeDataType", [
-                ("field1", "int8", 0, 8),
-                ("field2", "int16", 8, 16),
-                ("field3", "int32", 24, 32),
-                ("field4", "int64", 56, 64),
-                ("field5", "uint8", 120, 8),
-                ("field6", "uint16", 128, 16),
-                ("field7", "uint32", 144, 32),
-                ("field8", "uint64", 176, 64),
-                ("field9", "float32", 240, 32),
-                ("field10", "float64", 272, 64)
+                ("field1", "int", 0, 8),
+                ("field2", "int", 8, 16),
+                ("field3", "int", 24, 32),
+                ("field4", "int", 56, 64),
+                ("field5", "uint", 120, 8),
+                ("field6", "uint", 128, 16),
+                ("field7", "uint", 144, 32),
+                ("field8", "uint", 176, 64),
+                ("field9", "float", 240, 32),
+                ("field10", "float", 272, 64)
             ])
 
     def test_reserved_fields(self):
@@ -92,11 +92,11 @@ SomeDataType
 
             # Reserved fields are not part of the model since we don't need to do anything with them in the backend
             self.verify_datatype(datatype, "SomeDataType", [
-                ("field1", "int8", 0, 8),
-                ("field3", "int32", 24, 32),
-                ("field5", "uint8", 120, 8),
-                ("field7", "uint32", 144, 32),
-                ("field9", "float32", 240, 32)
+                ("field1", "int", 0, 8),
+                ("field3", "int", 24, 32),
+                ("field5", "uint", 120, 8),
+                ("field7", "uint", 144, 32),
+                ("field9", "float", 240, 32)
             ])
 
     def test_non_standard_width(self):
@@ -110,9 +110,9 @@ SomeDataType
             ''')
 
         self.verify_datatype(model._datatypes[0], 'SomeDataType', [
-            ('field1', 'int5',   0,  5,  8,  0,  0x1f),
-            ('field2', 'uint20', 5,  20, 32, 0,  0x1ffffe0),
-            ('field3', 'int7',   25, 7,  8,  24, 0xfe)
+            ('field1', 'int',   0,  5,  8,  0,  0x1f),
+            ('field2', 'uint', 5,  20, 32, 0,  0x1ffffe0),
+            ('field3', 'int',   25, 7,  8,  24, 0xfe)
         ])
 
     def test_non_standard_width_alias(self):
@@ -126,9 +126,9 @@ SomeDataType
             ''')
 
         self.verify_datatype(model._datatypes[0], 'SomeDataType', [
-            ('field1', 'int5',   0,  5,  8,  0,  0x1f),
-            ('field2', 'uint20', 5,  20, 32, 0,  0x1ffffe0),
-            ('field3', 'int7',   25, 7,  8,  24, 0xfe)
+            ('field1', 'int',   0,  5,  8,  0,  0x1f),
+            ('field2', 'uint', 5,  20, 32, 0,  0x1ffffe0),
+            ('field3', 'int',   25, 7,  8,  24, 0xfe)
         ])
 
 
@@ -144,7 +144,7 @@ SomeDataType
         self.assertEqual(field.name, name)
         self.assertEqual(field.type, type)
         self.assertEqual(field.offset, offset)
-        self.assertEqual(field.size(), size)
+        self.assertEqual(field.size_in_bits, size)
         if encapsulating_type_size is not None:
             self.assertEqual(field.encapsulating_type_size(), encapsulating_type_size)
         if encapsulating_type_offset is not None:

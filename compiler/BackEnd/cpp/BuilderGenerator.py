@@ -1,5 +1,6 @@
 from .HelperFunctions import *
 import unittest
+import math
 
 class BuilderGenerator:
     def __init__(self):
@@ -51,7 +52,7 @@ private:
 {{
 }}'''
 
-        parameters = ",\n".join([f'{TypeToCppType(field.type)} {field.name}' for field in DataType.fields])
+        parameters = ",\n".join([f'{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name}' for field in DataType.fields])
         initializers = ": " + "\n, ".join([f'{field.name}_({field.name})' for field in DataType.fields])
         #initializers = ':' + initializers[1:]
 
@@ -60,14 +61,14 @@ private:
                                     initializers=initializers)
 
     def GenerateFields(self, DataType):
-        return "\n".join([f'{TypeToCppType(field.type)} {field.name}_ = {GetTypeDefaultValue(field.type)};' for field in DataType.fields])
+        return "\n".join([f'{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name}_ = {GetTypeDefaultValue(field.type)};' for field in DataType.fields])
 
     def GenerateSetters(self, DataType):
         return '\n'.join([self.GenerateSetter(field) for field in DataType.fields])
 
     def GenerateSetter(self, field):
         return \
-f'''void {field.name}({TypeToCppType(field.type)} val) 
+f'''void {field.name}({TypeToCppType(field.type, field.encapsulating_type_size())} val) 
 {{ 
     {field.name}_ = val; 
 }}'''
@@ -77,7 +78,7 @@ f'''void {field.name}({TypeToCppType(field.type)} val)
 
     def GenerateGetter(self, field):
         return \
-f'''{TypeToCppType(field.type)} {field.name}() const
+f'''{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name}() const
 {{
     return {field.name}_;
 }}'''
@@ -87,15 +88,24 @@ f'''{TypeToCppType(field.type)} {field.name}() const
 '''void build(uint8_t * sink) const // serialize the data to the given buffer
 {
 '''
-        for n, field in enumerate(DataType.fields):
-            r+= f'*reinterpret_cast<{TypeToCppType(field.type)}*>(sink + {FieldOffsetName(field)}) = {field.name}_;\n'
+        for field in DataType.fields:
+            offset_in_byte = field.offset % 8
+            mask = (2 ** field.size_in_bits - 1)  << offset_in_byte# mask should not include sign bit
+            if field.offset % 8 == 0 and field.size_in_bits % 8 == 0:
+                r+= f'*reinterpret_cast<{TypeToCppType(field.type, field.encapsulating_type_size())}*>(sink + {FieldOffsetName(field)}) = {field.name}_;\n'
+            else:
+                r+= f'{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name} = {field.name}_;\n'
+                if offset_in_byte != 0:
+                    r += f'{field.name} <<= {offset_in_byte};\n'
+                r+= f'{field.name} &= 0x{mask:x};\n'
+                r += f'*reinterpret_cast<{TypeToCppType(field.type, field.encapsulating_type_size())}*>(sink + {FieldOffsetName(field)}) |= {field.name};\n\n'
 
         r += '\t}'
         return r
 
     def GenerateSizeFunction(self, DataType):
         last_field = DataType.fields[-1]
-        size = last_field.offset // 8 + last_field.size() // 8
+        size = math.ceil((last_field.offset + last_field.size_in_bits) / 8 )
         return \
 f'''size_t size() const // return the size of the serialized data
 {{

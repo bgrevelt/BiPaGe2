@@ -38,7 +38,7 @@ class Builder(BiPaGeListener):
         id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
         type = self.remove_aliases(str(ctx.Type()))
         field = Field(id, type, self._offset, ctx.start)
-        self._offset += field.size()
+        self._offset += field.size_in_bits
         self.noderesult[ctx] = field
 
     def setErrorListener(self, target, listener):

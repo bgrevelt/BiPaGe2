@@ -15,5 +15,5 @@ class Field_unittests(unittest.TestCase):
         self.validate_type_size('float64', 64)
 
     def validate_type_size(self, type, expected_size):
-        size = Field("", type, 0, None).size()
+        size = Field("", type, 0, None).size_in_bits
         self.assertEqual(size, expected_size, f'Size for type {type} is {size} not {expected_size}.')

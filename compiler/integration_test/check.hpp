@@ -18,7 +18,7 @@ void check_equal_func(const std::vector<T1>& l, const std::vector<T2>& r, const 
 {
     if(l.size() != r.size())
     {
-        std::cerr << "check_equal called from " << caller << ", line " << line << ": Vector L size" << l.size() << " is not equal to R size" << r.size() << std::endl;
+        std::cerr << "check_equal called from " << caller << ", line " << line << ": Vector L size " << l.size() << " is not equal to R size " << r.size() << std::endl;
         exit(-1);
     }
     if(!std::equal(l.begin(), l.end(), r.begin()))
