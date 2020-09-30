@@ -11,9 +11,28 @@ class Field(Node):
         self.type = "".join([c for c in type if not c.isnumeric()])
 
     def check_semantics(self, warnings, errors):
+        line, column = self.location()
         if self.type == 'float' and self.size_in_bits not in (32, 64):
-            errors.append(BuildMessage(self._token.line, self._token.column,
+            errors.append(BuildMessage(line, column,
                                        f"Width {self.size_in_bits} not supported for float type. Only 32 and 64 bit float types are supported"))
+
+        if self.type == 'int' or self.type == 'uint':
+            if self.size_in_bits < 2 or self.size_in_bits > 64:
+                errors.append(BuildMessage(line, column,
+                                           f'Size ({self.size_in_bits}) for type {self.type} outside supported range [2-64]'))
+
+        if self.type == 'float' and self.offset % 8 != 0:
+            errors.append(BuildMessage(line, column,
+                                       f'Float field {self.name} should be at a byte boundary. Current offset is {self.size_in_bits} bits.'))
+
+        if self.type == 'int' or self.type == 'uint':
+            if self.size_in_bits % 8 == 0 and self.offset % 8 != 0:
+                warnings.append(BuildMessage(line, column, f'Field {self.name} is not at a byte boundary ({self.offset} bits) are you sure this is intentional?' ))
+
+        if self.encapsulating_type_size() > 64:
+            pass
+            errors.append(BuildMessage(line, column,
+                                       f'Field {self.name} cannot be captured in a type that is 64 bits or less in size. Field size is {self.size_in_bits} bits. Field offset is {self.offset} bits. Capture type would need to be {self.encapsulating_type_size()} bits.'))
 
     def encapsulating_type_offset(self):
         return (self.offset // 8) * 8

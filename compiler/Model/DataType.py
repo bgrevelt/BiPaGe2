@@ -13,10 +13,17 @@ class DataType(Node):
             s += f"\t{field.name} : {field.type} at {field.offset}\n"
         return s
 
+    def size_in_bits(self):
+        if len(self.fields) == 0:
+            return 0
+        last_field = self.fields[-1]
+        return last_field.offset + last_field.size_in_bits
+
     def check_semantics(self, warnings, errors):
         self.check_empty(warnings, errors)
         self.check_unique_field_names(warnings, errors)
         self.check_fields(warnings, errors)
+        self.check_size(warnings, errors)
 
     def check_empty(self, warnings, errors):
         if len(self.fields) == 0:
@@ -37,3 +44,9 @@ class DataType(Node):
     def check_fields(self, warnings, errors):
         for field in self.fields:
             field.check_semantics(warnings, errors)
+
+    def check_size(self, warnings, errors):
+        if self.size_in_bits() % 8 != 0:
+            line, column = self.location()
+            errors.append(BuildMessage(line, column,
+                            f'''DataType {self.identifier} is ({self.size_in_bits()}) bits in size. Datatypes should be a multiple of eight in size (e.g a number of bytes).'''))
