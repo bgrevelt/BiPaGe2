@@ -30,7 +30,7 @@ def print_semantic_messages(file, warnings, errors):
         print(f'{file}:{error.line}:{error.column} ERROR {error.message}')
 
     for warning in warnings:
-        print(f'{file}:{error.line}:{error.column} WARNING {error.message}')
+        print(f'{file}:{warning.line}:{warning.column} WARNING {warning.message}')
 
 def main(argv):
     args = parse_arguments()
