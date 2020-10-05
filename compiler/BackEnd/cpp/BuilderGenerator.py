@@ -1,6 +1,7 @@
 from .HelperFunctions import *
 import unittest
 import math
+from .Fields import factory
 
 class BuilderGenerator:
     def __init__(self):
@@ -36,11 +37,12 @@ private:
         return ['<cstdint>', '<assert.h>', '<vector>']
 
     def GenerateBuilder(self, DataType):
+        fields = [factory.Build(f) for f in DataType.fields]
         return self.template.format(typename=DataType.identifier,
                                     ctor=self.GenerateCtor(DataType),
-                                    setters=self.GenerateSetters(DataType),
-                                    getters=self.GenerateGetters(DataType),
-                                    pointer_build=self.GeneratreBuilderFunction(DataType),
+                                    setters=self.GenerateSetters(fields),
+                                    getters=self.GenerateGetters(fields),
+                                    pointer_build=self.GeneratreBuilderFunction(fields),
                                     size=self.GenerateSizeFunction(DataType),
                                     fields=self.GenerateFields(DataType))
 
@@ -63,46 +65,21 @@ private:
     def GenerateFields(self, DataType):
         return "\n".join([f'{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name}_ = {GetTypeDefaultValue(field.type)};' for field in DataType.fields])
 
-    def GenerateSetters(self, DataType):
-        return '\n'.join([self.GenerateSetter(field) for field in DataType.fields])
+    def GenerateSetters(self, fields):
+        return '\n'.join([field.builder_setter_code() for field in fields])
 
-    def GenerateSetter(self, field):
-        return \
-f'''void {field.name}({TypeToCppType(field.type, field.encapsulating_type_size())} val) 
-{{ 
-    {field.name}_ = val; 
-}}'''
+    def GenerateGetters(self, fields):
+        return '\n'.join([field.builder_getter_code() for field in fields])
 
-    def GenerateGetters(self, DataType):
-        return '\n'.join([self.GenerateGetter(field) for field in DataType.fields])
+    def GeneratreBuilderFunction(self, fields):
+        body = "\n".join([field.builder_serialize_code() for field in fields])
 
-    def GenerateGetter(self, field):
-        return \
-f'''{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name}() const
+        return f'''void build(uint8_t * sink) const // serialize the data to the given buffer
 {{
-    return {field.name}_;
-}}'''
-
-    def GeneratreBuilderFunction(self, DataType):
-        r = \
-'''void build(uint8_t * sink) const // serialize the data to the given buffer
-{
+{body}
+}}
 '''
-        for field in DataType.fields:
-            offset_in_byte = field.offset % 8
-            mask = (2 ** field.size_in_bits - 1)  << offset_in_byte# mask should not include sign bit
-            if field.offset % 8 == 0 and field.size_in_bits % 8 == 0:
-                r+= f'*reinterpret_cast<{TypeToCppType(field.type, field.encapsulating_type_size())}*>(sink + {FieldOffsetName(field)}) = {field.name}_;\n'
-            else:
-                r+= f'{TypeToCppType(field.type, field.encapsulating_type_size())} {field.name} = {field.name}_;\n'
-                if offset_in_byte != 0:
-                    r += f'{field.name} <<= {offset_in_byte};\n'
-                r+= f'{field.name} &= 0x{mask:x};\n'
-                r += f'*reinterpret_cast<{TypeToCppType(field.type, field.encapsulating_type_size())}*>(sink + {FieldOffsetName(field)}) |= {field.name};\n\n'
-
-        r += '\t}'
-        return r
-
+      
     def GenerateSizeFunction(self, DataType):
         last_field = DataType.fields[-1]
         size = math.ceil((last_field.offset + last_field.size_in_bits) / 8 )
