@@ -36,8 +36,8 @@ const {typename}_view& Parse{typename}(const std::uint8_t* data)
 {{
     {body}
 }}'''
-        simple_field = Field.offset % 8 == 0 and Field.size_in_bits % 8 == 0
-        body = self.GetSimpleFieldGetterBody(Field) if simple_field else self.GetNonStandardIntFieldGetterBody(Field)
+        non_standard_field = not Field.is_byte_aligned() or not Field.is_standard_size()
+        body = self.GetSimpleFieldGetterBody(Field) if not non_standard_field else self.GetNonStandardIntFieldGetterBody(Field)
         return template.format(fieldname=Field.name, type=TypeToCppType(Field.type, Field.return_type_size()), body=body)
 
     def GetSimpleFieldGetterBody(self, Field):

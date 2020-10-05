@@ -55,3 +55,13 @@ class Field(Node):
 
     def is_signed_type(self):
         return self.type in ['int', 'float']
+
+    def is_byte_aligned(self):
+        return self.offset % 8 == 0
+
+    def is_standard_size(self):
+        # anything under 8 bits is non-standard
+        if self.size_in_bits < 8:
+            return False
+        # standard size is a power of 2
+        return math.log(self.size_in_bits, 2).is_integer()
