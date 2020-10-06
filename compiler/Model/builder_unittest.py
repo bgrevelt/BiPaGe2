@@ -1,7 +1,7 @@
 import unittest
 from .Builder import Builder
 
-class Builder_unittests(unittest.TestCase):
+class BuilderUnittests(unittest.TestCase):
     def test_simple(self):
         _, _, model = Builder().build('''
 SomeDataType

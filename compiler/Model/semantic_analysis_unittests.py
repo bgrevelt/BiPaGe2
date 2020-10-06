@@ -1,9 +1,8 @@
 import unittest
 from .Builder import Builder
 import random
-import math
 
-class SemanticAnalysis_unittests(unittest.TestCase):
+class SemanticAnalysisUnittests(unittest.TestCase):
     def test_duplicate_field_name(self):
         warnings, errors, _ = Builder().build('''
 SomeDataType
@@ -74,7 +73,7 @@ SomeDataType
             type = "uint" if n%2 == 1 else "int"
             other_size = 8-(size%8)
             if other_size <= 1:
-                other_size += 8;
+                other_size += 8
             warnings, errors, _ = Builder().build(f'''
 SomeDataType
 {{
@@ -82,7 +81,7 @@ SomeDataType
     field2 : {type}{other_size};
 }}
 ''')
-            if size >= 2 and size <= 64:
+            if 2 <= size <= 64:
                 self.checkErrors(errors, []) # no error
             elif size > 64:
                 self.checkErrors(errors, [(4, 4, 'outside supported range'),

@@ -1,7 +1,4 @@
 import sys
-from antlr4 import *
-from generated.BiPaGeLexer import BiPaGeLexer
-from generated.BiPaGeParser import BiPaGeParser
 from Model.Builder import Builder
 import argparse
 from compiler.BackEnd.cpp.Generator import Generator as CppGen
@@ -19,7 +16,7 @@ class BiPaGeErrorListener(ErrorListener):
         self._file = file
         self._errors = []
 
-    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+    def syntaxError(self, recognizer, offending_symbol, line, column, msg, e):
         self._errors.append(f"{self._file}:{line}:{column} Syntax error: {msg}")
 
     def errors(self):

@@ -8,6 +8,12 @@ from generated.BiPaGeLexer import BiPaGeLexer
 from generated.BiPaGeParser import BiPaGeParser
 import re
 
+
+def set_error_listener(target, listener):
+    target.removeErrorListeners()
+    target.addErrorListener(listener)
+
+
 class Builder(BiPaGeListener):
     def __init__(self):
         self._offset = 0
@@ -41,20 +47,16 @@ class Builder(BiPaGeListener):
         self._offset += field.size_in_bits
         self.noderesult[ctx] = field
 
-    def setErrorListener(self, target, listener):
-        target.removeErrorListeners()
-        target.addErrorListener(listener)
-
     def build(self, text):
         errors = []
         warnings = []
         model = None
         errorlistener = BiPaGeErrorListener()
         lexer = BiPaGeLexer(InputStream(text))
-        self.setErrorListener(lexer, errorlistener)
+        set_error_listener(lexer, errorlistener)
 
         parser = BiPaGeParser(CommonTokenStream(lexer))
-        self.setErrorListener(parser, errorlistener)
+        set_error_listener(parser, errorlistener)
         tree = parser.definition()
 
         errors.extend(errorlistener.errors())

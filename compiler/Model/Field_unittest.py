@@ -1,7 +1,7 @@
 import unittest
 from .Field import Field
 
-class Field_unittests(unittest.TestCase):
+class FieldUnittests(unittest.TestCase):
     def test_size(self):
         self.validate_type_size('uint8', 8)
         self.validate_type_size('int8', 8)

@@ -4,17 +4,17 @@ from .BuildMessage import BuildMessage
 class Definition(Node):
     def __init__(self, datatypes, token):
         super().__init__(token)
-        self._datatypes = datatypes
+        self.datatypes = datatypes
 
     def check_semantics(self, warnings, errors):
-        unique_datatype_names = {datatype.identifier for datatype in self._datatypes}
+        unique_datatype_names = {datatype.identifier for datatype in self.datatypes}
         for datatype_name in unique_datatype_names:
-            datatypes = [datatype for datatype in self._datatypes if datatype.identifier == datatype_name]
+            datatypes = [datatype for datatype in self.datatypes if datatype.identifier == datatype_name]
             if len(datatypes) > 1:
                 for datatype in datatypes:
                     msg = f"Semantic error: Duplicate datatype name {datatype.identifier} found."
                     line, column = datatype.location()
                     errors.append(BuildMessage(line, column, msg))
 
-        for datatype in self._datatypes:
+        for datatype in self.datatypes:
             datatype.check_semantics(warnings, errors)

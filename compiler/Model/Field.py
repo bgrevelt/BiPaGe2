@@ -2,6 +2,13 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 import math
 
+# return the size of a type that can capture a certain amount of bits
+def _capture_size(size):
+    bytes_required = math.ceil(size / 8)
+    bytes_nearest_type = 2 ** (math.ceil(math.log(bytes_required, 2)))
+    return bytes_nearest_type * 8
+
+
 class Field(Node):
     def __init__(self, name, type, offset, token):
         super().__init__(token)
@@ -39,19 +46,14 @@ class Field(Node):
 
     def encapsulating_type_size(self):
         offset_in_byte = self.offset % 8
-        return self._encapsulating_type_size(offset_in_byte + self.size_in_bits)
+        return _capture_size(offset_in_byte + self.size_in_bits)
 
     def encapsulated_type_mask(self):
         offset_in_byte = self.offset % 8
         return (2**(self.size_in_bits + offset_in_byte)) - 2**offset_in_byte
 
     def return_type_size(self):
-        return self._encapsulating_type_size(self.size_in_bits)
-
-    def _encapsulating_type_size(self, size):
-        bytes_required = math.ceil(size / 8)
-        bytes_nearest_type = 2 ** (math.ceil(math.log(bytes_required, 2)))
-        return bytes_nearest_type * 8
+        return _capture_size(self.size_in_bits)
 
     def is_signed_type(self):
         return self.type in ['int', 'float']

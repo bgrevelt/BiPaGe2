@@ -2,9 +2,14 @@ from .Fields import factory as field_factory
 from .Beautifier import *
 import math
 
+
+def includes():
+    return '\n'.join([f'#include {include}' for include in ('<cstdint>', '<assert.h>', '<vector>')])
+
+
 class DataType:
     def __init__(self, datatype):
-        self._fields = [field_factory.Build(field) for field in datatype.fields]
+        self._fields = [field_factory.create(field) for field in datatype.fields]
         self._datatype = datatype
         self._identifier = datatype.identifier
         self._beautifier = Beautifier()
@@ -38,22 +43,19 @@ private:
     def generate(self, path):
         with open(path, 'w+') as f:
             f.write(self._beautifier.beautify(
-            f'''{self.includes()}
-
-            namespace BiPaGe
-            {{
-            {self.defines()}
-
-            {self.parser_code()}
-
-            {self.builder_code()}
-
-            }}
-            '''
+                f'''{ includes()}
+    
+                namespace BiPaGe
+                {{
+                {self.defines()}
+    
+                {self.parser_code()}
+    
+                {self.builder_code()}
+    
+                }}
+                '''
             ))
-
-    def includes(self):
-        return '\n'.join([f'#include {include}' for include in ('<cstdint>', '<assert.h>', '<vector>')])
 
     def defines(self):
         return '\n'.join([f'#define {key} {value}' for field in self._fields for key, value in field.defines()])

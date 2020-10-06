@@ -1,4 +1,4 @@
-class Field():
+class Field:
     def __init__(self, field, cpp_type, default_value):
         self._field = field
         self._cpp_type = cpp_type

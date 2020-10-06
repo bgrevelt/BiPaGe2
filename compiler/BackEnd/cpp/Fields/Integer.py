@@ -1,9 +1,18 @@
 from .Field import Field
 import math
 
+
+def _to_cpp_type(size, signed):
+    assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
+    if signed:
+        return f'std::int{size}_t'
+    else:
+        return f'std::uint{size}_t'
+
+
 class Integer(Field):
     def __init__(self, field):
-        super().__init__(field, self._to_cpp_type(field.encapsulating_type_size(), field.is_signed_type()), '0')
+        super().__init__(field, _to_cpp_type(field.encapsulating_type_size(), field.is_signed_type()), '0')
         self._complex = (not field.is_byte_aligned() or not field.is_standard_size())
 
     def builder_serialize_code(self):
@@ -25,7 +34,7 @@ class Integer(Field):
             return super().view_getter_code()
 
         fieldname = self._field.name
-        return_type = self._to_cpp_type(self._field.return_type_size(), self._issigned())
+        return_type = _to_cpp_type(self._field.return_type_size(), self._issigned())
         body = self._body()
 
         return f'''{return_type} {fieldname}() const
@@ -34,7 +43,7 @@ class Integer(Field):
         }}'''
 
     def _body(self):
-        capture_type = self._to_cpp_type(self._field.encapsulating_type_size(), self._issigned())
+        capture_type = _to_cpp_type(self._field.encapsulating_type_size(), self._issigned())
 
         body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(&data_ + {self._offset_name()});\n'
         body += self._add_shift()
@@ -58,7 +67,7 @@ class Integer(Field):
             r = ""
             mask = 2 ** (self._field.size_in_bits - 1) - 1  # mask should not include sign bit
             sign_mask = 2 ** (self._field.size_in_bits - 1)
-            sign_mask_return_type = (2 ** (self._field.return_type_size()) - 1) - mask;
+            sign_mask_return_type = (2 ** (self._field.return_type_size()) - 1) - mask
 
             r += f'bool negative = ((capture_type & 0x{sign_mask:x}) == 0x{sign_mask:x});\n'
             r += f'capture_type &= 0x{mask:x};\n'
@@ -71,19 +80,13 @@ class Integer(Field):
             return r
 
     def _add_return(self):
-        return_type = self._to_cpp_type(self._field.return_type_size(), self._issigned())
+        return_type = _to_cpp_type(self._field.return_type_size(), self._issigned())
 
         if self._field.encapsulating_type_size() != self._field.return_type_size():
-            return f'return static_cast<{return_type}>(capture_type);';
+            return f'return static_cast<{return_type}>(capture_type);'
         else:
             return 'return capture_type;'
 
     def _issigned(self):
         return self._field.type == 'int'
 
-    def _to_cpp_type(self, size, signed):
-        assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
-        if signed:
-            return f'std::int{size}_t'
-        else:
-            return f'std::uint{size}_t'

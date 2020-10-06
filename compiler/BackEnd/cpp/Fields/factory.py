@@ -2,7 +2,7 @@ from .Float import Float32
 from .Float import Float64
 from .Integer import Integer
 
-def Build(field):
+def create(field):
     if field.type == 'int' or field.type == 'uint':
         return Integer(field)
     elif field.type == 'float':

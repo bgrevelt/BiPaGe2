@@ -1,7 +1,7 @@
 import unittest
 from .Beautifier import Beautifier
 
-class Beautifier_Unittest(unittest.TestCase):
+class BeautifierUnittest(unittest.TestCase):
     def test_class_no_indent(self):
         input = \
 '''
