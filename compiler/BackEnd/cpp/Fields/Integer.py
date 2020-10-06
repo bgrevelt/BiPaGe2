@@ -11,8 +11,8 @@ def _to_cpp_type(size, signed):
 
 
 class Integer(Field):
-    def __init__(self, field):
-        super().__init__(field, _to_cpp_type(field.encapsulating_type_size(), field.is_signed_type()), '0')
+    def __init__(self, field, settings):
+        super().__init__(field, _to_cpp_type(field.encapsulating_type_size(), field.is_signed_type()), '0', settings)
         self._complex = (not field.is_byte_aligned() or not field.is_standard_size())
 
     def builder_serialize_code(self):
@@ -28,6 +28,17 @@ class Integer(Field):
         r += f'{self._field.name} &= 0x{mask:x};\n'
         r += f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
         return r
+
+    def builder_setter_code(self):
+        if self._field.is_standard_size() or not self._settings.cpp_validate_input:
+            return super().builder_setter_code()
+
+        return \
+        f'''void {self._field.name}({self._cpp_type} val) 
+        {{ 
+            {self.validation_code("val")}
+            {self._field.name}_ = val; 
+        }}'''
 
     def view_getter_code(self):
         if not self._complex:
@@ -89,4 +100,30 @@ class Integer(Field):
 
     def _issigned(self):
         return self._field.type == 'int'
+
+    def validation_code(self, variable_name):
+        if self._field.is_standard_size():
+            return ""
+
+        type = "signed integer" if self._issigned() else "unsigned integer"
+        error_msg = f'"Value " + std::to_string({variable_name}) + " cannot be assigned to {type} of {self._field.size_in_bits} bits"'
+
+        if self._issigned():
+            min = int(-1 * math.pow(2, self._field.size_in_bits -1))
+            max = int(math.pow(2, self._field.size_in_bits -1) -1)
+
+            return \
+            f'''if(({variable_name} < {min}) || ({variable_name} > {max}))
+            {{
+                throw std::runtime_error({error_msg});
+            }}'''
+        else:
+            max = int(math.pow(2, self._field.size_in_bits) -1)
+            return \
+            f'''if({variable_name} > {max})
+            {{
+                throw std::runtime_error({error_msg});
+            }}'''
+
+
 

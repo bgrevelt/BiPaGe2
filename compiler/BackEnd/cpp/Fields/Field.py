@@ -1,6 +1,7 @@
 class Field:
-    def __init__(self, field, cpp_type, default_value):
+    def __init__(self, field, cpp_type, default_value, settings):
         self._field = field
+        self._settings = settings
         self._cpp_type = cpp_type
         self._default_value = default_value
         self._getter_template =\
@@ -8,6 +9,9 @@ class Field:
         {{
             {body}
         }}'''
+
+    def name(self):
+        return self._field.name
 
     def view_getter_code(self):
         return f'''{self._cpp_type} {self._field.name}() const
@@ -51,3 +55,6 @@ class Field:
     def _offset_name(self):
         name = self._field.name.upper()
         return f"{name}_OFFSET"
+
+    def validation_code(self, variable_name):
+        return ""

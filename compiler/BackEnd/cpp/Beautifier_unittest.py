@@ -4,8 +4,7 @@ from .Beautifier import Beautifier
 class BeautifierUnittest(unittest.TestCase):
     def test_class_no_indent(self):
         input = \
-'''
-class Foo
+'''class Foo
 {
 public:
 int Bar()
@@ -14,8 +13,7 @@ return 0;
 }
 };'''
         expected = \
-'''
-class Foo
+'''class Foo
 {
 public:
     int Bar()
@@ -28,8 +26,7 @@ public:
 
     def test_class_with_indent(self):
         input = \
-'''
-class Foo
+'''class Foo
 {
     public:
         int Bar()
@@ -38,8 +35,7 @@ class Foo
         }
                 };'''
         expected = \
-'''
-class Foo
+'''class Foo
 {
 public:
     int Bar()
@@ -52,8 +48,7 @@ public:
 
     def test_class_namespace(self):
         input = \
-'''
-namespace ns1
+'''namespace ns1
 {
 namespace ns2
 {
@@ -68,8 +63,7 @@ return 0;
 }
 }'''
         expected = \
-'''
-namespace ns1
+'''namespace ns1
 {
     namespace ns2
     {
@@ -89,8 +83,7 @@ namespace ns1
 
     def test_multi_line_parameter(self):
         input = \
-'''
-class Foo
+'''class Foo
 {
 public:
 Foo(
@@ -100,8 +93,7 @@ int param2)
 }
 };'''
         expected = \
-'''
-class Foo
+'''class Foo
 {
 public:
     Foo(

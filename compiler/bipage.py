@@ -7,7 +7,8 @@ from antlr4.error.ErrorListener import ErrorListener
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('-i', dest='input', action='append', type=str, required=True, help='input file')
-    parser.add_argument('-o', dest='output', action='store', type=str, required=True, help='Directory to writ the output files')
+    parser.add_argument('-o', dest='output', action='store', type=str, required=True, help='Directory to write the output files')
+    parser.add_argument('--cpp-no-validate-builder-input', dest='cpp_validate_input', default=True, action='store_false')
 
     return parser.parse_args()
 
@@ -31,7 +32,7 @@ def print_semantic_messages(file, warnings, errors):
 
 def main(argv):
     args = parse_arguments()
-    codegen = CppGen(args.output)
+    codegen = CppGen(args)
 
     for file in args.input:
         builder = Builder()

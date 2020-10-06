@@ -3,13 +3,10 @@ from .Beautifier import *
 import math
 
 
-def includes():
-    return '\n'.join([f'#include {include}' for include in ('<cstdint>', '<assert.h>', '<vector>')])
-
-
 class DataType:
-    def __init__(self, datatype):
-        self._fields = [field_factory.create(field) for field in datatype.fields]
+    def __init__(self, datatype, settings):
+        self._settings = settings
+        self._fields = [field_factory.create(field, settings) for field in datatype.fields]
         self._datatype = datatype
         self._identifier = datatype.identifier
         self._beautifier = Beautifier()
@@ -43,7 +40,7 @@ private:
     def generate(self, path):
         with open(path, 'w+') as f:
             f.write(self._beautifier.beautify(
-                f'''{ includes()}
+                f'''{ self.includes()}
     
                 namespace BiPaGe
                 {{
@@ -56,6 +53,12 @@ private:
                 }}
                 '''
             ))
+
+    def includes(self):
+        incs = ['<cstdint>', '<assert.h>', '<vector>']
+        if self._settings.cpp_validate_input:
+            incs.append('<string>') # needed for std::to_string
+        return '\n'.join(f'#include {include}' for include in incs)
 
     def defines(self):
         return '\n'.join([f'#define {key} {value}' for field in self._fields for key, value in field.defines()])
@@ -101,12 +104,14 @@ private:
     def _builder_ctor(self):
         parameters = ",\n".join([field.builder_parameter_code() for field in self._fields])
         initializers = ": " + "\n, ".join([field.builder_initializer_code() for field in self._fields])
+        validation = "\n".join(field.validation_code(field.name()) for field in self._fields) if self._settings.cpp_validate_input else ""
 
         return \
         f'''{self._identifier}_builder( // ctor that sets all fields to the specified value
         {parameters})
         {initializers}
         {{
+            {validation}
         }}'''
 
     def _builder_build_method(self):

@@ -2,6 +2,7 @@ Foo
 {
     field1: int6;
     field2: int11;
+    f4 : s32;
     field3 : uint7;
 }
 

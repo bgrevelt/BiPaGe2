@@ -10,8 +10,11 @@ class Beautifier:
 
     def beautify(self, code):
         lines = []
-        for line in code.splitlines():
+        input_lines = code.splitlines()
+        for i, line in enumerate(input_lines):
             line = line.lstrip()
+            if len(line) == 0 and (i == 0 or not any(c in input_lines[i-1] for c in ";}")):
+                continue;   # skip over empty lines unless the previous line contains a statement or closing brace
             line = self.indent_line(line)
             lines.append(line)
             self.update_indent_level(line)
