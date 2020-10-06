@@ -1,15 +1,14 @@
 Foo
 {
-    int32;
-    field2: float64;
-    //field3 : uint8;
+    field1: int6;
+    field2: int11;
+    field3 : uint7;
 }
 
-/*
+
 Bar
 {
     aap: int8;
     noot: float32;
     mies : uint64;
 }
-*/

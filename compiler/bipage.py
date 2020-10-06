@@ -44,7 +44,7 @@ def main(argv):
         if len(errors) > 0:
             continue
 
-        codegen.Generate(model)
+        codegen.generate(model)
 
 if __name__ == '__main__':
     main(sys.argv)

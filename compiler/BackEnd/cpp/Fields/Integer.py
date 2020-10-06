@@ -1,9 +1,9 @@
 from .Field import Field
-from ..HelperFunctions import *
+import math
 
 class Integer(Field):
     def __init__(self, field):
-        super().__init__(field)
+        super().__init__(field, self._to_cpp_type(field.encapsulating_type_size(), field.is_signed_type()), '0')
         self._complex = (not field.is_byte_aligned() or not field.is_standard_size())
 
     def builder_serialize_code(self):
@@ -13,11 +13,11 @@ class Integer(Field):
         offset_in_byte = self._field.offset % 8
         mask = (2 ** self._field.size_in_bits - 1) << offset_in_byte  # mask should not include sign bit
 
-        r = f'{TypeToCppType(self._field.type, self._field.encapsulating_type_size())} {self._field.name} = {self._field.name}_;\n'
+        r = f'{self._cpp_type} {self._field.name} = {self._field.name}_;\n'
         if offset_in_byte != 0:
             r += f'{self._field.name} <<= {offset_in_byte};\n'
         r += f'{self._field.name} &= 0x{mask:x};\n'
-        r += f'*reinterpret_cast<{TypeToCppType(self._field.type, self._field.encapsulating_type_size())}*>(sink + {FieldOffsetName(self._field)}) |= {self._field.name};\n\n'
+        r += f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
         return r
 
     def view_getter_code(self):
@@ -25,7 +25,7 @@ class Integer(Field):
             return super().view_getter_code()
 
         fieldname = self._field.name
-        return_type = TypeToCppType(self._field.type, self._field.return_type_size())
+        return_type = self._to_cpp_type(self._field.return_type_size(), self._issigned())
         body = self._body()
 
         return f'''{return_type} {fieldname}() const
@@ -34,9 +34,9 @@ class Integer(Field):
         }}'''
 
     def _body(self):
-        capture_type = TypeToCppType(self._field.type, self._field.encapsulating_type_size())
+        capture_type = self._to_cpp_type(self._field.encapsulating_type_size(), self._issigned())
 
-        body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(&data_ + {FieldOffsetName(self._field)});\n'
+        body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(&data_ + {self._offset_name()});\n'
         body += self._add_shift()
         body += self._add_mask()
         body += self._add_return()
@@ -71,13 +71,19 @@ class Integer(Field):
             return r
 
     def _add_return(self):
-        capture_type = TypeToCppType(self._field.type, self._field.encapsulating_type_size())
-        return_type = TypeToCppType(self._field.type, self._field.return_type_size())
+        return_type = self._to_cpp_type(self._field.return_type_size(), self._issigned())
 
-        if (return_type != capture_type):
-            return f'return static_cast<{return_type}>(capture_type);\n';
+        if self._field.encapsulating_type_size() != self._field.return_type_size():
+            return f'return static_cast<{return_type}>(capture_type);';
         else:
-            return 'return capture_type;\n'
+            return 'return capture_type;'
 
     def _issigned(self):
         return self._field.type == 'int'
+
+    def _to_cpp_type(self, size, signed):
+        assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
+        if signed:
+            return f'std::int{size}_t'
+        else:
+            return f'std::uint{size}_t'
