@@ -1,7 +1,10 @@
 #pragma once
 #include <algorithm>
+#include <functional>
+#include <iostream>
 
 #define check_equal(l,r) check_equal_func(l,r,__FUNCTION__, __LINE__)
+#define check_exception(e,f) check_exception_func<e>(f,__FUNCTION__, __LINE__, #e)
 
 template<typename T1, typename T2>
 void check_equal_func(const T1& l, const T2& r, const char* caller, int line)
@@ -34,6 +37,20 @@ void check_equal_func(const std::vector<T1>& l, const std::vector<T2>& r, const 
             std::cerr << std::endl;
         }
         exit(-1);
+    }
+}
+
+template<typename ExceptionType>
+void check_exception_func(std::function<void()>f, const char* caller, int line, const char* expected)
+{
+    try
+    {
+        f();
+        std::cerr << "check_exception called from " << caller << ", line " << line << ": expected \"" << expected << "\" wasn't thrown" << std::endl;
+        exit(-1);
+    }
+    catch(const ExceptionType&)
+    {
     }
 }
 
