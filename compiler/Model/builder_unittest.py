@@ -19,8 +19,8 @@ SomeDataType
 }
         ''')
 
-        self.assertEqual(len(model._datatypes), 1)
-        datatype = model._datatypes[0]
+        self.assertEqual(len(model.datatypes), 1)
+        datatype = model.datatypes[0]
 
         self.verify_datatype(datatype, "SomeDataType", [
             ("field1", "int", 0, 8),
@@ -52,8 +52,8 @@ SomeDataType
     }
             ''')
 
-            self.assertEqual(len(model._datatypes), 1)
-            datatype = model._datatypes[0]
+            self.assertEqual(len(model.datatypes), 1)
+            datatype = model.datatypes[0]
 
             # Aliases get turned into their counterpart types in the builder so the backend only needs to be worried
             # about those typessou
@@ -87,8 +87,8 @@ SomeDataType
     }
             ''')
 
-            self.assertEqual(len(model._datatypes), 1)
-            datatype = model._datatypes[0]
+            self.assertEqual(len(model.datatypes), 1)
+            datatype = model.datatypes[0]
 
             # Reserved fields are not part of the model since we don't need to do anything with them in the backend
             self.verify_datatype(datatype, "SomeDataType", [
@@ -109,7 +109,7 @@ SomeDataType
     }
             ''')
 
-        self.verify_datatype(model._datatypes[0], 'SomeDataType', [
+        self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', 'int',   0,  5,  8,  0,  0x1f),
             ('field2', 'uint', 5,  20, 32, 0,  0x1ffffe0),
             ('field3', 'int',   25, 7,  8,  24, 0xfe)
@@ -125,7 +125,7 @@ SomeDataType
     }
             ''')
 
-        self.verify_datatype(model._datatypes[0], 'SomeDataType', [
+        self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', 'int',   0,  5,  8,  0,  0x1f),
             ('field2', 'uint', 5,  20, 32, 0,  0x1ffffe0),
             ('field3', 'int',   25, 7,  8,  24, 0xfe)
@@ -146,8 +146,8 @@ SomeDataType
         self.assertEqual(field.offset, offset)
         self.assertEqual(field.size_in_bits, size)
         if encapsulating_type_size is not None:
-            self.assertEqual(field.encapsulating_type_size(), encapsulating_type_size)
+            self.assertEqual(field.capture_size, encapsulating_type_size)
         if encapsulating_type_offset is not None:
-            self.assertEqual(field.encapsulating_type_offset(), encapsulating_type_offset)
+            self.assertEqual(field.capture_type_offset(), encapsulating_type_offset)
         if encapsulating_type_mask is not None:
-            self.assertEqual(field.encapsulated_type_mask(), encapsulating_type_mask)
+            self.assertEqual(field.capture_type_mask(), encapsulating_type_mask)
