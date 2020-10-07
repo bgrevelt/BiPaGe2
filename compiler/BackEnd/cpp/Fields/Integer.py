@@ -12,8 +12,9 @@ def _to_cpp_type(size, signed):
 
 class Integer(Field):
     def __init__(self, field, settings):
-        super().__init__(field, _to_cpp_type(field.capture_size, field.is_signed_type()), '0', settings)
+        super().__init__(field, _to_cpp_type(field.standard_size, field.is_signed_type()), '0', settings)
         self._complex = (not field.is_byte_aligned() or not field.is_standard_size())
+        self.capture_type = _to_cpp_type(field.capture_size, field.is_signed_type())
 
     def builder_serialize_code(self):
         if not self._complex:
@@ -22,11 +23,11 @@ class Integer(Field):
         offset_in_byte = self._field.offset % 8
         mask = (2 ** self._field.size_in_bits - 1) << offset_in_byte  # mask should not include sign bit
 
-        r = f'{self._cpp_type} {self._field.name} = {self._field.name}_;\n'
+        r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
         if offset_in_byte != 0:
             r += f'{self._field.name} <<= {offset_in_byte};\n'
         r += f'{self._field.name} &= 0x{mask:x};\n'
-        r += f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
+        r += f'*reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
         return r
 
     def builder_setter_code(self):
