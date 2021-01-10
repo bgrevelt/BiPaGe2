@@ -80,8 +80,12 @@ class Builder(BiPaGeListener):
     def model(self):
         return self._definition
 
+    def is_aliased_type(self, type):
+        return re.search("^[s,u,f]\d{1,2}$",type) is not None
+
     def remove_aliases(self, type):
-        if not re.search("^[a-zA-Z]\d+$",type):
+        if self.is_aliased_type(type):
+            return self.fieldtype_translation[type[0]] + type[1:]
+        else:
             return type
 
-        return self.fieldtype_translation[type[0]] + type[1:]
