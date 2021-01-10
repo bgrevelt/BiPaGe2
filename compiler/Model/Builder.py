@@ -35,17 +35,26 @@ class Builder(BiPaGeListener):
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         fields = []
         for field in ctx.field():
-            if self.noderesult[field].name is not None:
+            if field.simple_field():
+                field = field.simple_field()
+            elif field.divided_field():
+                field = field.divided_field()
+
+            if self.noderesult[field].name is not None: # if no name is set, this is a padding field and we can ignore it.
                 fields.append(self.noderesult[field])
+
         node = DataType(str(ctx.Identifier()), fields, ctx.start)
         self.noderesult[ctx] = node
 
-    def exitField(self, ctx:BiPaGeParser.FieldContext):
+    def exitSimple_field(self, ctx:BiPaGeParser.Simple_fieldContext):
         id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
         type = self.remove_aliases(str(ctx.Type()))
         field = Field(id, type, self._offset, ctx.start)
         self._offset += field.size_in_bits
         self.noderesult[ctx] = field
+
+    def exitScoped_field(self, ctx:BiPaGeParser.Scoped_fieldContext):
+        raise NotImplementedError("exitDivided_field not implemented in lister yet")
 
     def build(self, text):
         errors = []

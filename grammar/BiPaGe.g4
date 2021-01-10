@@ -15,4 +15,6 @@ Identifier: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
 // Parser rules
 definition: datatype+;
 datatype: Identifier '{' field+ '}';
-field: (Identifier ':')? Type ';';
+field: simple_field | scoped_field;
+simple_field: (Identifier ':')? Type ';';
+scoped_field: '{' simple_field+ '}';
