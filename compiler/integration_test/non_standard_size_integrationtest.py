@@ -35,13 +35,18 @@ class Simple(unittest.TestCase):
             f.write('''
         Foo
         {
+            {
             field1: s12;  
             field2: u20;  
+            }
             field3: f64;
+            {
             field4: u2;
             field5: s4;
             field6: s18;  
             field7: u24;
+            field8: s16;
+            }
         }
         ''')
 
@@ -80,6 +85,7 @@ void test_foo_view()
     field5: s4;
     field6: s18; 
     field7: u24; 
+    field8: s16;
     
     Let's set some values
     field1: -150 --> 0xf6a
@@ -89,16 +95,17 @@ void test_foo_view()
     field5: 0x8 --> -8
     field6: 0x217B8 -125000 // This one is especially confusing since an 18 bit field does not really exist. So conversion tools will tell us the most significant nibble is E, but in reality we only have two bits, so it's really 2  
     field7: 12500000 --> 0xBEBC20
+    field8: 0
     
     if we look at all the bits together (top field right) we get this
-    10111110 10111100 00100000 10000101 11101110 00100011 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 11110100 00100100 00001111 01101010
-    +--------------------------+------------------++--+++ +---------------------------------------------------------------------------------------------------------------------------+ +--------------------++-----------+
-             Field7                 Field6          F5 F4                                                   Field3                                                                             Field2            Field1
+    00000000 00000000 10111110 10111100 00100000 10000101 11101110 00100011 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 11110100 00100100 00001111 01101010
+    +-----------------+--------------------------+------------------++--+++ +---------------------------------------------------------------------------------------------------------------------------+ +--------------------++-----------+
+           Field 8             Field7                 Field6          F5 F4                                                   Field3                                                                             Field2            Field1
          
     which translated into hex becomes 0xbebc2085b7230000000000000000f4240f6a
     */
     
-    std::vector<std::uint8_t> buffer { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe };
+    std::vector<std::uint8_t> buffer { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe, 0, 0 };
     // We make an exception for the double and set that to something sensible    
     *reinterpret_cast<double*>(buffer.data() + 4) = -123.456;
 
@@ -111,6 +118,7 @@ void test_foo_view()
     check_equal(parsed.field5(), -8);
     check_equal(parsed.field6(), -125000);
     check_equal(parsed.field7(), 12500000);
+    check_equal(parsed.field8(), 0);
 }
 
 void test_foo_builder()
@@ -123,10 +131,11 @@ void test_foo_builder()
     std::int8_t field5 = -8;
     std::int32_t field6 = -125000;
     std::uint32_t field7 = 12500000;
-    BiPaGe::Foo_builder builder(field1, field2, field3, field4, field5, field6, field7);
+    std::int16_t field8 = 0;
+    BiPaGe::Foo_builder builder(field1, field2, field3, field4, field5, field6, field7, field8);
 
     // See the view test for details on the expected data
-    std::vector<std::uint8_t> expected { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe };
+    std::vector<std::uint8_t> expected { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe, 0, 0 };
     *reinterpret_cast<double*>(expected.data() + 4) = -123.456;
      
     auto result = builder.build();
@@ -143,6 +152,7 @@ void test_foo_builder2()
     std::int8_t field5 = -8;
     std::int32_t field6 = -125000;
     std::uint32_t field7 = 12500000;
+    std::int16_t field8 = 0;
     
     BiPaGe::Foo_builder builder;
     builder.field1(field1);
@@ -152,9 +162,10 @@ void test_foo_builder2()
     builder.field5(field5);
     builder.field6(field6);
     builder.field7(field7);
+    builder.field8(field8);
 
     // See the view test for details on the expected data
-    std::vector<std::uint8_t> expected { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe };
+    std::vector<std::uint8_t> expected { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe, 0, 0 };
     *reinterpret_cast<double*>(expected.data() + 4) = -123.456;
      
     auto result = builder.build();

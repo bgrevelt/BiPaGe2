@@ -46,13 +46,18 @@ class Simple(unittest.TestCase):
             f.write('''
         Foo
         {
+            {
             field1: s12;  
-            field2: u20;  
+            field2: u20;
+            }  
             field3: f64;
+            {
             field4: u2;
             field5: s4;
             field6: s18;  
             field7: u24;
+            field8: s16;
+            }
         }
         ''')
 
@@ -80,7 +85,7 @@ class Simple(unittest.TestCase):
 
 void test_foo_builder()
 {
-    BiPaGe::Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0); // 4 doesn't fit into u2
+    BiPaGe::Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0, 0); // 4 doesn't fit into u2
 }
 
 void test_foo_builder2()
@@ -104,7 +109,7 @@ int main(int argc, char* argv[])
 
     void test_foo_builder()
     {
-        BiPaGe::Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0); // 4 doesn't fit into u2
+        BiPaGe::Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0, 0); // 4 doesn't fit into u2
     }
 
     void test_foo_builder2()

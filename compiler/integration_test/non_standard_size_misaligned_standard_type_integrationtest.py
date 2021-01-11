@@ -35,9 +35,11 @@ class Simple(unittest.TestCase):
             f.write('''
         Foo
         {
-            field1: u4;  
-            field2: u16;  
-            field3: u12;
+            {
+                field1: u4;  
+                field2: u16;  
+                field3: u12;
+            }
         }
         ''')
 

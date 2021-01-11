@@ -63,8 +63,7 @@ class Builder(BiPaGeListener):
         capture_scope_offset = self._scoped_offset
 
         for field in ctx.simple_field():
-            self.noderesult[field]._capture_offset = capture_scope_offset
-            self.noderesult[field].capture_size = capture_scope_size
+            self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
 
     def build(self, text):
         errors = []

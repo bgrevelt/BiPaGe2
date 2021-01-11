@@ -16,8 +16,17 @@ class Field(Node):
         self.type = "".join([c for c in type if not c.isnumeric()])
         self.size_in_bits = int("".join([c for c in type if c.isnumeric()]))
         self.standard_size = _standard_size(self.size_in_bits)
-        self.capture_size = _standard_size((self.offset % 8) + self.size_in_bits)
-        self._capture_offset = None
+        # capture size and offset default to type size and offset. If this is non-standard type set_capture will be
+        # called to override these values.
+        self.capture_size = self.size_in_bits
+        self.capture_offset = offset
+        self.scoped = False
+
+    def set_capture(self, size, offset):
+        self.capture_size = size
+        self.capture_offset = offset
+        self.scoped = True
+
 
     def check_semantics(self, warnings, errors):
         line, column = self.location()
@@ -44,27 +53,18 @@ class Field(Node):
 
     # return the byte aligned offset to the field
     def capture_type_offset(self):
-        if self._capture_offset:
-            return self._capture_offset
-        else:
-            return (self.offset // 8) * 8
+        return self.capture_offset
 
     def capture_type_mask(self):
-        if self._capture_offset:
-            offset_in_byte = self.offset - self._capture_offset
-        else:
-            offset_in_byte = self.offset % 8
+        offset_in_capture_type = self.offset - self.capture_offset
 
-        return (2**(self.size_in_bits + offset_in_byte)) - 2**offset_in_byte
+        return (2**(self.size_in_bits + offset_in_capture_type)) - 2**offset_in_capture_type
 
     def return_type_size(self):
         return _standard_size(self.size_in_bits)
 
     def is_signed_type(self):
         return self.type in ['int', 'float']
-
-    def is_byte_aligned(self):
-        return self.offset % 8 == 0
 
     def is_standard_size(self):
         # anything under 8 bits is non-standard

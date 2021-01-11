@@ -13,11 +13,11 @@ def _to_cpp_type(size, signed):
 class Integer(Field):
     def __init__(self, field, settings):
         super().__init__(field, _to_cpp_type(field.standard_size, field.is_signed_type()), '0', settings)
-        self._complex = (not field.is_byte_aligned() or not field.is_standard_size())
+        self._scoped = field.scoped
         self.capture_type = _to_cpp_type(field.capture_size, field.is_signed_type())
 
     def builder_serialize_code(self):
-        if not self._complex:
+        if not self._scoped:
             return super().builder_serialize_code()
 
         offset_in_byte = self._field.offset % 8
@@ -31,6 +31,7 @@ class Integer(Field):
         return r
 
     def builder_setter_code(self):
+        # only add validation code for non-standard width types and when validation generation is enabled
         if self._field.is_standard_size() or not self._settings.cpp_validate_input:
             return super().builder_setter_code()
 
@@ -42,7 +43,7 @@ class Integer(Field):
         }}'''
 
     def view_getter_code(self):
-        if not self._complex:
+        if not self._scoped:
             return super().view_getter_code()
 
         fieldname = self._field.name
