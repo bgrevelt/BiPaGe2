@@ -103,16 +103,45 @@ SomeDataType
         _, _, model = Builder().build('''
     SomeDataType
     {
-        field1 : int5;
-        field2 : uint20;
-        field3 : int7;
+        field1 : int32;   
+        {     
+            field2 : int5;
+            field3 : uint20;
+            field4 : int7;
+        }
+        field5 : float64;
     }
             ''')
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
-            ('field1', 'int',   0,  5,  8,  0,  0x1f),
-            ('field2', 'uint', 5,  20, 32, 0,  0x1ffffe0),
-            ('field3', 'int',   25, 7,  8,  24, 0xfe)
+            ('field1', 'int',   0,  32, 32, 0,  0xffffffff),
+            ('field2', 'int',   32, 5,  32, 32, 0x0000001f),
+            ('field3', 'uint',  37, 20, 32, 32, 0x01ffffe0),
+            ('field4', 'int',   57, 7,  32, 32, 0xfe000000),
+            ('field5', 'float', 64, 64, 64, 64, 0xffffffffffffffff)
+        ])
+
+    def test_non_standard_width_with_padding(self):
+        _, _, model = Builder().build('''
+    SomeDataType
+    {
+        field1 : int32;   
+        {     
+            field2 : int5;
+            int3;
+            field3 : uint10;
+            field4 : int14;
+        }
+        field5 : float64;
+    }
+            ''')
+        # name, type, offset, size, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask
+        self.verify_datatype(model.datatypes[0], 'SomeDataType', [
+            ('field1', 'int',   0,  32, 32, 0,  0xffffffff),
+            ('field2', 'int',   32, 5,  32, 32, 0x0000001f),
+            ('field3', 'uint',  40, 10, 32, 32, 0x0003ff00),
+            ('field4', 'int',   50, 14, 32, 32, 0xfffc0000),
+            ('field5', 'float', 64, 64, 64, 64, 0xffffffffffffffff)
         ])
 
     def test_non_standard_width_alias(self):

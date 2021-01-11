@@ -17,6 +17,7 @@ class Field(Node):
         self.size_in_bits = int("".join([c for c in type if c.isnumeric()]))
         self.standard_size = _standard_size(self.size_in_bits)
         self.capture_size = _standard_size((self.offset % 8) + self.size_in_bits)
+        self._capture_offset = None
 
     def check_semantics(self, warnings, errors):
         line, column = self.location()
@@ -43,10 +44,17 @@ class Field(Node):
 
     # return the byte aligned offset to the field
     def capture_type_offset(self):
-        return (self.offset // 8) * 8
+        if self._capture_offset:
+            return self._capture_offset
+        else:
+            return (self.offset // 8) * 8
 
     def capture_type_mask(self):
-        offset_in_byte = self.offset % 8
+        if self._capture_offset:
+            offset_in_byte = self.offset - self._capture_offset
+        else:
+            offset_in_byte = self.offset % 8
+
         return (2**(self.size_in_bits + offset_in_byte)) - 2**offset_in_byte
 
     def return_type_size(self):

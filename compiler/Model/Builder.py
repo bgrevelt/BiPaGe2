@@ -17,6 +17,7 @@ def set_error_listener(target, listener):
 class Builder(BiPaGeListener):
     def __init__(self):
         self._offset = 0
+        self._scoped_offset = 0
         self._definition = None
         self.noderesult = {}
 
@@ -32,16 +33,16 @@ class Builder(BiPaGeListener):
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         self._offset = 0
 
+    def get_fields_from_scoped_capture_scope(self, capture_scope):
+        return [self.noderesult[field] for field in capture_scope.simple_field() if self.noderesult[field].name is not None]
+
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         fields = []
         for field in ctx.field():
-            if field.simple_field():
-                field = field.simple_field()
-            elif field.divided_field():
-                field = field.divided_field()
-
-            if self.noderesult[field].name is not None: # if no name is set, this is a padding field and we can ignore it.
-                fields.append(self.noderesult[field])
+            if field.simple_field() and self.noderesult[field.simple_field()].name is not None:
+                fields.append(self.noderesult[field.simple_field()])
+            elif field.scoped_field():
+                fields.extend(self.get_fields_from_scoped_capture_scope(field.scoped_field()))
 
         node = DataType(str(ctx.Identifier()), fields, ctx.start)
         self.noderesult[ctx] = node
@@ -53,8 +54,17 @@ class Builder(BiPaGeListener):
         self._offset += field.size_in_bits
         self.noderesult[ctx] = field
 
+    def enterScoped_field(self, ctx:BiPaGeParser.Scoped_fieldContext):
+        # store the current offset as that is the offset of the capture scope
+        self._scoped_offset = self._offset
+
     def exitScoped_field(self, ctx:BiPaGeParser.Scoped_fieldContext):
-        raise NotImplementedError("exitDivided_field not implemented in lister yet")
+        capture_scope_size = sum(self.noderesult[field].size_in_bits for field in ctx.simple_field())
+        capture_scope_offset = self._scoped_offset
+
+        for field in ctx.simple_field():
+            self.noderesult[field]._capture_offset = capture_scope_offset
+            self.noderesult[field].capture_size = capture_scope_size
 
     def build(self, text):
         errors = []
