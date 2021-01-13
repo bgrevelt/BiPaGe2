@@ -3,7 +3,8 @@ import math
 
 
 def _to_cpp_type(size, signed):
-    assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
+    # assert disabled to give semantic analysis a chance to catch this
+    #assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
     if signed:
         return f'std::int{size}_t'
     else:

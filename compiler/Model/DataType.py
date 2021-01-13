@@ -2,10 +2,11 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 
 class DataType(Node):
-    def __init__(self, identifier, fields, token):
+    def __init__(self, identifier, capture_scopes, fields, token):
         super().__init__(token)
         self.fields = fields
         self.identifier = identifier
+        self.capture_scopes = capture_scopes
 
     def __str__(self):
         s = self.identifier + "\n"
@@ -22,6 +23,7 @@ class DataType(Node):
     def check_semantics(self, warnings, errors):
         self.check_empty(warnings, errors)
         self.check_unique_field_names(warnings, errors)
+        self.check_capture_scopes(warnings, errors)
         self.check_fields(warnings, errors)
         self.check_size(warnings, errors)
 
@@ -40,6 +42,10 @@ class DataType(Node):
                     msg = f"Semantic error: Duplicate field name {field.name} found in data type {self.identifier}."
                     line, column = field.location()
                     errors.append(BuildMessage(line, column, msg))
+
+    def check_capture_scopes(self, warnings, errors):
+        for capture_scope in self.capture_scopes:
+            capture_scope.check_semantics(warnings, errors)
 
     def check_fields(self, warnings, errors):
         for field in self.fields:

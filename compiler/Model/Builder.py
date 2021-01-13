@@ -2,6 +2,7 @@ from generated.BiPaGeListener import BiPaGeListener
 from .DataType import DataType
 from .Field import Field
 from .Definition import Definition
+from .CaptureScope import CaptureScope
 from .ErrorListener import BiPaGeErrorListener
 from antlr4 import *
 from generated.BiPaGeLexer import BiPaGeLexer
@@ -38,13 +39,29 @@ class Builder(BiPaGeListener):
 
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         fields = []
+        ''' We get a little dodgy with the mode here. Our model looks like this
+        DataType
+        +-Fields
+        +-Capture Scope
+          +-Fields
+          
+        However, because we really only use the capture scope to determine offsets and capture width
+        for the fields it encompasses (and some semantic analysis). After that, the extra nesting only
+        makes our life harder. That's why we add all fields (including those in capture scopes) directly
+        to the datatype. We still create a capture type and put the fields inside the capture type to it,
+        but that's only used for semantic analysis.
+        '''
+
         for field in ctx.field():
             if field.simple_field() and self.noderesult[field.simple_field()].name is not None:
                 fields.append(self.noderesult[field.simple_field()])
             elif field.scoped_field():
+                # Add fields from the capture scope directly to the datatype as well.
                 fields.extend(self.get_fields_from_scoped_capture_scope(field.scoped_field()))
 
-        node = DataType(str(ctx.Identifier()), fields, ctx.start)
+        capture_scopes = [ self.noderesult[cs_context.scoped_field()] for cs_context in ctx.field() if cs_context.scoped_field()]
+
+        node = DataType(str(ctx.Identifier()), capture_scopes, fields, ctx.start)
         self.noderesult[ctx] = node
 
     def exitSimple_field(self, ctx:BiPaGeParser.Simple_fieldContext):
@@ -59,11 +76,14 @@ class Builder(BiPaGeListener):
         self._scoped_offset = self._offset
 
     def exitScoped_field(self, ctx:BiPaGeParser.Scoped_fieldContext):
-        capture_scope_size = sum(self.noderesult[field].size_in_bits for field in ctx.simple_field())
+        fields = [self.noderesult[field] for field in ctx.simple_field()]
+        capture_scope_size = sum(f.size_in_bits for f in fields)
         capture_scope_offset = self._scoped_offset
 
         for field in ctx.simple_field():
             self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
+
+        self.noderesult[ctx] = CaptureScope(capture_scope_offset, fields, ctx.start)
 
     def build(self, text):
         errors = []
