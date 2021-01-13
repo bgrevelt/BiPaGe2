@@ -150,7 +150,7 @@ SomeDataType
     f4 : int8;
     f5: u16;
 }''')
-        self.checkErrors(errors, [(4, 4, 'fields in capture scope (40 bits) is not a standard size')])  # no error
+        self.checkErrors(errors, [(4, 4, 'fields in capture scope (40 bits) is not a standard size')])
 
         # Standard type width. No errors
         warnings, errors, _ = Builder().build('''
@@ -163,6 +163,19 @@ SomeDataType
             }
         }''')
         self.checkErrors(errors, [])  # no error
+
+    def test_only_standard_in_capture_scope(self):
+        warnings, errors, _ = Builder().build('''
+SomeDataType
+{
+    {
+        f1 : int8;
+        f2 : u16;
+        f3 : s32;   
+    }
+    f4 : int8;
+}''')
+        self.checkErrors(warnings, [(4, 4, 'Capture scope contains only standard types')])  # no error
 
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
