@@ -89,57 +89,81 @@ SomeDataType
             else:
                 self.checkErrors(errors, [(4, 4, 'outside supported range')])
 
-
-    def test_uncapturable_type(self):
-        # we currently don't support non-standard integer types that we cant directly capture in a 64 or less bit type.
+    def test_non_standard_field_outside_of_capture_scope(self):
+        # Non-standard types out of capture scope. Should yield errors.
         warnings, errors, _ = Builder().build('''
 SomeDataType
 {
-    f1 : int6;   // 59 bit type at 6 bit offset.
-    f2 : uint59; // This means we can't capture it in a 64 bit integer
-    f3 : int7;   // To end up nicely on a byte boundary
+    f1 : int16;   
+    f2 : int12; 
+    f3 : int4;   
 }''')
-        self.checkErrors(errors, [(5, 4, 'f2 cannot be captured in a type that is 64 bits or less in size')])
+        self.checkErrors(errors, [(5, 4, 'Field f2 should be in a capture scope.'),
+                                  (6, 4, 'Field f3 should be in a capture scope.')])
 
-    def test_datatype_size(self):
-        # datatypes should be x*8 bits in size (e.g a whole number of bytes
+        # Same object only now with capture scope in place. Should not yield any errors.
         warnings, errors, _ = Builder().build('''
-SomeDataType
-{
-    f1 : int5;   
-    f2 : uint30; 
-    f3 : int4;   // Total size: 39 bits
-}''')
-        self.checkErrors(errors, [(2,0,"Datatypes should be a multiple of eight in size")])
-
-        warnings, errors, _ = Builder().build('''
-SomeDataType
-{
-    f1 : int6;   
-    f2 : uint30; 
-    f3 : int4;   // Total size: 40 bits
-}''')
-        self.checkErrors(errors, [])  # no error
-
-    def test_float_boundary(self):
-        #floating point types should be positioned at a byte boundary
-        warnings, errors, _ = Builder().build('''
-SomeDataType
-{
-    f1 : int5;   
-    f2 : float32; 
-    f3 : int3;
-}''')
-        self.checkErrors(errors, [(5, 4, "should be at a byte boundary")])
-
-        warnings, errors, _ = Builder().build('''
-SomeDataType
-{
-    f1 : int8;   
-    f2 : float32; 
-    f3 : int8;
-}''')
+        SomeDataType
+        {
+            f1 : int16;   
+            {
+                f2 : int12; 
+                f3 : int4;
+            }   
+        }''')
         self.checkErrors(errors, [])
+
+
+#     def test_uncapturable_type(self):
+#         # we currently don't support non-standard integer types that we cant directly capture in a 64 or less bit type.
+#         warnings, errors, _ = Builder().build('''
+# SomeDataType
+# {
+#     f1 : int6;   // 59 bit type at 6 bit offset.
+#     f2 : uint59; // This means we can't capture it in a 64 bit integer
+#     f3 : int7;   // To end up nicely on a byte boundary
+# }''')
+#         self.checkErrors(errors, [(5, 4, 'f2 cannot be captured in a type that is 64 bits or less in size')])
+
+#     def test_datatype_size(self):
+#         # datatypes should be x*8 bits in size (e.g a whole number of bytes
+#         warnings, errors, _ = Builder().build('''
+# SomeDataType
+# {
+#     f1 : int5;
+#     f2 : uint30;
+#     f3 : int4;   // Total size: 39 bits
+# }''')
+#         self.checkErrors(errors, [(2,0,"Datatypes should be a multiple of eight in size")])
+#
+#         warnings, errors, _ = Builder().build('''
+# SomeDataType
+# {
+#     f1 : int6;
+#     f2 : uint30;
+#     f3 : int4;   // Total size: 40 bits
+# }''')
+#         self.checkErrors(errors, [])  # no error
+
+#     def test_float_boundary(self):
+#         #floating point types should be positioned at a byte boundary
+#         warnings, errors, _ = Builder().build('''
+# SomeDataType
+# {
+#     f1 : int5;
+#     f2 : float32;
+#     f3 : int3;
+# }''')
+#         self.checkErrors(errors, [(5, 4, "should be at a byte boundary")])
+#
+#         warnings, errors, _ = Builder().build('''
+# SomeDataType
+# {
+#     f1 : int8;
+#     f2 : float32;
+#     f3 : int8;
+# }''')
+#         self.checkErrors(errors, [])
 
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
