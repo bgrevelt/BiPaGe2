@@ -39,18 +39,6 @@ class Field(Node):
                 errors.append(BuildMessage(line, column,
                                            f'Size ({self.size_in_bits}) for type {self.type} outside supported range [2-64]'))
 
-        # if self.type == 'float' and self.offset % 8 != 0:
-        #     errors.append(BuildMessage(line, column,
-        #                                f'Float field {self.name} should be at a byte boundary. Current offset is {self.size_in_bits} bits.'))
-
-        # if self.type == 'int' or self.type == 'uint':
-        #     if self.size_in_bits % 8 == 0 and self.offset % 8 != 0:
-        #         warnings.append(BuildMessage(line, column, f'Field {self.name} is not at a byte boundary ({self.offset} bits) are you sure this is intentional?' ))
-
-        # if self.capture_size > 64:
-        #     errors.append(BuildMessage(line, column,
-        #                                f'Field {self.name} cannot be captured in a type that is 64 bits or less in size. Field size is {self.size_in_bits} bits. Field offset is {self.offset} bits. Capture type would need to be {self.capture_size} bits.'))
-
         if not self.scoped and not self.is_standard_size():
             errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits} bits) sized Field {self.name} should be in a capture scope.'))
 
