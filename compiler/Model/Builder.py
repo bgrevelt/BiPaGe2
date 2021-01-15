@@ -55,11 +55,11 @@ class Builder(BiPaGeListener):
         for field in ctx.field():
             if field.simple_field() and self.noderesult[field.simple_field()].name is not None:
                 fields.append(self.noderesult[field.simple_field()])
-            elif field.scoped_field():
+            elif field.capture_scope():
                 # Add fields from the capture scope directly to the datatype as well.
-                fields.extend(self.get_fields_from_scoped_capture_scope(field.scoped_field()))
+                fields.extend(self.get_fields_from_scoped_capture_scope(field.capture_scope()))
 
-        capture_scopes = [ self.noderesult[cs_context.scoped_field()] for cs_context in ctx.field() if cs_context.scoped_field()]
+        capture_scopes = [ self.noderesult[cs_context.capture_scope()] for cs_context in ctx.field() if cs_context.capture_scope()]
 
         node = DataType(str(ctx.Identifier()), capture_scopes, fields, ctx.start)
         self.noderesult[ctx] = node
@@ -71,11 +71,11 @@ class Builder(BiPaGeListener):
         self._offset += field.size_in_bits
         self.noderesult[ctx] = field
 
-    def enterScoped_field(self, ctx:BiPaGeParser.Scoped_fieldContext):
+    def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         # store the current offset as that is the offset of the capture scope
         self._scoped_offset = self._offset
 
-    def exitScoped_field(self, ctx:BiPaGeParser.Scoped_fieldContext):
+    def exitCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         fields = [self.noderesult[field] for field in ctx.simple_field()]
         capture_scope_size = sum(f.size_in_bits for f in fields)
         capture_scope_offset = self._scoped_offset
