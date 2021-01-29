@@ -2,10 +2,11 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 
 class Definition(Node):
-    def __init__(self, endianness, datatypes, token):
+    def __init__(self, endianness, namespace, datatypes, token):
         super().__init__(token)
         self.datatypes = datatypes
         self.endianness = endianness
+        self.namespace = namespace
 
     def check_semantics(self, warnings, errors):
         unique_datatype_names = {datatype.identifier for datatype in self.datatypes}

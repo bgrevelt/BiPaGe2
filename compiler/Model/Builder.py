@@ -29,13 +29,17 @@ class Builder(BiPaGeListener):
             'f' : 'float'
         }
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
-        if ctx.EndiannessDecorator():
-            assert str(ctx.EndiannessDecorator()) in ['@bigendian','@littleendian']
+        namespace = []
+        if ctx.namespace():
+            namespace = [str(ns) for ns in ctx.namespace().Identifier()]
+
+        if ctx.endianness():
+            assert str(ctx.endianness().EndiannessDecorator()) in ['@bigendian','@littleendian']
         endianness = 'little'
-        if ctx.EndiannessDecorator() and str(ctx.EndiannessDecorator()) == '@bigendian':
+        if ctx.endianness() and str(ctx.endianness().EndiannessDecorator()) == '@bigendian':
             endianness = 'big'
 
-        self._definition = Definition(endianness, [self.noderesult[d] for d in ctx.datatype()], ctx.start)
+        self._definition = Definition(endianness, namespace, [self.noderesult[d] for d in ctx.datatype()], ctx.start)
 
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
