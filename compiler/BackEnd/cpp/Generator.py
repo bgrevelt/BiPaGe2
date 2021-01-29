@@ -11,6 +11,6 @@ class Generator:
             os.mkdir(self.output_dir)
 
         for datatype in model.datatypes:
-            generator = DataType(datatype, model.endianness, self._settings)
+            generator = DataType(datatype, model.namespace, model.endianness, self._settings)
             header_path = os.path.join(self.output_dir, f"{datatype.identifier}_generated.h")
             generator.generate(header_path)

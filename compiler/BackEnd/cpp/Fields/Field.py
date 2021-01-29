@@ -23,7 +23,7 @@ class Field:
         else:
             return f'''{self._cpp_type} {self._field.name}() const
                     {{
-                        return swap_bytes(*reinterpret_cast<const {self._cpp_type}*>(&data_ + {self._offset_name()}));
+                        return BiPaGe::swap_bytes(*reinterpret_cast<const {self._cpp_type}*>(&data_ + {self._offset_name()}));
                     }}'''
 
     def builder_setter_code(self):
@@ -43,7 +43,7 @@ class Field:
         if self._endianness == 'little' or self._field.size_in_bits == 8:
             return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = {self._field.name}_;\n'
         else:
-            return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = swap_bytes({self._field.name}_);\n'
+            return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = BiPaGe::swap_bytes({self._field.name}_);\n'
 
     def builder_parameter_code(self):
         # std::uintt_t foo

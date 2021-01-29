@@ -4,7 +4,8 @@ import math
 
 
 class DataType:
-    def __init__(self, datatype, endianness, settings):
+    def __init__(self, datatype, namespace, endianness, settings):
+        self._namespace = namespace
         self._endianness = endianness
         self._settings = settings
         self._fields = [field_factory.create(field, endianness, settings) for field in datatype.fields]
@@ -42,18 +43,32 @@ private:
         with open(path, 'w+') as f:
             f.write(self._beautifier.beautify(
                 f'''{ self.includes()}
-    
-                namespace BiPaGe
-                {{
+
+                {self.namespace_open()}
                 {self.defines()}
-    
+
                 {self.parser_code()}
-    
+
                 {self.builder_code()}
-    
-                }}
+
+                {self.namespace_close()}
                 '''
             ))
+
+    def namespace_open(self):
+        if len(self._namespace) == 0:
+            return ""
+        ns = ""
+        for namespace in self._namespace:
+            ns += f'namespace {namespace}\n{{\n'
+        return ns
+
+    def namespace_close(self):
+        if len(self._namespace) == 0:
+            return ""
+        else:
+            return '}\n' * len(self._namespace)
+
 
     def includes(self):
         incs = ['<cstdint>', '<assert.h>', '<vector>']
