@@ -72,3 +72,19 @@ std::uint8_t* serialize(std::uint8_t* data, T value)
     *reinterpret_cast<T*>(data) = value;
     return data + sizeof(T);
 }
+
+void naive_swap_impl(char* data, size_t size)
+{
+    for(size_t i = 0 ; i < size / 2 ; ++i)
+    {
+        std::swap(data[i], data[size - 1 - i]);
+    }
+}
+
+template <typename T>
+T naive_swap(const T& val)
+{
+    T copy = val;
+    naive_swap_impl(reinterpret_cast<char*>(&copy), sizeof(T));
+    return copy;
+}

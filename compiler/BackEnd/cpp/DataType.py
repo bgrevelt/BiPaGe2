@@ -4,9 +4,10 @@ import math
 
 
 class DataType:
-    def __init__(self, datatype, settings):
+    def __init__(self, datatype, endianness, settings):
+        self._endianness = endianness
         self._settings = settings
-        self._fields = [field_factory.create(field, settings) for field in datatype.fields]
+        self._fields = [field_factory.create(field, endianness, settings) for field in datatype.fields]
         self._datatype = datatype
         self._identifier = datatype.identifier
         self._beautifier = Beautifier()
@@ -58,6 +59,9 @@ private:
         incs = ['<cstdint>', '<assert.h>', '<vector>']
         if self._settings.cpp_validate_input:
             incs.append('<string>') # needed for std::to_string
+        if self._endianness == 'big':
+            incs.append('<BiPaGe/Endianness.h>')  # Contains functions to translate from big to little endianness
+
         return '\n'.join(f'#include {include}' for include in incs)
 
     def defines(self):
@@ -117,12 +121,24 @@ private:
     def _builder_build_method(self):
         body = "".join([field.builder_serialize_code() for field in self._fields])
 
-        return \
+        r = \
             f'''void build(uint8_t * sink) const // serialize the data to the given buffer
             {{
             {body.rstrip()}
-            }}
             '''
+
+        if self._endianness == 'big':
+            r += '''
+            // Byte swap all capture scopes.\n'''
+            for i, capture_scope in enumerate(self._datatype.capture_scopes):
+                # TODO: code duplication. We should really add the capture scope to the backend model
+                # to prevent this instead of using hacky solutions like this.
+                offset_name = f'{capture_scope.fields()[0].name.upper()}_CAPTURE_OFFSET'
+                r += f'auto capture_scope_{i+1} = reinterpret_cast<std::uint{capture_scope.size()}_t*>(sink + {offset_name});\n'
+                r += f'*capture_scope_{i+1} = BiPaGe::swap_bytes(*capture_scope_{i+1});\n'
+
+        r += '}'
+        return r
 
     def _builder_size(self):
         size = math.ceil(self._datatype.size_in_bits() / 8 )

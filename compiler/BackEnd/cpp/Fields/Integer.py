@@ -12,8 +12,8 @@ def _to_cpp_type(size, signed):
 
 
 class Integer(Field):
-    def __init__(self, field, settings):
-        super().__init__(field, _to_cpp_type(field.standard_size, field.is_signed_type()), '0', settings)
+    def __init__(self, field, endianness, settings):
+        super().__init__(field, _to_cpp_type(field.standard_size, field.is_signed_type()), '0', endianness, settings)
         self._scoped = field.scoped
         self.capture_type = _to_cpp_type(field.capture_size, field.is_signed_type())
 
@@ -27,7 +27,12 @@ class Integer(Field):
         r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
         if offset_in_byte != 0:
             r += f'{self._field.name} <<= {offset_in_byte};\n'
+
         r += f'{self._field.name} &= 0x{mask:x};\n'
+
+        # Note: byte swapping for big endian types happens at the datatype level so we can swap the
+        # entire capture scope at once
+
         r += f'*reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
         return r
 
@@ -60,6 +65,8 @@ class Integer(Field):
         capture_type = _to_cpp_type(self._field.capture_size, self._issigned())
 
         body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(&data_ + {self._offset_name()});\n'
+        if self._endianness == 'big' and self._field.size_in_bits != 8:
+            body += 'capture_type = BiPaGe::swap_bytes(capture_type);'
         body += self._add_shift()
         body += self._add_mask()
         body += self._add_return()
