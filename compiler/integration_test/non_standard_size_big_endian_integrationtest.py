@@ -32,7 +32,7 @@ class Simple(unittest.TestCase):
 
     def write_bipage_file(self):
         with open(f'temp/{self.test_name}.bp', 'w+') as f:
-            f.write('''@bigendian
+            f.write('''@bigendian;
         Foo
         {
             {

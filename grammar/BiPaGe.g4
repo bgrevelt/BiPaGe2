@@ -12,10 +12,10 @@ NumberLiteral: [0-9]+;
 
 Identifier: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
 EndiannessDecorator: '@'('bigendian'|'littleendian');
-Namespace: 'namespace ' Identifier ('.'Identifier)* ';';
+Namespace: 'namespace ' Identifier ('.'Identifier)*;
 
 // Parser rules
-definition: Namespace? EndiannessDecorator? datatype+;
+definition: (Namespace';')? (EndiannessDecorator';')? datatype+;
 datatype: Identifier '{' field+ '}';
 field: simple_field | capture_scope;
 simple_field: (Identifier ':')? Type ';';
