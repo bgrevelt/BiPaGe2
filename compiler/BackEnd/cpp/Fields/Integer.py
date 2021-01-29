@@ -21,7 +21,7 @@ class Integer(Field):
         if not self._scoped:
             return super().builder_serialize_code()
 
-        offset_in_byte = self._field.offset % 8
+        offset_in_byte = (self._field.offset - self._field.capture_offset)
         mask = (2 ** self._field.size_in_bits - 1) << offset_in_byte  # mask should not include sign bit
 
         r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
@@ -67,7 +67,7 @@ class Integer(Field):
         return body
 
     def _add_shift(self):
-        offset_in_byte = self._field.offset % 8
+        offset_in_byte = self._field.offset - self._field.capture_offset
         if offset_in_byte != 0:
             return f'capture_type >>= {offset_in_byte};\n'
         else:
