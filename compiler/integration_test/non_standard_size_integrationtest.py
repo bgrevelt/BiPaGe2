@@ -109,7 +109,7 @@ void test_foo_view()
     // We make an exception for the double and set that to something sensible    
     *reinterpret_cast<double*>(buffer.data() + 4) = -123.456;
 
-    const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(buffer.data());
+    const Foo_view& parsed = ParseFoo(buffer.data());
 
     check_equal(parsed.field1(), -150);
     check_equal(parsed.field2(), 1000000);
@@ -132,7 +132,7 @@ void test_foo_builder()
     std::int32_t field6 = -125000;
     std::uint32_t field7 = 12500000;
     std::int16_t field8 = 0;
-    BiPaGe::Foo_builder builder(field1, field2, field3, field4, field5, field6, field7, field8);
+    Foo_builder builder(field1, field2, field3, field4, field5, field6, field7, field8);
 
     // See the view test for details on the expected data
     std::vector<std::uint8_t> expected { 0x6a, 0x0f, 0x24, 0xf4, 0, 0, 0, 0, 0, 0, 0, 0, 0x23, 0xee, 0x85, 0x20, 0xbc, 0xbe, 0, 0 };
@@ -154,7 +154,7 @@ void test_foo_builder2()
     std::uint32_t field7 = 12500000;
     std::int16_t field8 = 0;
     
-    BiPaGe::Foo_builder builder;
+    Foo_builder builder;
     builder.field1(field1);
     builder.field2(field2);
     builder.field3(field3);

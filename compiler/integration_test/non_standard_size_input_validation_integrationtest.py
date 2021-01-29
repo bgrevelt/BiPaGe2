@@ -85,12 +85,12 @@ class Simple(unittest.TestCase):
 
 void test_foo_builder()
 {
-    BiPaGe::Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0, 0); // 4 doesn't fit into u2
+    Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0, 0); // 4 doesn't fit into u2
 }
 
 void test_foo_builder2()
 {
-    BiPaGe::Foo_builder builder;
+    Foo_builder builder;
     builder.field1(-2049); // Doesn't fit into int12
 }
 
@@ -109,12 +109,12 @@ int main(int argc, char* argv[])
 
     void test_foo_builder()
     {
-        BiPaGe::Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0, 0); // 4 doesn't fit into u2
+        Foo_builder builder(0, 0, 0.0, 4, 0, 0, 0, 0); // 4 doesn't fit into u2
     }
 
     void test_foo_builder2()
     {
-        BiPaGe::Foo_builder builder;
+        Foo_builder builder;
         builder.field1(-2049); // Doesn't fit into int12
     }
 

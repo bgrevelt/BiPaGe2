@@ -31,7 +31,8 @@ class Simple(unittest.TestCase):
 
     def write_bipage_file(self):
         with open(f'temp/{self.test_name}.bp', 'w+') as f:
-            f.write('''@bigendian;
+            f.write('''
+        @bigendian;
         Foo
         {
             field1: s32;  // Some info
@@ -98,7 +99,7 @@ void test_foo_view()
     std::uint8_t f3 = 33;
     p = serialize(p, f3);
 
-    const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(buffer);
+    const Foo_view& parsed = ParseFoo(buffer);
 
     check_equal(parsed.field1(), -35643);
     check_equal(parsed.field2(), 1.234);
@@ -115,7 +116,7 @@ void test_bar_view()
     p = serialize(p, naive_swap(std::numeric_limits<int64_t>::max()));
     p = serialize(p, naive_swap(std::numeric_limits<int64_t>::min()));
 
-    const BiPaGe::Bar_view& parsed = BiPaGe::ParseBar(buffer);
+    const Bar_view& parsed = ParseBar(buffer);
 
     check_equal(parsed.Corey(), -25);
     check_equal(parsed.Max(), 1.234f);
@@ -128,7 +129,7 @@ void test_foo_builder()
     int32_t field1 = 12345;
     double field2 = 123.456;
     uint8_t field3 = 255;
-    BiPaGe::Foo_builder builder(field1, field2, field3);
+    Foo_builder builder(field1, field2, field3);
     
     std::vector<uint8_t> expected(13);
     auto p = expected.data();
@@ -147,7 +148,7 @@ void test_bar_builder()
     uint64_t James = std::numeric_limits<int64_t>::max();
     uint64_t Billy = std::numeric_limits<int64_t>::min();
     
-    BiPaGe::Bar_builder builder; // default ctor.
+    Bar_builder builder; // default ctor.
     // All values should be default initialized to zero.
     std::vector<uint8_t> expected(21, 0);
     check_equal(builder.build(), expected);

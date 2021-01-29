@@ -79,7 +79,7 @@ void test_foo_view()
     */
     
     std::vector<std::uint8_t> buffer { 0x0A, 0x35, 0x4C, 0x9C };
-    const BiPaGe::Foo_view& parsed = BiPaGe::ParseFoo(buffer.data());
+    const Foo_view& parsed = ParseFoo(buffer.data());
     
     check_equal(parsed.field1(), 10);
     check_type(std::uint8_t, parsed.field1());
@@ -97,7 +97,7 @@ void test_foo_builder()
     std::uint16_t field2 = 50000;
     std::uint16_t field3 = 2500;
     
-    BiPaGe::Foo_builder builder(field1, field2, field3);
+    Foo_builder builder(field1, field2, field3);
     
     // Check getter values and types
     check_type(std::uint8_t, builder.field1());
@@ -121,7 +121,7 @@ void test_foo_builder2()
     std::uint16_t field2 = 50000;
     std::uint16_t field3 = 2500;
     
-    BiPaGe::Foo_builder builder;
+    Foo_builder builder;
     builder.field1(field1);
     builder.field2(field2);
     builder.field3(field3);
