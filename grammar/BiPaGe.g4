@@ -10,12 +10,15 @@ IntegerType: ('int' | 'uint' | 's' | 'u' ) NumberLiteral;
 FloatingPointType: ('float' | 'f' ) ('32' | '64' );
 NumberLiteral: [0-9]+;
 
+NameSpace: 'namespace';
 Identifier: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
 EndiannessDecorator: '@'('bigendian'|'littleendian');
-Namespace: 'namespace ' Identifier ('.'Identifier)*;
+SemiColon: ';';
 
 // Parser rules
-definition: (Namespace';')? (EndiannessDecorator';')? datatype+;
+definition: namespace? endianness? datatype+;
+namespace: NameSpace Identifier ('.'Identifier)* SemiColon;
+endianness: EndiannessDecorator SemiColon;
 datatype: Identifier '{' field+ '}';
 field: simple_field | capture_scope;
 simple_field: (Identifier ':')? Type ';';
