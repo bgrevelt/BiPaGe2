@@ -9,6 +9,8 @@ def parse_arguments():
     parser.add_argument('-i', dest='input', action='append', type=str, required=True, help='input file')
     parser.add_argument('-o', dest='output', action='store', type=str, required=True, help='Directory to write the output files')
     parser.add_argument('--cpp-no-validate-builder-input', dest='cpp_validate_input', default=True, action='store_false')
+    parser.add_argument('--cpp-no-to-string', dest='cpp_to_string', default=True,
+                        action='store_false')
 
     return parser.parse_args()
 

@@ -76,6 +76,8 @@ private:
             incs.append('<string>') # needed for std::to_string
         if self._endianness == 'big':
             incs.append('<BiPaGe/Endianness.h>')  # Contains functions to translate from big to little endianness
+        if self._settings.cpp_to_string:
+            incs.extend(['<sstream>', '<iomanip>'])
 
         return '\n'.join(f'#include {include}' for include in incs)
 
@@ -96,6 +98,8 @@ private:
                 {typename}_view& operator=(const {typename}_view&) = delete;
     
                 {fields}
+                
+                {tostring}
     
             private:
                 const std::uint8_t data_;
@@ -106,7 +110,7 @@ private:
                 assert(data);
                 return reinterpret_cast<const {typename}_view&>(*data);
             }}
-            '''.format(typename=self._identifier, fields=fields)
+            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code())
 
     def builder_code(self):
         fields = '\n'.join([field.builder_field_code() for field in self._fields])
@@ -154,6 +158,31 @@ private:
 
         r += '}'
         return r
+
+    def to_string_code(self):
+        if not self._settings.cpp_to_string:
+            return ""
+
+        longest_field_name = max(len(field.name) for field in self._datatype.fields)
+
+        r = '''std::string to_string() const
+    {
+        std::stringstream ss;
+        
+        '''
+
+        for field in self._datatype.fields:
+            if not field.is_signed_type() and field.return_type_size() == 8:
+                r += f'ss << std::setw({longest_field_name + 2}) << "{field.name}: " << static_cast<unsigned int>({field.name}()) << std::endl;\n'
+            else:
+                r += f'ss << std::setw({longest_field_name + 2}) << "{field.name}: " << {field.name}() << std::endl;\n'
+
+        r+= '''
+        return ss.str();
+        }'''
+
+        return r
+
 
     def _builder_size(self):
         size = math.ceil(self._datatype.size_in_bits() / 8 )
