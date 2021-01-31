@@ -1,38 +1,16 @@
+from integrationtest import IntegrationTest
 import unittest
-from subprocess import call
-import os
-import shutil
 
-
-class Simple(unittest.TestCase):
+class Namespace(unittest.TestCase, IntegrationTest):
 
     def __init__(self, *args, **kwargs):
-        super(Simple, self).__init__(*args, **kwargs)
-        self.python = "python3.8"
-        self.bipage_path = "../bipage.py"
-        self.test_name = os.path.splitext(os.path.basename(__file__))[0]
+        unittest.TestCase.__init__(self, *args, **kwargs)
+        IntegrationTest.__init__(self)
 
-        if os.path.exists('temp/'):
-            shutil.rmtree('temp')
-        os.mkdir('temp')
+    def test(self):
+        print(f'Starting {self.test_name}')
 
-    def test_simple(self):
-        self.write_bipage_file()
-        self.write_cmake_file()
-        self.write_test_cpp_file()
-
-        self.run_test()
-
-    def run_test(self):
-        call([self.python, self.bipage_path, "-i", f"temp/{self.test_name}.bp", '-o', 'temp'])
-        call(["cmake", "./"], cwd='temp/')
-        call(["cmake", "--build", "."], cwd='temp/')
-        rval = call(f"temp/{self.test_name}")
-        self.assertEqual(rval, 0)
-
-    def write_bipage_file(self):
-        with open(f'temp/{self.test_name}.bp', 'w+') as f:
-            f.write('''namespace Test.Integration.NSpace;
+        self.write_bipage_file('''namespace Test.Integration.NSpace;
         Foo
         {
             field1: s32;  // Some info
@@ -54,26 +32,8 @@ class Simple(unittest.TestCase):
             Billy : uint64;
         }
         ''')
-
-    def write_cmake_file(self):
-        with open(f'temp/CMakeLists.txt', 'w+') as f:
-            f.write(f'''
-        cmake_minimum_required(VERSION 3.4)
-
-        # set the project name
-        project(integration_test)
-
-        # add the executable
-        add_executable({self.test_name} {self.test_name}.cpp)
-
-        # specify the C++ standard
-        set(CMAKE_CXX_STANDARD 11)
-        set(CMAKE_CXX_STANDARD_REQUIRED True)
-        set(CMAKE_CXX_FLAGS "${{CMAKE_CXX_FLAGS}} -std=c++11")''')
-
-    def write_test_cpp_file(self):
-        with open(f'temp/{self.test_name}.cpp', 'w+') as f:
-            f.write('''
+        self.write_cmake_file()
+        self.write_test_cpp_file('''
 #include "Foo_generated.h"
 #include "Bar_generated.h"
 #include <iostream>
@@ -165,6 +125,5 @@ int main(int argc, char* argv[])
     test_bar_builder();
 }''')
 
-
-if __name__ == '__main__':
-    unittest.main()
+        exit_code, output = self.run_all()
+        self.assertEqual(exit_code, 0)
