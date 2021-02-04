@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     def test_simple(self):
         print(f'Starting {self.test_name}')
 
-        exit_code, output = self.run_all()
+        exit_code, output = self.run_all(testargs=["simple"])
         self.check_output(output, '''
                 field: -35643
                 another_field_name_nice_and_long: 1.234

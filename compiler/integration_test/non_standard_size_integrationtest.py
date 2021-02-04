@@ -6,8 +6,6 @@ class NonStandardSize(unittest.TestCase, IntegrationTest):
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         IntegrationTest.__init__(self)
-
-    def test(self):
         self.write_bipage_file('''
         Foo
         {
@@ -133,12 +131,24 @@ void test_foo_builder2()
 
 int main(int argc, char* argv[])
 {
-    test_foo_view();
-    test_foo_builder();
-    test_foo_builder2();
+    if(strcmp(argv[1], "fooview") == 0)
+        test_foo_view();
+    if(strcmp(argv[1], "foobuilder") == 0)
+        test_foo_builder();
+    if(strcmp(argv[1], "foobuilder2") == 0)
+        test_foo_builder2();
 }''')
 
-        exit_code, output = self.run_all()
+    def test_foo_view(self):
+        exit_code, output = self.run_all(testargs=["fooview"])
+        self.assertEqual(exit_code, 0)
+
+    def test_foo_builder(self):
+        exit_code, output = self.run_all(testargs=["foobuilder"])
+        self.assertEqual(exit_code, 0)
+
+    def test_foo_builder2(self):
+        exit_code, output = self.run_all(testargs=["foobuilder2"])
         self.assertEqual(exit_code, 0)
 
 if __name__ == '__main__':

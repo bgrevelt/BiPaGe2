@@ -6,8 +6,6 @@ class SimpleBigEndian(unittest.TestCase, IntegrationTest):
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         IntegrationTest.__init__(self)
-
-    def test_simple(self):
         self.write_bipage_file('''
         @bigendian;
         Foo
@@ -126,13 +124,30 @@ void test_bar_builder()
 
 int main(int argc, char* argv[])
 {
-    test_foo_view();
-    test_bar_view();
-    test_foo_builder();
-    test_bar_builder();
+    if(strcmp(argv[1], "fooview") == 0)
+        test_foo_view();
+    if(strcmp(argv[1], "barview") == 0)
+        test_bar_view();
+    if(strcmp(argv[1], "foobuild") == 0)
+        test_foo_builder();
+    if(strcmp(argv[1], "barbuild") == 0)
+        test_bar_builder();
 }''')
 
-        exit_code, output = self.run_all()
+    def test_foo_view(self):
+        exit_code, output = self.run_all(testargs=["fooview"])
+        self.assertEqual(exit_code, 0)
+
+    def test_bar_view(self):
+        exit_code, output = self.run_all(testargs=["barview"])
+        self.assertEqual(exit_code, 0)
+
+    def test_foo_builder(self):
+        exit_code, output = self.run_all(testargs=["foobuild"])
+        self.assertEqual(exit_code, 0)
+
+    def test_bar_builder(self):
+        exit_code, output = self.run_all(testargs=["barbuild"])
         self.assertEqual(exit_code, 0)
 
 if __name__ == '__main__':

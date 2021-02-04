@@ -61,10 +61,10 @@ class IntegrationTest:
         subprocess.call(["cmake", "--build", "."], cwd=f'temp_{self.test_name}/')
 
     def run_test(self, args = None):
-        result = subprocess.run([f"temp_{self.test_name}/{self.test_name}", 'simple'], stdout=subprocess.PIPE)
+        result = subprocess.run([f"temp_{self.test_name}/{self.test_name}"] + args, stdout=subprocess.PIPE)
         return (result.returncode, result.stdout.decode('utf-8'))
 
-    def run_all(self, bipageargs=None):
+    def run_all(self, bipageargs=None, testargs=None):
         self.run_bipage(bipageargs)
         self.run_cmake()
-        return self.run_test()
+        return self.run_test(testargs)
