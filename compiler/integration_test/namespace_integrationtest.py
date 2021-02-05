@@ -46,7 +46,7 @@ void test_foo_view()
     p = serialize(p, 1.234);
     p = serialize(p, static_cast<std::uint8_t>(33));
 
-    const Test::Integration::NSpace::Foo_view& parsed = Test::Integration::NSpace::ParseFoo(buffer);
+    Test::Integration::NSpace::Foo_view parsed(buffer);
 
     check_equal(parsed.field1(), -35643);
     check_equal(parsed.field2(), 1.234);
@@ -62,7 +62,7 @@ void test_bar_view()
     p = serialize(p, static_cast<std::int64_t>(std::numeric_limits<int64_t>::max()));
     p = serialize(p, static_cast<std::int64_t>(std::numeric_limits<int64_t>::min()));
 
-    const Test::Integration::NSpace::Bar_view& parsed = Test::Integration::NSpace::ParseBar(buffer);
+    Test::Integration::NSpace::Bar_view parsed(buffer);
 
     check_equal(parsed.Corey(), -25);
     check_equal(parsed.Max(), 1.234f);

@@ -53,7 +53,7 @@ void test_foo_view()
     std::uint8_t f3 = 33;
     p = serialize(p, f3);
 
-    const Foo_view& parsed = ParseFoo(buffer);
+    Foo_view parsed(buffer);
 
     check_equal(parsed.field1(), -35643);
     check_equal(parsed.field2(), 1.234);
@@ -70,7 +70,7 @@ void test_bar_view()
     p = serialize(p, naive_swap(std::numeric_limits<int64_t>::max()));
     p = serialize(p, naive_swap(std::numeric_limits<int64_t>::min()));
 
-    const Bar_view& parsed = ParseBar(buffer);
+    Bar_view parsed(buffer);
 
     check_equal(parsed.Corey(), -25);
     check_equal(parsed.Max(), 1.234f);

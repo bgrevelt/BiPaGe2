@@ -18,12 +18,12 @@ class Field:
         if self._endianness == 'little' or self._field.size_in_bits == 8:
             return f'''{self._cpp_type} {self._field.name}() const
                     {{
-                        return *reinterpret_cast<const {self._cpp_type}*>(&data_ + {self._offset_name()});
+                        return *reinterpret_cast<const {self._cpp_type}*>(data_ + {self._offset_name()});
                     }}'''
         else:
             return f'''{self._cpp_type} {self._field.name}() const
                     {{
-                        return BiPaGe::swap_bytes(*reinterpret_cast<const {self._cpp_type}*>(&data_ + {self._offset_name()}));
+                        return BiPaGe::swap_bytes(*reinterpret_cast<const {self._cpp_type}*>(data_ + {self._offset_name()}));
                     }}'''
 
     def builder_setter_code(self):

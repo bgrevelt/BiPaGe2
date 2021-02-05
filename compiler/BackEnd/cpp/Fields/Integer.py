@@ -64,7 +64,7 @@ class Integer(Field):
     def _body(self):
         capture_type = _to_cpp_type(self._field.capture_size, self._issigned())
 
-        body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(&data_ + {self._offset_name()});\n'
+        body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(data_ + {self._offset_name()});\n'
         if self._endianness == 'big' and self._field.size_in_bits != 8:
             body += 'capture_type = BiPaGe::swap_bytes(capture_type);'
         body += self._add_shift()

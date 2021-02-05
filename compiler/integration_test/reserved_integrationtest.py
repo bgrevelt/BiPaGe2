@@ -40,7 +40,7 @@ void test_foo_view()
     p = serialize(p, 0.0);
     p = serialize(p, static_cast<std::uint8_t>(33));
 
-    const Foo_view& parsed = ParseFoo(buffer);
+    Foo_view parsed(buffer);
 
     check_equal(parsed.field1(), -35643);
     check_equal(parsed.field3(), 33);
@@ -55,7 +55,7 @@ void test_bar_view()
     p = serialize(p, static_cast<std::int64_t>(0));
     p = serialize(p, static_cast<std::int64_t>(std::numeric_limits<int64_t>::min()));
 
-    const Bar_view& parsed = ParseBar(buffer);
+    Bar_view parsed(buffer);
 
     check_equal(parsed.Corey(), -25);
     check_equal(parsed.Billy(), uint64_t(std::numeric_limits<int64_t>::min()));

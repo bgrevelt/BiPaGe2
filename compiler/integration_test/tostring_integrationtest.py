@@ -30,7 +30,7 @@ void test_simple()
     p = serialize(p, 1.234);
     p = serialize(p, static_cast<std::uint8_t>(33));
 
-    const Foo_view& parsed = ParseFoo(buffer);
+    Foo_view parsed(buffer);
     std::cout << parsed.to_string() << std::endl;
 }
 
@@ -46,8 +46,9 @@ int main(int argc, char* argv[])
     def test_no_to_string(self):
         # Validate method is not generated if disabled in bigpage arguments
         self.run_bipage(['--cpp-no-to-string'])
-        generated = open(f'temp_{self.test_name}/Foo_generated.h').read()
-        self.assertFalse('to_string' in generated)
+        with open(f'temp_{self.test_name}/Foo_generated.h') as f:
+            generated = f.read()
+            self.assertFalse('to_string' in generated)
 
     def test_simple(self):
         print(f'Starting {self.test_name}')

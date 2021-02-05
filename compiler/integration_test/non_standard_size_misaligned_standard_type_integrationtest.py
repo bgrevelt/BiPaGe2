@@ -36,7 +36,7 @@ void test_foo_view()
     */
     
     std::vector<std::uint8_t> buffer { 0x0A, 0x35, 0x4C, 0x9C };
-    const Foo_view& parsed = ParseFoo(buffer.data());
+    Foo_view parsed(buffer.data());
     
     check_equal(parsed.field1(), 10);
     check_type(std::uint8_t, parsed.field1());

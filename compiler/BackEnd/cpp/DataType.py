@@ -92,24 +92,19 @@ private:
             public:
                 // You should not create or copy this class as it's just a view on raw data
                 // Creating or copying this class will give you a class with one byte of data.
-                {typename}_view() = delete;
-                ~{typename}_view() = delete;
-                {typename}_view(const {typename}_view&) = delete;
-                {typename}_view& operator=(const {typename}_view&) = delete;
+                {typename}_view(const std::uint8_t* data)
+                : data_(data)
+                {{
+                }}
+                ~{typename}_view() {{}}
     
                 {fields}
                 
                 {tostring}
     
             private:
-                const std::uint8_t data_;
+                const std::uint8_t* data_;
             }};
-    
-            const {typename}_view& Parse{typename}(const std::uint8_t* data) 
-            {{ 
-                assert(data);
-                return reinterpret_cast<const {typename}_view&>(*data);
-            }}
             '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code())
 
     def builder_code(self):

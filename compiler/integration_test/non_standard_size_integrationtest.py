@@ -65,7 +65,7 @@ void test_foo_view()
     // We make an exception for the double and set that to something sensible    
     *reinterpret_cast<double*>(buffer.data() + 4) = -123.456;
 
-    const Foo_view& parsed = ParseFoo(buffer.data());
+    Foo_view parsed(buffer.data());
 
     check_equal(parsed.field1(), -150);
     check_equal(parsed.field2(), 1000000);
