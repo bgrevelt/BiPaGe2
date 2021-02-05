@@ -30,7 +30,7 @@ class DataType(Node):
     def check_empty(self, warnings, errors):
         if len(self.fields) == 0:
             line, column = self.location()
-            errors.append(BuildMessage(line, column, f'Datatype {self.identifier} has no (non-padding) fields'))
+            warnings.append(BuildMessage(line, column, f'Datatype {self.identifier} has no non-padding fields'))
 
     def check_unique_field_names(self, warnings, errors):
         # check if we don't have muliple fields with the same name

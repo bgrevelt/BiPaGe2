@@ -65,29 +65,50 @@ SomeDataType
         self.checkErrors(errors, [(5, 9, 'float16')], True)
 
     def test_integer_size(self):
-        # We create a type with a size in the range [1,99] to test if we get an error if the size is 1 or greater than
-        # 64. We create a second type that will make the total size of the Datatype a multitude of 8 bits to prevent
-        # additional errors. We make sure that one is in the range of numbers to test because we want to test that.
-        sizes = [1] + random.sample(range(1, 100), 10)
-        for n, size in enumerate(sizes):
-            type = "uint" if n%2 == 1 else "int"
-            other_size = 8-(size%8)
-            if other_size <= 1:
-                other_size += 8
-            warnings, errors, _ = Builder().build(f'''
+        # validate that non-valid integer sizes are reported
+        warnings, errors, _ = Builder().build('''
 SomeDataType
-{{
-    field1 : {type}{size};
-    field2 : {type}{other_size};
-}}
+{
+    {
+        field1 : uint1; // not allowed, a one bit integer does not make sense. Use a boolean.
+        field2 : uint7;
+    }
+}
 ''')
-            if 2 <= size <= 64:
-                self.checkErrors(errors, []) # no error
-            elif size > 64:
-                self.checkErrors(errors, [(4, 4, 'outside supported range'),
-                                          (4, 4, 'cannot be captured in a type that is 64 bits or less in size')])
-            else:
-                self.checkErrors(errors, [(4, 4, 'outside supported range')])
+        self.checkErrors(errors, [(5,8,'type uint outside supported range')])
+
+        # Maximum integer size is 64 bits
+        warnings, errors, _ = Builder().build('''
+SomeDataType
+{
+    field1 : int128; // not allowed, too large.
+}
+''')
+        self.checkErrors(errors, [(4,4,'type int outside supported range')])
+
+#         # We create a type with a size in the range [1,99] to test if we get an error if the size is 1 or greater than
+#         # 64. We create a second type that will make the total size of the Datatype a multitude of 8 bits to prevent
+#         # additional errors. We make sure that one is in the range of numbers to test because we want to test that.
+#         sizes = [1] + random.sample(range(1, 100), 10)
+#         for n, size in enumerate(sizes):
+#             type = "uint" if n%2 == 1 else "int"
+#             other_size = 8-(size%8)
+#             if other_size <= 1:
+#                 other_size += 8
+#             warnings, errors, _ = Builder().build(f'''
+# SomeDataType
+# {{
+#     field1 : {type}{size};
+#     field2 : {type}{other_size};
+# }}
+# ''')
+#             if 2 <= size <= 64:
+#                 self.checkErrors(errors, []) # no error
+#             elif size > 64:
+#                 self.checkErrors(errors, [(4, 4, 'outside supported range'),
+#                                           (4, 4, 'cannot be captured in a type that is 64 bits or less in size')])
+#             else:
+#                 self.checkErrors(errors, [(4, 4, 'outside supported range')])
 
     def test_non_standard_field_outside_of_capture_scope(self):
         # Non-standard types out of capture scope. Should yield errors.
@@ -176,6 +197,51 @@ SomeDataType
     f4 : int8;
 }''')
         self.checkErrors(warnings, [(4, 4, 'Capture scope contains only standard types')])  # no error
+
+    def test_empty_data_type(self):
+        warnings, errors, _ = Builder().build('''
+    SomeDataType
+    {
+        
+    }''')
+        self.checkErrors(errors, [(5, 4, '')])  # This should give an error because it doesn't conform to the grammar
+
+    def test_one_empty_data_type(self):
+        warnings, errors, _ = Builder().build('''
+    SomeDataType
+    {
+        f1 : int32;
+        f2 : float64;
+        f3 : u8;
+        f4 : s64;
+    }
+    
+    ThisOneIsEmpty
+    {
+    
+    }''')
+        self.checkErrors(errors, [(13, 4, '')])  # This should give an error because it doesn't conform to the grammar
+
+    def test_empty_data_type_only_comments(self):
+        warnings, errors, _ = Builder().build('''
+    SomeDataType
+    {
+        // Just
+        // Some
+        /* comments in here */
+    }''')
+        self.checkErrors(errors, [(7, 4, '')])  # This should give an error because it doesn't conform to the grammar
+
+    def test_padding_only_type(self):
+        warnings, errors, _ = Builder().build('''
+    SomeDataType
+    {
+        int32;
+        float64;
+        u8;
+        s64;
+    }''')
+        self.checkErrors(warnings, [(2, 4, 'SomeDataType has no non-padding fields')])  # This should give an error because it doesn't conform to the grammar
 
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
