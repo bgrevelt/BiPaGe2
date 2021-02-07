@@ -19,9 +19,8 @@ definition: namespace? endianness? (datatype|enumeration)+;
 namespace: NameSpace Identifier ('.'Identifier)* SemiColon;
 endianness: EndiannessDecorator SemiColon;
 datatype: Identifier '{' field+ '}';
-enumeration: Identifier ':' IntegerType '{' enumerands '}';
+enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}';
 enumerand: Identifier '=' NumberLiteral;
-enumerands: (enumerand ',') * enumerand; // All except the last enumerand needs to be followed up with a comma
 field: simple_field | capture_scope;
 simple_field: (Identifier ':')? field_type ';';
 capture_scope: '{' simple_field+ '}';

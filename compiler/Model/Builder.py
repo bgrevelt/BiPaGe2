@@ -5,15 +5,57 @@ from .Definition import Definition
 from .CaptureScope import CaptureScope
 from .ErrorListener import BiPaGeErrorListener
 from Model.Types import Integer,Float
+from Model.Enumeration import Enumeration
 from antlr4 import *
 from generated.BiPaGeLexer import BiPaGeLexer
 from generated.BiPaGeParser import BiPaGeParser
 import re
+from typing import List
 
 
 def set_error_listener(target, listener):
     target.removeErrorListeners()
     target.addErrorListener(listener)
+
+# split a sized type (e.g int16) into the type (int) and the size(16)
+def split_sized_type(type):
+    typename = "".join([c for c in type if not c.isnumeric()])
+    size = int("".join([c for c in type if c.isnumeric()]))
+    return typename,size
+
+def is_aliased_type(type):
+    return re.search("^[s,u,f]\d{1,2}$",type) is not None
+
+def remove_aliases(type):
+    aliases = {
+        'u': 'uint',
+        's': 'int',
+        'f': 'float'
+    }
+    if is_aliased_type(type):
+        return aliases[type[0]] + type[1:]
+    else:
+        return type
+
+
+class FirstPass(BiPaGeListener):
+    def __init__(self):
+        self.Enumerations = []
+        self._Enumerands = []
+
+    def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
+        self._Enumerands.append((str(ctx.Identifier()), int(str(ctx.NumberLiteral()))))
+
+    def exitEnumeration(self, ctx:BiPaGeParser.EnumerationContext):
+        type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
+        signed = type == 'int'
+        type = Integer.Integer(size,signed, ctx.start)
+
+        name = str(ctx.Identifier())
+        enumerands = [e for e in self._Enumerands]
+
+        self.Enumerations.append(Enumeration(name, type, enumerands, ctx.start))
+        self._Enumerands = []
 
 
 class Builder(BiPaGeListener):
@@ -22,6 +64,8 @@ class Builder(BiPaGeListener):
         self._scoped_offset = 0
         self._definition = None
         self.noderesult = {}
+        self._enumerations = None
+        self._enumations_by_name = None
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
@@ -29,6 +73,11 @@ class Builder(BiPaGeListener):
             's' : 'int',
             'f' : 'float'
         }
+
+    def SetEnumerations(self, enums:List[Enumeration]):
+        self._enumerations = enums
+        self._enumations_by_name = {e.name() : e for e in enums}
+
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
         namespace = []
         if ctx.namespace():
@@ -40,7 +89,9 @@ class Builder(BiPaGeListener):
         if ctx.endianness() and str(ctx.endianness().EndiannessDecorator()) == '@bigendian':
             endianness = 'big'
 
-        self._definition = Definition(endianness, namespace, [self.noderesult[d] for d in ctx.datatype()], ctx.start)
+        datatypes = [self.noderesult[d] for d in ctx.datatype()]
+        enumerations = [self.noderesult[e] for e in ctx.enumeration()]
+        self._definition = Definition(endianness, namespace, datatypes, enumerations, ctx.start)
 
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
@@ -99,12 +150,27 @@ class Builder(BiPaGeListener):
 
     def exitField_type(self, ctx:BiPaGeParser.Field_typeContext):
         if ctx.IntegerType():
-            type, size = self.split_sized_type(self.remove_aliases(str(ctx.IntegerType())))
+            type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
             signed = type == 'int'
             self.noderesult[ctx] = Integer.Integer(size,signed, ctx.start)
         elif ctx.FloatingPointType():
             _, size = self.split_sized_type(str(ctx.FloatingPointType()))
             self.noderesult[ctx] = Float.Float(size, ctx.start)
+        elif ctx.Identifier():
+            # Reference to an enumeration
+            name = str(ctx.Identifier())
+            if name in self._enumations_by_name:
+                self.noderesult[ctx] = self._enumations_by_name[name]
+            else:
+                # TODO: this is really dodgy, using the none to indicate that this enum doesn't exist
+                # not only is this dodgy now, this will break when we support nested types. I'm just not
+                # completely sure on how to solve this yet.
+                self.noderesult[ctx] = Enumeration(name, None, [], None)
+
+    def exitEnumeration(self, ctx:BiPaGeParser.EnumerationContext):
+        name = str(ctx.Identifier())
+        assert name in self._enumations_by_name, f'Enum {name} should have been found in the first pass.'
+        self.noderesult[ctx] = self._enumations_by_name[name]
 
     def build(self, text):
         errors = []
@@ -120,7 +186,13 @@ class Builder(BiPaGeListener):
 
         errors.extend(errorlistener.errors())
         if len(errors) == 0:
+            firstpass = FirstPass()
             walker = ParseTreeWalker()
+            walker.walk(firstpass, tree)
+            # todo: we should really pull this function out of the builder or all of the visitor functions
+            # into their own class. Maybe SecondPass?
+            self.SetEnumerations(firstpass.Enumerations)
+
             walker.walk(self, tree)
             model = self._definition
             model.check_semantics(warnings, errors)
@@ -129,20 +201,4 @@ class Builder(BiPaGeListener):
 
     def model(self):
         return self._definition
-
-    def is_aliased_type(self, type):
-        return re.search("^[s,u,f]\d{1,2}$",type) is not None
-
-    def remove_aliases(self, type):
-        if self.is_aliased_type(type):
-            return self.fieldtype_translation[type[0]] + type[1:]
-        else:
-            return type
-
-    # split a sized type (e.g int16) into the type (int) and the size(16)
-    def split_sized_type(self, type):
-        typename = "".join([c for c in type if not c.isnumeric()])
-        size = int("".join([c for c in type if c.isnumeric()]))
-        return typename,size
-
 
