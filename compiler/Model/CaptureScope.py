@@ -7,7 +7,7 @@ class CaptureScope(Node):
 
         self._offset = offset # offset of the capture scope in the data type in bits
         self._fields = fields # fields in the capture scope
-        self._size = sum(f.size_in_bits for f in self._fields)
+        self._size = sum(f.size_in_bits() for f in self._fields)
 
     def size(self):
         return self._size
@@ -28,7 +28,7 @@ class CaptureScope(Node):
         elif not self._size in standard_widths:
             errors.append(BuildMessage(line, column, f"Accumulated size of fields in capture scope ({self._size} bits) is not a standard size."))
 
-        if all(f.size_in_bits in standard_widths for f in self._fields):
+        if all(f.size_in_bits() in standard_widths for f in self._fields):
             warnings.append(BuildMessage(line, column,
                                        f"Capture scope contains only standard types. Capture scope is likely to be superfluous."))
 

@@ -4,6 +4,7 @@ from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
 from .ErrorListener import BiPaGeErrorListener
+from Model.Types import Integer,Float
 from antlr4 import *
 from generated.BiPaGeLexer import BiPaGeLexer
 from generated.BiPaGeParser import BiPaGeParser
@@ -79,7 +80,7 @@ class Builder(BiPaGeListener):
         id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
         type = self.noderesult[ctx.field_type()]
         field = Field(id, type, self._offset, ctx.start)
-        self._offset += field.size_in_bits
+        self._offset += field.size_in_bits()
         self.noderesult[ctx] = field
 
     def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
@@ -88,7 +89,7 @@ class Builder(BiPaGeListener):
 
     def exitCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         fields = [self.noderesult[field] for field in ctx.simple_field()]
-        capture_scope_size = sum(f.size_in_bits for f in fields)
+        capture_scope_size = sum(f.size_in_bits() for f in fields)
         capture_scope_offset = self._scoped_offset
 
         for field in ctx.simple_field():
@@ -98,9 +99,12 @@ class Builder(BiPaGeListener):
 
     def exitField_type(self, ctx:BiPaGeParser.Field_typeContext):
         if ctx.IntegerType():
-            self.noderesult[ctx] = self.remove_aliases(str(ctx.IntegerType()))
+            type, size = self.split_sized_type(self.remove_aliases(str(ctx.IntegerType())))
+            signed = type == 'int'
+            self.noderesult[ctx] = Integer.Integer(size,signed, ctx.start)
         elif ctx.FloatingPointType():
-            self.noderesult[ctx] = self.remove_aliases(str(ctx.FloatingPointType()))
+            _, size = self.split_sized_type(str(ctx.FloatingPointType()))
+            self.noderesult[ctx] = Float.Float(size, ctx.start)
 
     def build(self, text):
         errors = []
@@ -134,4 +138,11 @@ class Builder(BiPaGeListener):
             return self.fieldtype_translation[type[0]] + type[1:]
         else:
             return type
+
+    # split a sized type (e.g int16) into the type (int) and the size(16)
+    def split_sized_type(self, type):
+        typename = "".join([c for c in type if not c.isnumeric()])
+        size = int("".join([c for c in type if c.isnumeric()]))
+        return typename,size
+
 

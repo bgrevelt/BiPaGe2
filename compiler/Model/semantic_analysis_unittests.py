@@ -75,7 +75,7 @@ SomeDataType
     }
 }
 ''')
-        self.checkErrors(errors, [(5,8,'type uint outside supported range')])
+        self.checkErrors(errors, [(5,17,'outside supported range')])
 
         # Maximum integer size is 64 bits
         warnings, errors, _ = Builder().build('''
@@ -84,7 +84,7 @@ SomeDataType
     field1 : int128; // not allowed, too large.
 }
 ''')
-        self.checkErrors(errors, [(4,4,'type int outside supported range')])
+        self.checkErrors(errors, [(4,13,'outside supported range')])
 
 #         # We create a type with a size in the range [1,99] to test if we get an error if the size is 1 or greater than
 #         # 64. We create a second type that will make the total size of the Datatype a multitude of 8 bits to prevent

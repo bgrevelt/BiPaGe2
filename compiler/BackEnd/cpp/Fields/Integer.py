@@ -22,7 +22,7 @@ class Integer(Field):
             return super().builder_serialize_code()
 
         offset_in_byte = (self._field.offset - self._field.capture_offset)
-        mask = (2 ** self._field.size_in_bits - 1) << offset_in_byte  # mask should not include sign bit
+        mask = (2 ** self._field.size_in_bits() - 1) << offset_in_byte  # mask should not include sign bit
 
         r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
         if offset_in_byte != 0:
@@ -65,7 +65,7 @@ class Integer(Field):
         capture_type = _to_cpp_type(self._field.capture_size, self._issigned())
 
         body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(data_ + {self._offset_name()});\n'
-        if self._endianness == 'big' and self._field.size_in_bits != 8:
+        if self._endianness == 'big' and self._field.size_in_bits() != 8:
             body += 'capture_type = BiPaGe::swap_bytes(capture_type);'
         body += self._add_shift()
         body += self._add_mask()
@@ -82,12 +82,12 @@ class Integer(Field):
 
     def _add_mask(self):
         if not self._issigned():
-            mask = 2 ** self._field.size_in_bits - 1
+            mask = 2 ** self._field.size_in_bits() - 1
             return f'capture_type &= 0x{mask:x};\n'
         else:
             r = ""
-            mask = 2 ** (self._field.size_in_bits - 1) - 1  # mask should not include sign bit
-            sign_mask = 2 ** (self._field.size_in_bits - 1)
+            mask = 2 ** (self._field.size_in_bits() - 1) - 1  # mask should not include sign bit
+            sign_mask = 2 ** (self._field.size_in_bits() - 1)
             sign_mask_return_type = (2 ** (self._field.standard_size) - 1) - mask
 
             r += f'bool negative = ((capture_type & 0x{sign_mask:x}) == 0x{sign_mask:x});\n'
@@ -109,18 +109,18 @@ class Integer(Field):
             return 'return capture_type;'
 
     def _issigned(self):
-        return self._field.type == 'int'
+        return self._field.is_signed_type()
 
     def validation_code(self, variable_name):
         if self._field.is_standard_size():
             return ""
 
         type = "signed integer" if self._issigned() else "unsigned integer"
-        error_msg = f'"Value " + std::to_string({variable_name}) + " cannot be assigned to {type} of {self._field.size_in_bits} bits"'
+        error_msg = f'"Value " + std::to_string({variable_name}) + " cannot be assigned to {type} of {self._field.size_in_bits()} bits"'
 
         if self._issigned():
-            min = int(-1 * math.pow(2, self._field.size_in_bits -1))
-            max = int(math.pow(2, self._field.size_in_bits -1) -1)
+            min = int(-1 * math.pow(2, self._field.size_in_bits() -1))
+            max = int(math.pow(2, self._field.size_in_bits() -1) -1)
 
             return \
             f'''if(({variable_name} < {min}) || ({variable_name} > {max}))
@@ -128,7 +128,7 @@ class Integer(Field):
                 throw std::runtime_error({error_msg});
             }}'''
         else:
-            max = int(math.pow(2, self._field.size_in_bits) -1)
+            max = int(math.pow(2, self._field.size_in_bits()) -1)
             return \
             f'''if({variable_name} > {max})
             {{

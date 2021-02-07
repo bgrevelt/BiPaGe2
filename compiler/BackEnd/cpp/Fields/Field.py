@@ -15,7 +15,7 @@ class Field:
         return self._field.name
 
     def view_getter_code(self):
-        if self._endianness == 'little' or self._field.size_in_bits == 8:
+        if self._endianness == 'little' or self._field.size_in_bits() == 8:
             return f'''{self._cpp_type} {self._field.name}() const
                     {{
                         return *reinterpret_cast<const {self._cpp_type}*>(data_ + {self._offset_name()});
@@ -40,7 +40,7 @@ class Field:
         }}'''
 
     def builder_serialize_code(self):
-        if self._endianness == 'little' or self._field.size_in_bits == 8:
+        if self._endianness == 'little' or self._field.size_in_bits() == 8:
             return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = {self._field.name}_;\n'
         else:
             return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = BiPaGe::swap_bytes({self._field.name}_);\n'

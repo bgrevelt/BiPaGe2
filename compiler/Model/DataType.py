@@ -18,7 +18,7 @@ class DataType(Node):
         if len(self.fields) == 0:
             return 0
         last_field = self.fields[-1]
-        return last_field.offset + last_field.size_in_bits
+        return last_field.offset + last_field.size_in_bits()
 
     def check_semantics(self, warnings, errors):
         self.check_empty(warnings, errors)
