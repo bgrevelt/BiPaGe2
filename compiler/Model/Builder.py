@@ -77,7 +77,7 @@ class Builder(BiPaGeListener):
 
     def exitSimple_field(self, ctx:BiPaGeParser.Simple_fieldContext):
         id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
-        type = self.remove_aliases(str(ctx.Type()))
+        type = self.noderesult[ctx.field_type()]
         field = Field(id, type, self._offset, ctx.start)
         self._offset += field.size_in_bits
         self.noderesult[ctx] = field
@@ -95,6 +95,12 @@ class Builder(BiPaGeListener):
             self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
 
         self.noderesult[ctx] = CaptureScope(capture_scope_offset, fields, ctx.start)
+
+    def exitField_type(self, ctx:BiPaGeParser.Field_typeContext):
+        if ctx.IntegerType():
+            self.noderesult[ctx] = self.remove_aliases(str(ctx.IntegerType()))
+        elif ctx.FloatingPointType():
+            self.noderesult[ctx] = self.remove_aliases(str(ctx.FloatingPointType()))
 
     def build(self, text):
         errors = []

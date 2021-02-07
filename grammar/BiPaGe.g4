@@ -5,7 +5,6 @@ Whitespace: [ \t\r\n\u000C]+ -> skip;
 MultiLineComment: '/*' .*? '*/' -> skip;
 SingleLineComment: '//' ~('\r' | '\n')* -> skip;
 
-Type: IntegerType | FloatingPointType;
 IntegerType: ('int' | 'uint' | 's' | 'u' ) NumberLiteral;
 FloatingPointType: ('float' | 'f' ) ('32' | '64' );
 NumberLiteral: [0-9]+;
@@ -21,5 +20,6 @@ namespace: NameSpace Identifier ('.'Identifier)* SemiColon;
 endianness: EndiannessDecorator SemiColon;
 datatype: Identifier '{' field+ '}';
 field: simple_field | capture_scope;
-simple_field: (Identifier ':')? Type ';';
+simple_field: (Identifier ':')? field_type ';';
 capture_scope: '{' simple_field+ '}';
+field_type: IntegerType | FloatingPointType;
