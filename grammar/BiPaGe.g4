@@ -15,11 +15,14 @@ EndiannessDecorator: '@'('bigendian'|'littleendian');
 SemiColon: ';';
 
 // Parser rules
-definition: namespace? endianness? datatype+;
+definition: namespace? endianness? (datatype|enumeration)+;
 namespace: NameSpace Identifier ('.'Identifier)* SemiColon;
 endianness: EndiannessDecorator SemiColon;
 datatype: Identifier '{' field+ '}';
+enumeration: Identifier ':' IntegerType '{' enumerands '}';
+enumerand: Identifier '=' NumberLiteral;
+enumerands: (enumerand ',') * enumerand; // All except the last enumerand needs to be followed up with a comma
 field: simple_field | capture_scope;
 simple_field: (Identifier ':')? field_type ';';
 capture_scope: '{' simple_field+ '}';
-field_type: IntegerType | FloatingPointType;
+field_type: IntegerType | FloatingPointType | Identifier;
