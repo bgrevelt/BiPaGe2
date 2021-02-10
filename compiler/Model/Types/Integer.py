@@ -14,6 +14,10 @@ class Integer(Node):
     def signed(self):
         return self._signed
 
+    def range(self):
+        offset = -1 * (2**self._size // 2 if self._signed else 0)
+        return offset, offset + 2**self._size - 1
+
     def check_semantics(self, warnings, errors):
         line, column = self.location()
         if self._size < 2 or self._size > 64:

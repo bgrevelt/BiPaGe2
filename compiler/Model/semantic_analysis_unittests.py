@@ -12,7 +12,7 @@ SomeDataType
     duplicate : u8;
     test : s64;
 }
-        ''')
+        ''', "")
         self.checkErrors(errors, [(4,4, 'duplicate'),
                              (5,4, 'test'),
                              (6, 4, 'duplicate'),
@@ -31,7 +31,7 @@ SomeOtherDataType
     duplicate : int32;
     test : float64;
 }
-        ''')
+        ''', "")
         self.checkErrors(errors, [])
 
     def test_duplicate_datatype_name(self):
@@ -50,7 +50,7 @@ SomeDataType
     f2 : float64;
     f3 : u8;
     f4 : s64;
-}''')
+}''', "")
         self.checkErrors(errors, [(2, 0, 'SomeDataType'),
                                       (10, 0, 'SomeDataType')])
 
@@ -61,7 +61,7 @@ SomeDataType
     f1 : float64;
     f2 : float16;
     f3 : float32;
-}''')
+}''', "")
         self.checkErrors(errors, [(5, 9, 'float16')], True)
 
     def test_integer_size(self):
@@ -74,7 +74,7 @@ SomeDataType
         field2 : uint7;
     }
 }
-''')
+''', "")
         self.checkErrors(errors, [(5,17,'outside supported range')])
 
         # Maximum integer size is 64 bits
@@ -83,32 +83,9 @@ SomeDataType
 {
     field1 : int128; // not allowed, too large.
 }
-''')
+''', "")
         self.checkErrors(errors, [(4,13,'outside supported range')])
 
-#         # We create a type with a size in the range [1,99] to test if we get an error if the size is 1 or greater than
-#         # 64. We create a second type that will make the total size of the Datatype a multitude of 8 bits to prevent
-#         # additional errors. We make sure that one is in the range of numbers to test because we want to test that.
-#         sizes = [1] + random.sample(range(1, 100), 10)
-#         for n, size in enumerate(sizes):
-#             type = "uint" if n%2 == 1 else "int"
-#             other_size = 8-(size%8)
-#             if other_size <= 1:
-#                 other_size += 8
-#             warnings, errors, _ = Builder().build(f'''
-# SomeDataType
-# {{
-#     field1 : {type}{size};
-#     field2 : {type}{other_size};
-# }}
-# ''')
-#             if 2 <= size <= 64:
-#                 self.checkErrors(errors, []) # no error
-#             elif size > 64:
-#                 self.checkErrors(errors, [(4, 4, 'outside supported range'),
-#                                           (4, 4, 'cannot be captured in a type that is 64 bits or less in size')])
-#             else:
-#                 self.checkErrors(errors, [(4, 4, 'outside supported range')])
 
     def test_non_standard_field_outside_of_capture_scope(self):
         # Non-standard types out of capture scope. Should yield errors.
@@ -118,7 +95,7 @@ SomeDataType
     f1 : int16;   
     f2 : int12; 
     f3 : int4;   
-}''')
+}''', "")
         self.checkErrors(errors, [(5, 4, 'Field f2 should be in a capture scope.'),
                                   (6, 4, 'Field f3 should be in a capture scope.')])
 
@@ -131,7 +108,7 @@ SomeDataType
                 f2 : int12; 
                 f3 : int4;
             }   
-        }''')
+        }''', "")
         self.checkErrors(errors, [])
 
 
@@ -145,7 +122,7 @@ SomeDataType
         f2 : uint59; 
         f3 : int7;   
     }
-}''')
+}''', "")
         self.checkErrors(errors, [(4, 4, 'Larger than the maximum supported capture type')])
 
         warnings, errors, _ = Builder().build('''
@@ -155,7 +132,7 @@ SomeDataType
                 f1 : int6;   
                 f2 : uint58;  
             }
-        }''')
+        }''', "")
         self.checkErrors(errors, [])
 
     def test_capture_scope_size(self):
@@ -170,7 +147,7 @@ SomeDataType
     }
     f4 : int8;
     f5: u16;
-}''')
+}''', "")
         self.checkErrors(errors, [(4, 4, 'fields in capture scope (40 bits) is not a standard size')])
 
         # Standard type width. No errors
@@ -182,7 +159,7 @@ SomeDataType
                 f2 : uint22;
                 f3 : int4;   // Total size: 32 bits
             }
-        }''')
+        }''', "")
         self.checkErrors(errors, [])  # no error
 
     def test_only_standard_in_capture_scope(self):
@@ -195,7 +172,7 @@ SomeDataType
         f3 : s32;   
     }
     f4 : int8;
-}''')
+}''', "")
         self.checkErrors(warnings, [(4, 4, 'Capture scope contains only standard types')])  # no error
 
     def test_empty_data_type(self):
@@ -203,7 +180,7 @@ SomeDataType
     SomeDataType
     {
         
-    }''')
+    }''', "")
         self.checkErrors(errors, [(5, 4, '')])  # This should give an error because it doesn't conform to the grammar
 
     def test_one_empty_data_type(self):
@@ -219,7 +196,7 @@ SomeDataType
     ThisOneIsEmpty
     {
     
-    }''')
+    }''', "")
         self.checkErrors(errors, [(13, 4, '')])  # This should give an error because it doesn't conform to the grammar
 
     def test_empty_data_type_only_comments(self):
@@ -229,7 +206,7 @@ SomeDataType
         // Just
         // Some
         /* comments in here */
-    }''')
+    }''', "")
         self.checkErrors(errors, [(7, 4, '')])  # This should give an error because it doesn't conform to the grammar
 
     def test_padding_only_type(self):
@@ -240,8 +217,103 @@ SomeDataType
         float64;
         u8;
         s64;
-    }''')
-        self.checkErrors(warnings, [(2, 4, 'SomeDataType has no non-padding fields')])  # This should give an error because it doesn't conform to the grammar
+    }''', "")
+        self.checkErrors(warnings, [(2, 4, 'SomeDataType has no non-padding fields')])
+
+    def test_invalid_enumerand_value(self):
+        warnings, errors, _ = Builder().build('''
+    SomeEnum : uint8
+    {
+        val1 = 0,
+        val2 = 255,
+        val3 = 256
+    }''', "")
+        self.checkErrors(errors, [(2, 4, 'val3 in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
+
+        warnings, errors, _ = Builder().build('''
+    SomeEnum : int16
+    {
+        aap = -32768,
+        noot = 32767,
+        mies = 32768
+    }''', "")
+        self.checkErrors(errors, [(2, 4,
+                                   'mies in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
+
+    def test_duplicated_enumerand_value(self):
+        warnings, errors, _ = Builder().build('''
+    SomeEnum : uint8
+    {
+        val1 = 0,
+        val2 = 35,
+        val3 = 35
+    }''', "")
+        self.checkErrors(errors, [(2, 4, 'Same value (35) used by mulitple enumerands in enumeration SomeEnum')],allow_extra_errors=True)
+
+    def test_duplicated_enumerand_name(self):
+        warnings, errors, _ = Builder().build('''
+    SomeEnum : int64
+    {
+        val1 = 0,
+        val2 = 1,
+        val3 = 2,
+        val4 = 3,
+        val5 = 4,
+        val6 = 5,
+        val7 = 6,
+        val8 = 7,
+        val9 = 8,
+        val1 = 9
+    }''', "")
+        self.checkErrors(errors, [(2, 4, 'Duplicated enumerand val1 in SomeEnum')],allow_extra_errors=True)
+
+    def test_non_existing_enumeration(self):
+        warnings, errors, _ = Builder().build('''
+    SomeEnum : uint64
+    {
+        val1 = 0,
+        val2 = 1,
+        val3 = 2,
+        val4 = 3,
+        val5 = 4,
+        val6 = 5,
+        val7 = 6,
+        val8 = 7,
+        val9 = 8,
+        val10 = 9
+    }
+    
+    SomeDataType
+    {
+        field1 : uint8;
+        field2 : SomeOtherEnum;
+        field3 : float64;
+    }
+    
+    ''', "")
+        self.checkErrors(errors, [(19, 17, 'Reference "SomeOtherEnum" cannot be resolved')],allow_extra_errors=True)
+
+    def test_name_duplication(self):
+        warnings, errors, _ = Builder().build('''
+            Foo : uint64
+            {
+                val1 = 0,
+                val2 = 1,
+                val3 = 2
+            }
+
+            Foo
+            {
+                field1 : uint8;
+                field2 : Foo;
+                field3 : float64;
+            }
+
+            ''', "")
+        self.checkErrors(errors, [
+            (2, 12, 'Name Foo used for multiple type definitions'),
+            (9, 12, 'Name Foo used for multiple type definitions')])
+
 
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
