@@ -4,7 +4,7 @@ from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
 from .ErrorListener import BiPaGeErrorListener
-from Model.Types import Integer,Float
+from Model.Types import Integer,Float,Reference
 from Model.Enumeration import Enumeration
 from antlr4 import *
 from generated.BiPaGeLexer import BiPaGeLexer
@@ -154,23 +154,29 @@ class Builder(BiPaGeListener):
             signed = type == 'int'
             self.noderesult[ctx] = Integer.Integer(size,signed, ctx.start)
         elif ctx.FloatingPointType():
-            _, size = self.split_sized_type(str(ctx.FloatingPointType()))
+            _, size = split_sized_type(str(ctx.FloatingPointType()))
             self.noderesult[ctx] = Float.Float(size, ctx.start)
         elif ctx.Identifier():
             # Reference to an enumeration
             name = str(ctx.Identifier())
-            if name in self._enumations_by_name:
-                self.noderesult[ctx] = self._enumations_by_name[name]
-            else:
-                # TODO: this is really dodgy, using the none to indicate that this enum doesn't exist
-                # not only is this dodgy now, this will break when we support nested types. I'm just not
-                # completely sure on how to solve this yet.
-                self.noderesult[ctx] = Enumeration(name, None, [], None)
+            ref = self._enumations_by_name[name] if name in self._enumations_by_name else None
+            self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
+
+
+    def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
+        self.noderesult[ctx] = (str(ctx.Identifier()), int(str(ctx.NumberLiteral())))
 
     def exitEnumeration(self, ctx:BiPaGeParser.EnumerationContext):
+        type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
+        signed = type == 'int'
+        type = Integer.Integer(size,signed, ctx.start)
+
         name = str(ctx.Identifier())
-        assert name in self._enumations_by_name, f'Enum {name} should have been found in the first pass.'
-        self.noderesult[ctx] = self._enumations_by_name[name]
+        enumerands = [self.noderesult[e] for e in ctx.enumerand()]
+
+        enum = Enumeration(name, type, enumerands, ctx.start)
+        self.noderesult[ctx] = enum
+        self._enumations_by_name[name] = enum
 
     def build(self, text):
         errors = []
