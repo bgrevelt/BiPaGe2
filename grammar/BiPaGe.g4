@@ -7,7 +7,7 @@ SingleLineComment: '//' ~('\r' | '\n')* -> skip;
 
 IntegerType: ('int' | 'uint' | 's' | 'u' ) NumberLiteral;
 FloatingPointType: ('float' | 'f' ) ('32' | '64' );
-NumberLiteral: [0-9]+;
+NumberLiteral: '-'?[0-9]+;
 
 NameSpace: 'namespace';
 Identifier: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
