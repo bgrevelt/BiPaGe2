@@ -3,6 +3,7 @@ from Model.Builder import Builder
 import argparse
 from compiler.BackEnd.cpp.Generator import Generator as CppGen
 from antlr4.error.ErrorListener import ErrorListener
+import os
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -38,7 +39,8 @@ def main(argv):
 
     for file in args.input:
         builder = Builder()
-        warnings, errors, model = builder.build(open(file).read())
+        filename = os.path.splitext(os.path.split(file)[1])[0]
+        warnings, errors, model = builder.build(open(file).read(), filename)
 
         print_semantic_messages(file, warnings, errors)
         if len(errors) > 0:

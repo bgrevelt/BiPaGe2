@@ -1,4 +1,6 @@
 #pragma once
+#include <cstdint>
+#include <stddef.h>
 
 namespace BiPaGe
 {

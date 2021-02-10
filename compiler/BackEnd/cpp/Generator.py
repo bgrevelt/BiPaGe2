@@ -1,16 +1,53 @@
 import os
 from .DataType import DataType
+from .Beautifier import *
 
 class Generator:
     def __init__(self, settings):
         self._settings = settings
         self.output_dir = settings.output
+        self._beautifier = Beautifier()
 
     def generate(self, model):
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
 
-        for datatype in model.datatypes:
-            generator = DataType(datatype, model.namespace, model.endianness, self._settings)
-            header_path = os.path.join(self.output_dir, f"{datatype.identifier}_generated.h")
-            generator.generate(header_path)
+        cpp_datatypes = [DataType(dt, model.namespace, model.endianness, self._settings) for dt in model.datatypes]
+
+        header_path = os.path.join(self.output_dir, f"{model.name}_generated.h")
+        includes = "\n".join(list(set(inc for datatype in cpp_datatypes for inc in datatype.includes())))
+        defines = "\n".join([define for datatype in cpp_datatypes for define in datatype.defines()])
+
+        content = f'''{includes}
+
+                {self.namespace_open(model.namespace)}
+                
+                {defines}
+                
+                '''
+
+        for datatype in cpp_datatypes:
+            content += f'''
+            {datatype.parser_code()}
+
+            {datatype.builder_code()}
+            '''
+
+        content += self.namespace_close(model.namespace)
+
+        with open(header_path, 'w+') as f:
+            f.write(self._beautifier.beautify(content))
+
+    def namespace_open(self, full_namespace):
+        if len(full_namespace) == 0:
+            return ""
+        ns = ""
+        for namespace in full_namespace:
+            ns += f'namespace {namespace}\n{{\n'
+        return ns
+
+    def namespace_close(self, namespace):
+        if len(namespace) == 0:
+            return ""
+        else:
+            return '}\n' * len(namespace)

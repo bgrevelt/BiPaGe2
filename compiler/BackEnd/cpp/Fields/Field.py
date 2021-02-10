@@ -1,5 +1,6 @@
 class Field:
-    def __init__(self, field, cpp_type, default_value, endianness, settings):
+    def __init__(self, type_name, field, cpp_type, default_value, endianness, settings):
+        self._type_name = type_name
         self._field = field
         self._endianness = endianness
         self._settings = settings
@@ -63,8 +64,9 @@ class Field:
         return [(self._offset_name(), (self._field.capture_offset // 8))]
 
     def _offset_name(self):
+        typename = self._type_name.upper()
         name = self._field.name.upper()
-        return f"{name}_CAPTURE_OFFSET"
+        return f"{typename}_{name}_CAPTURE_OFFSET"
 
     def validation_code(self, variable_name):
         return ""

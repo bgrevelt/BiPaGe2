@@ -38,34 +38,14 @@ def remove_aliases(type):
         return type
 
 
-class FirstPass(BiPaGeListener):
-    def __init__(self):
-        self.Enumerations = []
-        self._Enumerands = []
-
-    def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
-        self._Enumerands.append((str(ctx.Identifier()), int(str(ctx.NumberLiteral()))))
-
-    def exitEnumeration(self, ctx:BiPaGeParser.EnumerationContext):
-        type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
-        signed = type == 'int'
-        type = Integer.Integer(size,signed, ctx.start)
-
-        name = str(ctx.Identifier())
-        enumerands = [e for e in self._Enumerands]
-
-        self.Enumerations.append(Enumeration(name, type, enumerands, ctx.start))
-        self._Enumerands = []
-
-
 class Builder(BiPaGeListener):
     def __init__(self):
         self._offset = 0
         self._scoped_offset = 0
         self._definition = None
         self.noderesult = {}
-        self._enumerations = None
-        self._enumations_by_name = None
+        self._enumations_by_name = {}
+        self._definition_name = None
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
@@ -91,7 +71,7 @@ class Builder(BiPaGeListener):
 
         datatypes = [self.noderesult[d] for d in ctx.datatype()]
         enumerations = [self.noderesult[e] for e in ctx.enumeration()]
-        self._definition = Definition(endianness, namespace, datatypes, enumerations, ctx.start)
+        self._definition = Definition(self._definition_name, endianness, namespace, datatypes, enumerations, ctx.start)
 
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
@@ -178,7 +158,8 @@ class Builder(BiPaGeListener):
         self.noderesult[ctx] = enum
         self._enumations_by_name[name] = enum
 
-    def build(self, text):
+    def build(self, text, name):
+        self._definition_name = name
         errors = []
         warnings = []
         model = None
@@ -192,13 +173,7 @@ class Builder(BiPaGeListener):
 
         errors.extend(errorlistener.errors())
         if len(errors) == 0:
-            firstpass = FirstPass()
             walker = ParseTreeWalker()
-            walker.walk(firstpass, tree)
-            # todo: we should really pull this function out of the builder or all of the visitor functions
-            # into their own class. Maybe SecondPass?
-            self.SetEnumerations(firstpass.Enumerations)
-
             walker.walk(self, tree)
             model = self._definition
             model.check_semantics(warnings, errors)

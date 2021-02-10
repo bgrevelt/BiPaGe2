@@ -1,10 +1,21 @@
-@bigendian
+@bigendian;
+
+SomeEnum : int8
+{
+  val1 = 0,
+  val2 = 4
+}
 
 Foo
 {
+    field1 : uint8;
+    field2: SomeEnum;
+    field3: float64;
+}
+
+Bar
 {
-    field3: int30;
-    f1:u2;
-    }
-    f4 : s32;
+    field1 : uint8;
+    field2: SomeEnum;
+    field3: float64;
 }

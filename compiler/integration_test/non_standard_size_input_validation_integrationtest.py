@@ -26,7 +26,7 @@ class NonStandardSizeInputValidation(unittest.TestCase, IntegrationTest):
         self.write_cmake_file()
         self._cpp_with_validation = '''
 #include "../check.hpp"
-#include "Foo_generated.h"
+#include "non_standard_size_input_validation_integrationtest_generated.h"
 
 void test_foo_builder()
 {
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 }'''
         self._cpp_without_validation = '''
     #include "../check.hpp"
-    #include "Foo_generated.h"
+    #include "non_standard_size_input_validation_integrationtest_generated.h"
 
     void test_foo_builder()
     {

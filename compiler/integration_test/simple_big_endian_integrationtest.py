@@ -31,8 +31,7 @@ class SimpleBigEndian(unittest.TestCase, IntegrationTest):
         ''')
         self.write_cmake_file()
         self.write_test_cpp_file('''
-#include "Foo_generated.h"
-#include "Bar_generated.h"
+#include "simple_big_endian_integrationtest_generated.h"
 #include <iostream>
 #include <vector>
 #include <limits>

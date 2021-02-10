@@ -18,7 +18,7 @@ class ToString(unittest.TestCase, IntegrationTest):
         ''')
         self.write_cmake_file()
         self.write_test_cpp_file('''
-#include "Foo_generated.h"
+#include "tostring_integrationtest_generated.h"
 #include <iostream>
 #include "../check.hpp"
 
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     def test_no_to_string(self):
         # Validate method is not generated if disabled in bigpage arguments
         self.run_bipage(['--cpp-no-to-string'])
-        with open(f'temp_{self.test_name}/Foo_generated.h') as f:
+        with open(f'temp_{self.test_name}/tostring_integrationtest_generated.h') as f:
             generated = f.read()
             self.assertFalse('to_string' in generated)
 

@@ -8,7 +8,7 @@ class DataType:
         self._namespace = namespace
         self._endianness = endianness
         self._settings = settings
-        self._fields = [field_factory.create(field, endianness, settings) for field in datatype.fields]
+        self._fields = [field_factory.create(datatype.identifier, field, endianness, settings) for field in datatype.fields]
         self._datatype = datatype
         self._identifier = datatype.identifier
         self._beautifier = Beautifier()
@@ -39,36 +39,6 @@ private:
     {fields}
 }};
 '''
-    def generate(self, path):
-        with open(path, 'w+') as f:
-            f.write(self._beautifier.beautify(
-                f'''{ self.includes()}
-
-                {self.namespace_open()}
-                {self.defines()}
-
-                {self.parser_code()}
-
-                {self.builder_code()}
-
-                {self.namespace_close()}
-                '''
-            ))
-
-    def namespace_open(self):
-        if len(self._namespace) == 0:
-            return ""
-        ns = ""
-        for namespace in self._namespace:
-            ns += f'namespace {namespace}\n{{\n'
-        return ns
-
-    def namespace_close(self):
-        if len(self._namespace) == 0:
-            return ""
-        else:
-            return '}\n' * len(self._namespace)
-
 
     def includes(self):
         incs = ['<cstdint>', '<assert.h>', '<vector>']
@@ -79,10 +49,10 @@ private:
         if self._settings.cpp_to_string:
             incs.extend(['<sstream>', '<iomanip>'])
 
-        return '\n'.join(f'#include {include}' for include in incs)
+        return [f'#include {include}' for include in incs]
 
     def defines(self):
-        return '\n'.join([f'#define {key} {value}' for field in self._fields for key, value in field.defines()])
+        return [f'#define {key} {value}' for field in self._fields for key, value in field.defines()]
 
     def parser_code(self):
         fields = "\n\n".join([field.view_getter_code() for field in self._fields])
@@ -147,7 +117,7 @@ private:
             for i, capture_scope in enumerate(self._datatype.capture_scopes):
                 # TODO: code duplication. We should really add the capture scope to the backend model
                 # to prevent this instead of using hacky solutions like this.
-                offset_name = f'{capture_scope.fields()[0].name.upper()}_CAPTURE_OFFSET'
+                offset_name = f'{self._identifier.upper()}_{capture_scope.fields()[0].name.upper()}_CAPTURE_OFFSET'
                 r += f'auto capture_scope_{i+1} = reinterpret_cast<std::uint{capture_scope.size()}_t*>(sink + {offset_name});\n'
                 r += f'*capture_scope_{i+1} = BiPaGe::swap_bytes(*capture_scope_{i+1});\n'
 

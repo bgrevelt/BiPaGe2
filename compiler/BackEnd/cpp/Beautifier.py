@@ -34,3 +34,4 @@ class Beautifier:
                 self.indent += 1
             if any(char == dec_char for dec_char in dec_chars):
                 self.indent -= 1
+

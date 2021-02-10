@@ -27,7 +27,7 @@ class NonStandardSizeBigEndian(unittest.TestCase, IntegrationTest):
         ''')
         self.write_cmake_file()
         self.write_test_cpp_file('''
-#include "Foo_generated.h"
+#include "non_standard_size_big_endian_integrationtest_generated.h"
 #include <iostream>
 #include <vector>
 #include <limits>
