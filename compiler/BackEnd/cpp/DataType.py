@@ -4,8 +4,7 @@ import math
 
 
 class DataType:
-    def __init__(self, datatype, namespace, endianness, settings):
-        self._namespace = namespace
+    def __init__(self, datatype, endianness, settings):
         self._endianness = endianness
         self._settings = settings
         self._fields = [field_factory.create(datatype.identifier, field, endianness, settings) for field in datatype.fields]
@@ -60,8 +59,6 @@ private:
             '''class {typename}_view
             {{
             public:
-                // You should not create or copy this class as it's just a view on raw data
-                // Creating or copying this class will give you a class with one byte of data.
                 {typename}_view(const std::uint8_t* data)
                 : data_(data)
                 {{
