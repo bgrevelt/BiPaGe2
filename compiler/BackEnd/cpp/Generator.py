@@ -1,6 +1,7 @@
 import os
 from .DataType import DataType
 from .Beautifier import *
+from .Enumeration import Enumeration
 
 class Generator:
     def __init__(self, settings):
@@ -12,7 +13,7 @@ class Generator:
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
 
-        cpp_datatypes = [DataType(dt, model.namespace, model.endianness, self._settings) for dt in model.datatypes]
+        cpp_datatypes = [DataType(dt, model.endianness, self._settings) for dt in model.datatypes]
 
         header_path = os.path.join(self.output_dir, f"{model.name}_generated.h")
         includes = "\n".join(list(set(inc for datatype in cpp_datatypes for inc in datatype.includes())))
@@ -25,6 +26,8 @@ class Generator:
                 {defines}
                 
                 '''
+        for enum in (Enumeration(e) for e in model.enumerations):
+            content += enum.defintion()
 
         for datatype in cpp_datatypes:
             content += f'''
