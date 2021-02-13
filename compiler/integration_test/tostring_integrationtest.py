@@ -1,6 +1,5 @@
 import unittest
-from integrationtest import IntegrationTest
-import subprocess
+from integration_test.integrationtest import IntegrationTest
 
 class ToString(unittest.TestCase, IntegrationTest):
 

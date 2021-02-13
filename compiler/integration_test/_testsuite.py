@@ -1,25 +1,25 @@
 import unittest
-import tostring_integrationtest
-import namespace_integrationtest
-import non_standard_size_big_endian_integrationtest
-import non_standard_size_input_validation_integrationtest
-import non_standard_size_integrationtest
-import non_standard_size_misaligned_standard_type_integrationtest
-import reserved_integrationtest
-import simple_big_endian_integrationtest
-import simple_integrationtest
+from integration_test.tostring_integrationtest import *
+from integration_test.namespace_integrationtest import *
+from integration_test.non_standard_size_big_endian_integrationtest import *
+from integration_test.non_standard_size_input_validation_integrationtest import *
+from integration_test.non_standard_size_integrationtest import *
+from integration_test.non_standard_size_misaligned_standard_type_integrationtest import *
+from integration_test.reserved_integrationtest import *
+from integration_test.simple_big_endian_integrationtest import *
+from integration_test.simple_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.makeSuite(tostring_integrationtest.ToString))
-    test_suite.addTest(unittest.makeSuite(namespace_integrationtest.Namespace))
-    test_suite.addTest(unittest.makeSuite(non_standard_size_big_endian_integrationtest.NonStandardSizeBigEndian))
-    test_suite.addTest(unittest.makeSuite(non_standard_size_input_validation_integrationtest.NonStandardSizeInputValidation))
-    test_suite.addTest(unittest.makeSuite(non_standard_size_integrationtest.NonStandardSize))
-    test_suite.addTest(unittest.makeSuite(non_standard_size_misaligned_standard_type_integrationtest.NonStandardSizeMisalignedStandardType))
-    test_suite.addTest(unittest.makeSuite(simple_big_endian_integrationtest.SimpleBigEndian))
-    test_suite.addTest(unittest.makeSuite(reserved_integrationtest.Reserved))
-    test_suite.addTest(unittest.makeSuite(simple_integrationtest.Simple))
+    test_suite.addTest(unittest.makeSuite(ToString))
+    test_suite.addTest(unittest.makeSuite(Namespace))
+    test_suite.addTest(unittest.makeSuite(NonStandardSizeBigEndian))
+    test_suite.addTest(unittest.makeSuite(NonStandardSizeInputValidation))
+    test_suite.addTest(unittest.makeSuite(NonStandardSize))
+    test_suite.addTest(unittest.makeSuite(NonStandardSizeMisalignedStandardType))
+    test_suite.addTest(unittest.makeSuite(SimpleBigEndian))
+    test_suite.addTest(unittest.makeSuite(Reserved))
+    test_suite.addTest(unittest.makeSuite(Simple))
 
     return test_suite
 

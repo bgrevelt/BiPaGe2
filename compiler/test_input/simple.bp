@@ -1,21 +1,22 @@
 @bigendian;
 
-SomeEnum : int8
+Bar : uint8
 {
   val1 = 0,
-  val2 = 4
+  val2 = 253,
+  val3 = 5
 }
 
 Foo
 {
     field1 : uint8;
-    field2: SomeEnum;
+    field2: Bar;
     field3: float64;
 }
 
-Bar
+FooBar
 {
     field1 : uint8;
-    field2: SomeEnum;
+    field2: Bar;
     field3: float64;
 }

@@ -1,5 +1,5 @@
 import unittest
-from integrationtest import IntegrationTest
+from integration_test.integrationtest import IntegrationTest
 
 
 class Reserved(unittest.TestCase, IntegrationTest):

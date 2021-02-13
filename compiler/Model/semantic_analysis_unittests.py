@@ -1,6 +1,7 @@
 import unittest
+
 from .Builder import Builder
-import random
+
 
 class SemanticAnalysisUnittests(unittest.TestCase):
     def test_duplicate_field_name(self):

@@ -1,4 +1,3 @@
-import unittest
 import subprocess
 import os
 import shutil
@@ -62,7 +61,7 @@ class IntegrationTest:
 
     def run_test(self, args = None):
         result = subprocess.run([f"temp_{self.test_name}/{self.test_name}"] + args, stdout=subprocess.PIPE)
-        return (result.returncode, result.stdout.decode('utf-8'))
+        return result.returncode, result.stdout.decode('utf-8')
 
     def run_all(self, bipageargs=None, testargs=None):
         self.run_bipage(bipageargs)

@@ -19,7 +19,7 @@ SomeDataType
     field9 : float32;
     field10 : float64;
 }
-        ''')
+        ''', "")
 
         self.assertEqual(len(model.datatypes), 1)
         datatype = model.datatypes[0]
@@ -52,7 +52,7 @@ SomeDataType
         field9 : f32;
         field10 : f64;
     }
-            ''')
+            ''', "")
 
             self.assertEqual(len(model.datatypes), 1)
             datatype = model.datatypes[0]
@@ -87,7 +87,7 @@ SomeDataType
         field9 : f32;
         f64;
     }
-            ''')
+            ''', "")
 
             self.assertEqual(len(model.datatypes), 1)
             datatype = model.datatypes[0]
@@ -113,7 +113,7 @@ SomeDataType
         }
         field5 : float64;
     }
-            ''')
+            ''', "")
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', Integer(32, True, None),   0, 32, 0,  0xffffffff),
@@ -136,7 +136,7 @@ SomeDataType
         }
         field5 : float64;
     }
-            ''')
+            ''', "")
         # name, type, offset, size, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', Integer(32, True, None),    0, 32, 0,  0xffffffff),
@@ -159,7 +159,7 @@ SomeDataType
         }
         field5 : f64;
     }
-            ''')
+            ''', "")
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', Integer(32, True, None),  0, 32,  0, 0xffffffff),

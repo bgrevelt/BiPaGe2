@@ -41,7 +41,8 @@ class Generator:
         with open(header_path, 'w+') as f:
             f.write(self._beautifier.beautify(content))
 
-    def namespace_open(self, full_namespace):
+    @staticmethod
+    def namespace_open(full_namespace):
         if len(full_namespace) == 0:
             return ""
         ns = ""
@@ -49,7 +50,8 @@ class Generator:
             ns += f'namespace {namespace}\n{{\n'
         return ns
 
-    def namespace_close(self, namespace):
+    @staticmethod
+    def namespace_close(namespace):
         if len(namespace) == 0:
             return ""
         else:

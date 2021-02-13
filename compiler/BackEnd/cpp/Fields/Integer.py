@@ -1,7 +1,7 @@
 from .Field import Field
 import math
 
-
+# TODO this should be moved elsewhere
 def _to_cpp_type(size, signed):
     # assert disabled to give semantic analysis a chance to catch this
     #assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
@@ -88,7 +88,7 @@ class Integer(Field):
             r = ""
             mask = 2 ** (self._field.size_in_bits() - 1) - 1  # mask should not include sign bit
             sign_mask = 2 ** (self._field.size_in_bits() - 1)
-            sign_mask_return_type = (2 ** (self._field.standard_size) - 1) - mask
+            sign_mask_return_type = (2 ** self._field.standard_size - 1) - mask
 
             r += f'bool negative = ((capture_type & 0x{sign_mask:x}) == 0x{sign_mask:x});\n'
             r += f'capture_type &= 0x{mask:x};\n'

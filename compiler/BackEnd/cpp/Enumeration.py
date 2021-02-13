@@ -17,5 +17,5 @@ class Enumeration:
         return self._template.format(name=name, type=type, enumerators=enumerators)
 
     def _enumerators(self):
-        r = "\n".join(f'{n} = {v},' for n,v in self._model._enumerands)
+        r = "\n".join(f'{n} = {v},' for n,v in self._model.enumerators())
         return r[:-1]

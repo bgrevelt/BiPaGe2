@@ -54,10 +54,6 @@ class Builder(BiPaGeListener):
             'f' : 'float'
         }
 
-    def SetEnumerations(self, enums:List[Enumeration]):
-        self._enumerations = enums
-        self._enumations_by_name = {e.name() : e for e in enums}
-
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
         namespace = []
         if ctx.namespace():

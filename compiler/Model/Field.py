@@ -57,3 +57,6 @@ class Field(Node):
 
     def size_in_bits(self):
         return self._type.size_in_bits()
+
+    def type(self):
+        return self._type
