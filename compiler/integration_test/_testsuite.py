@@ -8,6 +8,7 @@ from integration_test.non_standard_size_misaligned_standard_type_integrationtest
 from integration_test.reserved_integrationtest import *
 from integration_test.simple_big_endian_integrationtest import *
 from integration_test.simple_integrationtest import *
+from integration_test.simple_enum_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -20,6 +21,7 @@ def suite():
     test_suite.addTest(unittest.makeSuite(SimpleBigEndian))
     test_suite.addTest(unittest.makeSuite(Reserved))
     test_suite.addTest(unittest.makeSuite(Simple))
+    test_suite.addTest(unittest.makeSuite(SimpleEnum))
 
     return test_suite
 

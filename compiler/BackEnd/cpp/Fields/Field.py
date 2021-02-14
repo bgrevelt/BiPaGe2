@@ -1,9 +1,8 @@
 class Field:
-    def __init__(self, type_name, field, cpp_type, default_value, endianness, settings):
+    def __init__(self, type_name, field, cpp_type, default_value, endianness):
         self._type_name = type_name
         self._field = field
         self._endianness = endianness
-        self._settings = settings
         self._cpp_type = cpp_type
         self._default_value = default_value
         self._getter_template =\

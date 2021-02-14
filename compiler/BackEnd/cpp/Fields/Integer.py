@@ -12,10 +12,12 @@ def _to_cpp_type(size, signed):
 
 
 class Integer(Field):
-    def __init__(self, type_name, field, endianness, settings):
-        super().__init__(type_name, field, _to_cpp_type(field.standard_size, field.is_signed_type()), '0', endianness, settings)
+    def __init__(self, type_name, field, endianness, settings, default_value = '0'):
+        super().__init__(type_name, field, _to_cpp_type(field.standard_size, field.is_signed_type()), default_value, endianness)
+        self._settings = settings
         self._scoped = field.scoped
         self.capture_type = _to_cpp_type(field.capture_size, field.is_signed_type())
+
 
     def builder_serialize_code(self):
         if not self._scoped:

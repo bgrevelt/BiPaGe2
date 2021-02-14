@@ -1,21 +1,26 @@
-from .Float import Float32
-from .Float import Float64
-from .Integer import Integer
-from Model.Types.Integer import Integer as IntType
-from Model.Types.Float import Float as FloatType
-from Model.Types.Reference import Reference
+from BackEnd.cpp.Fields.Float import Float32
+from BackEnd.cpp.Fields.Float import Float64
+from BackEnd.cpp.Fields.Integer import Integer
+from BackEnd.cpp.Fields.EnumReference import EnumReference
+
+from Model.Types.Integer import Integer as ModelInt
+from Model.Types.Float import Float as ModelFloat
+from Model.Types.Reference import Reference as ModelReference
+from Model.Enumeration import Enumeration as ModelEnum
 
 def create(type_name, field, endianness, settings):
-    if type(field.type()) is IntType:
+    if type(field.type()) is ModelInt:
         return Integer(type_name,field, endianness, settings)
-    elif type(field.type()) is FloatType:
+    elif type(field.type()) is ModelFloat:
         if field.size_in_bits() == 32:
-            return Float32(type_name, field, endianness, settings)
+            return Float32(type_name, field, endianness)
         else:
             assert field.size_in_bits() == 64, "unknown size for float type: {}".format(field.size_in_bits)
-            return Float64(type_name, field, endianness, settings)
-    elif type(field.type()) is Reference:
-        # TODO: temporary hack
-        return Integer(type_name, field, endianness, settings)
+            return Float64(type_name, field, endianness)
+    elif type(field.type()) is ModelReference:
+        if type(field.type().referenced_type()) is ModelEnum:
+            return EnumReference(type_name, field, endianness, settings)
+        else:
+            assert False, "Unsupported tield type"
     else:
         assert False, "Unknown type {} and length {}".format(field, field.size_in_bits())

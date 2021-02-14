@@ -2,18 +2,30 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
-
+#include <type_traits>
 #define check_equal(l,r) check_equal_func(l,r,__FUNCTION__, __LINE__)
 #define check_exception(e,f) check_exception_func<e>(f,__FUNCTION__, __LINE__, #e)
 #define check_type(e,v) check_type_func<e>(v,__FUNCTION__, __LINE__, #e)
 
 
 template<typename T1, typename T2>
-void check_equal_func(const T1& l, const T2& r, const char* caller, int line)
+typename std::enable_if<!std::is_enum<T1>::value, void>::type
+check_equal_func(const T1& l, const T2& r, const char* caller, int line)
 {
     if(l != r)
     {
         std::cerr << "check_equal called from " << caller << ", line " << line << ": " << +l << " is not equal to " << +r << std::endl;
+        exit(-1);
+    }
+}
+
+template<typename T1, typename T2>
+typename std::enable_if<std::is_enum<T1>::value, void>::type
+check_equal_func(const T1& l, const T2& r, const char* caller, int line)
+{
+    if(l != r)
+    {
+        std::cerr << "check_equal called from " << caller << ", line " << line << ": " << +static_cast<int>(l) << " is not equal to " << +static_cast<int>(r) << std::endl;
         exit(-1);
     }
 }
