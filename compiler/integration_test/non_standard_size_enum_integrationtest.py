@@ -169,20 +169,16 @@ int main(int argc, char* argv[])
 
     def test_foo_view(self):
         exit_code, output = self.run_all(
-            #TODO: support validation for (non-standard width) enumeration types
-            bipageargs=['--cpp-no-validate-builder-input'],
             testargs=["fooview"])
         self.assertEqual(exit_code, 0)
 
     def test_foo_builder(self):
         exit_code, output = self.run_all(
-            bipageargs=['--cpp-no-validate-builder-input'],
             testargs=["foobuilder"])
         self.assertEqual(exit_code, 0)
 
     def test_foo_builder2(self):
         exit_code, output = self.run_all(
-            bipageargs=['--cpp-no-validate-builder-input'],
             testargs=["foobuilder2"])
         self.assertEqual(exit_code, 0)
 

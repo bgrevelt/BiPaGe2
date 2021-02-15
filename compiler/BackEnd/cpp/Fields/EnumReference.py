@@ -22,3 +22,10 @@ class EnumReference(Integer):
 
     def to_string_code(self):
         return f'enum_to_string({self._field.name}())'
+
+    def validation_code(self, variable_name):
+        # We don't ned validation for the enumeration because they're limited to the values
+        # contained in the enumeration by nature. Sure, someone can static_cast a value that's
+        # not part of the enumeration, but I don't think we need to guard for that type of programmer
+        # error
+        return ""
