@@ -196,15 +196,15 @@ int main(int argc, char* argv[])
 }''')
 
     def test_foo_view(self):
-        exit_code, output = self.run_all(bipageargs=['--cpp-no-to-string'],testargs=["fooview"])
+        exit_code, output = self.run_all(testargs=["fooview"])
         self.assertEqual(exit_code, 0)
 
     def test_foo_builder(self):
-        exit_code, output = self.run_all(bipageargs=['--cpp-no-to-string'],testargs=["foobuild"])
+        exit_code, output = self.run_all(testargs=["foobuild"])
         self.assertEqual(exit_code, 0)
 
     def test_enum_values(self):
-        exit_code, output = self.run_all(bipageargs=['--cpp-no-to-string'], testargs=["enumvalues"])
+        exit_code, output = self.run_all(testargs=["enumvalues"])
         self.assertEqual(exit_code, 0)
 
 

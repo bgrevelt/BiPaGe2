@@ -136,6 +136,13 @@ class Integer(Field):
                 throw std::runtime_error({error_msg});
             }}'''
 
+    def to_string_code(self):
+        if not self._field.is_signed_type() and self._field.return_type_size() == 8:
+            # cast to int to prevent this from being interpreted as an ASCII charactor
+            return f'static_cast<unsigned int>({self._field.name}())'
+        else:
+            return f'{self._field.name}()'
+
     @staticmethod
     def to_cpp_type(size, signed):
         # assert disabled to give semantic analysis a chance to catch this

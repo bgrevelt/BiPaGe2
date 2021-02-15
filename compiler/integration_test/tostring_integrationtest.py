@@ -8,11 +8,24 @@ class ToString(unittest.TestCase, IntegrationTest):
         IntegrationTest.__init__(self)
 
         self.write_bipage_file('''
+        SomeEnum : u8
+        {
+            one = 1,
+            two = 2,
+            five = 5,
+            nine = 9,
+            twofiftyfive = 255
+        }
+        
         Foo
         {
             field: s32;  
             another_field_name_nice_and_long: f64;
-            a_byte: u8;
+            enum1: SomeEnum;
+            enum2: SomeEnum;
+            enum3: SomeEnum;
+            enum4: SomeEnum;
+            enum5: SomeEnum;
         }
         ''')
         self.write_cmake_file()
@@ -27,7 +40,11 @@ void test_simple()
     auto p = buffer;
     p = serialize(p, static_cast<std::int32_t>(-35643));
     p = serialize(p, 1.234);
-    p = serialize(p, static_cast<std::uint8_t>(33));
+    p = serialize(p, SomeEnum::one);
+    p = serialize(p, SomeEnum::two);
+    p = serialize(p, SomeEnum::five);
+    p = serialize(p, SomeEnum::nine);
+    p = serialize(p, SomeEnum::twofiftyfive);
 
     Foo_view parsed(buffer);
     std::cout << parsed.to_string() << std::endl;
@@ -56,7 +73,11 @@ int main(int argc, char* argv[])
         self.check_output(output, '''
                 field: -35643
                 another_field_name_nice_and_long: 1.234
-                a_byte: 33''')
+                enum1: SomeEnum::one (1)
+                enum2: SomeEnum::two (2)
+                enum3: SomeEnum::five (5)
+                enum4: SomeEnum::nine (9)
+                enum5: SomeEnum::twofiftyfive (255)''')
 
     def check_output(self, expected, output):
         # check two strings ignoring whitespace and casing

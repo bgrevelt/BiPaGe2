@@ -133,11 +133,8 @@ private:
         
         '''
 
-        for field in self._datatype.fields:
-            if not field.is_signed_type() and field.return_type_size() == 8:
-                r += f'ss << std::setw({longest_field_name + 2}) << "{field.name}: " << static_cast<unsigned int>({field.name}()) << std::endl;\n'
-            else:
-                r += f'ss << std::setw({longest_field_name + 2}) << "{field.name}: " << {field.name}() << std::endl;\n'
+        for field in self._fields:
+            r += f'ss << std::setw({longest_field_name + 2}) << "{field.name()}: " << {field.to_string_code()} << std::endl;\n'
 
         r+= '''
         return ss.str();

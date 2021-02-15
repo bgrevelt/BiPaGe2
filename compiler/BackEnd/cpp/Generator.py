@@ -28,6 +28,8 @@ class Generator:
                 '''
         for enum in (Enumeration(e) for e in model.enumerations):
             content += enum.defintion()
+            if self._settings.cpp_to_string:
+                content += enum.to_string()
 
         for datatype in cpp_datatypes:
             content += f'''

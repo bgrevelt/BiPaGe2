@@ -68,3 +68,6 @@ class Field:
 
     def validation_code(self, variable_name):
         return ""
+
+    def to_string_code(self):
+        return f'{self._field.name}()'

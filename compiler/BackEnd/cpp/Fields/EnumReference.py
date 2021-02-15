@@ -19,3 +19,6 @@ class EnumReference(Integer):
 
     def base_type(self):
         return Integer.to_cpp_type(self._referenced_enum.standard_size(), self._referenced_enum.signed())
+
+    def to_string_code(self):
+        return f'enum_to_string({self._field.name}())'
