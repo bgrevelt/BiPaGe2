@@ -66,7 +66,7 @@ class Builder(BiPaGeListener):
             endianness = 'big'
 
         datatypes = [self.noderesult[d] for d in ctx.datatype()]
-        enumerations = [self.noderesult[e] for e in ctx.enumeration()]
+        enumerations = self._enumations_by_name.values()
         self._definition = Definition(self._definition_name, endianness, namespace, datatypes, enumerations, ctx.start)
 
 
@@ -74,7 +74,7 @@ class Builder(BiPaGeListener):
         self._offset = 0
 
     def get_fields_from_scoped_capture_scope(self, capture_scope):
-        return [self.noderesult[field] for field in capture_scope.simple_field() if self.noderesult[field].name is not None]
+         return [self.noderesult[field] for field in capture_scope.simple_field() if self.noderesult[field].name is not None] + [self.noderesult[field] for field in capture_scope.inline_enumeration()]
 
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         fields = []
@@ -97,6 +97,9 @@ class Builder(BiPaGeListener):
             elif field.capture_scope():
                 # Add fields from the capture scope directly to the datatype as well.
                 fields.extend(self.get_fields_from_scoped_capture_scope(field.capture_scope()))
+            elif field.inline_enumeration():
+                fields.append(self.noderesult[field.inline_enumeration()])
+
 
         capture_scopes = [ self.noderesult[cs_context.capture_scope()] for cs_context in ctx.field() if cs_context.capture_scope()]
 
@@ -115,11 +118,13 @@ class Builder(BiPaGeListener):
         self._scoped_offset = self._offset
 
     def exitCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
-        fields = [self.noderesult[field] for field in ctx.simple_field()]
+        fields = [self.noderesult[field] for field in ctx.simple_field()] + [self.noderesult[field] for field in ctx.inline_enumeration()]
         capture_scope_size = sum(f.size_in_bits() for f in fields)
         capture_scope_offset = self._scoped_offset
 
         for field in ctx.simple_field():
+            self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
+        for field in ctx.inline_enumeration():
             self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
 
         self.noderesult[ctx] = CaptureScope(capture_scope_offset, fields, ctx.start)
@@ -153,6 +158,24 @@ class Builder(BiPaGeListener):
         enum = Enumeration(name, type, enumerands, ctx.start)
         self.noderesult[ctx] = enum
         self._enumations_by_name[name] = enum
+
+    def exitInline_enumeration(self, ctx:BiPaGeParser.Inline_enumerationContext):
+        type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
+        signed = type == 'int'
+        type = Integer.Integer(size, signed, ctx.start)
+
+        name = f'{str(ctx.Identifier())}_ENUM'
+        enumerands = [self.noderesult[e] for e in ctx.enumerand()]
+
+        enum = Enumeration(name, type, enumerands, ctx.start)
+        self._enumations_by_name[name] = enum
+
+        id = str(ctx.Identifier())
+        type = Reference.Reference(name, enum, ctx.start)
+        field = Field(id, type, self._offset, ctx.start)
+        self._offset += field.size_in_bits()
+        self.noderesult[ctx] = field
+
 
     def build(self, text, name):
         self._definition_name = name

@@ -104,7 +104,7 @@ class Integer(Field):
             return r
 
     def _add_return(self):
-        if self._field.capture_size != self._field.standard_size:
+        if self._field.capture_size != self._field.standard_size or self.base_type() != self.cpp_type():
             return f'return static_cast<{self.cpp_type()}>(capture_type);'
         else:
             return 'return capture_type;'
