@@ -1,7 +1,7 @@
 import unittest
 from integration_test.integrationtest import IntegrationTest
 
-class NonStandardSize(unittest.TestCase, IntegrationTest):
+class NonStandardSizeEnum(unittest.TestCase, IntegrationTest):
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)

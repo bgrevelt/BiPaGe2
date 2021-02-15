@@ -9,6 +9,7 @@ from integration_test.reserved_integrationtest import *
 from integration_test.simple_big_endian_integrationtest import *
 from integration_test.simple_integrationtest import *
 from integration_test.simple_enum_integrationtest import *
+from integration_test.non_standard_size_enum_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -22,6 +23,7 @@ def suite():
     test_suite.addTest(unittest.makeSuite(Reserved))
     test_suite.addTest(unittest.makeSuite(Simple))
     test_suite.addTest(unittest.makeSuite(SimpleEnum))
+    test_suite.addTest(unittest.makeSuite(NonStandardSizeEnum))
 
     return test_suite
 

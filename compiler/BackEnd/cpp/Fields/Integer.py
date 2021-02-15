@@ -1,23 +1,21 @@
 from .Field import Field
 import math
 
-# TODO this should be moved elsewhere
-def _to_cpp_type(size, signed):
-    # assert disabled to give semantic analysis a chance to catch this
-    #assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
-    if signed:
-        return f'std::int{size}_t'
-    else:
-        return f'std::uint{size}_t'
-
-
 class Integer(Field):
-    def __init__(self, type_name, field, endianness, settings, default_value = '0'):
-        super().__init__(type_name, field, _to_cpp_type(field.standard_size, field.is_signed_type()), default_value, endianness)
+    def __init__(self, type_name, field, endianness, settings):
+        super().__init__(type_name, field, endianness)
         self._settings = settings
         self._scoped = field.scoped
-        self.capture_type = _to_cpp_type(field.capture_size, field.is_signed_type())
+        self.capture_type = self.to_cpp_type(field.capture_size, field.is_signed_type())
 
+    def cpp_type(self):
+        return self.to_cpp_type(self._field.standard_size, self._field.is_signed_type())
+
+    def default_value(self):
+        return '0'
+
+    def base_type(self):
+        return self.cpp_type()
 
     def builder_serialize_code(self):
         if not self._scoped:
@@ -26,7 +24,10 @@ class Integer(Field):
         offset_in_byte = (self._field.offset - self._field.capture_offset)
         mask = (2 ** self._field.size_in_bits() - 1) << offset_in_byte  # mask should not include sign bit
 
-        r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
+        if self.base_type() != self.cpp_type():
+            r = f'{self.capture_type} {self._field.name} = static_cast<{self.base_type()}>({self._field.name}_);\n'
+        else:
+            r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
         if offset_in_byte != 0:
             r += f'{self._field.name} <<= {offset_in_byte};\n'
 
@@ -55,7 +56,7 @@ class Integer(Field):
             return super().view_getter_code()
 
         fieldname = self._field.name
-        return_type = _to_cpp_type(self._field.standard_size, self._issigned())
+        return_type = self.cpp_type()
         body = self._body()
 
         return f'''{return_type} {fieldname}() const
@@ -64,7 +65,7 @@ class Integer(Field):
         }}'''
 
     def _body(self):
-        capture_type = _to_cpp_type(self._field.capture_size, self._issigned())
+        capture_type = self.to_cpp_type(self._field.capture_size, self._issigned())
 
         body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(data_ + {self._offset_name()});\n'
         if self._endianness == 'big' and self._field.size_in_bits() != 8:
@@ -103,10 +104,8 @@ class Integer(Field):
             return r
 
     def _add_return(self):
-        return_type = _to_cpp_type(self._field.standard_size, self._issigned())
-
         if self._field.capture_size != self._field.standard_size:
-            return f'return static_cast<{return_type}>(capture_type);'
+            return f'return static_cast<{self.cpp_type()}>(capture_type);'
         else:
             return 'return capture_type;'
 
@@ -136,6 +135,15 @@ class Integer(Field):
             {{
                 throw std::runtime_error({error_msg});
             }}'''
+
+    @staticmethod
+    def to_cpp_type(size, signed):
+        # assert disabled to give semantic analysis a chance to catch this
+        # assert math.log(size, 2).is_integer(), "integer types should be a power of two in size. Not {}".format(size)
+        if signed:
+            return f'std::int{size}_t'
+        else:
+            return f'std::uint{size}_t'
 
 
 

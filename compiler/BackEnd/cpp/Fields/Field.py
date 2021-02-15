@@ -1,10 +1,9 @@
 class Field:
-    def __init__(self, type_name, field, cpp_type, default_value, endianness):
+    def __init__(self, type_name, field, endianness):
         self._type_name = type_name
         self._field = field
         self._endianness = endianness
-        self._cpp_type = cpp_type
-        self._default_value = default_value
+        self._cpp_type = self.cpp_type()
         self._getter_template =\
         '''{type} {fieldname}() const
         {{
@@ -56,7 +55,7 @@ class Field:
 
     def builder_field_code(self):
         # std::uint8_t foo_ = 0;
-        return f'{self._cpp_type} {self._field.name}_ = {self._default_value};'
+        return f'{self._cpp_type} {self._field.name}_ = {self.default_value()};'
 
     # Return key value pairs. They will be tured into #define {key} {value}
     def defines(self):
