@@ -12,7 +12,7 @@ class Enumeration:
 
     def defintion(self):
         name = self._model.name()
-        type = _to_cpp_type(self._model.size_in_bits(), self._model.signed())
+        type = _to_cpp_type(self._model.standard_size(), self._model.signed())
         enumerators = self._enumerators()
         return self._template.format(name=name, type=type, enumerators=enumerators)
 
