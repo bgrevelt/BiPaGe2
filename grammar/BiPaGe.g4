@@ -13,11 +13,13 @@ NameSpace: 'namespace';
 Identifier: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
 EndiannessDecorator: '@'('bigendian'|'littleendian');
 SemiColon: ';';
+FilePath: '"'((Identifier | '.' | '..') '/')* Identifier('.'Identifier)?'"';
 
 // Parser rules
-definition: namespace? endianness? (datatype|enumeration)+;
+definition: import_rule* namespace? endianness? (datatype|enumeration)+;
 namespace: NameSpace Identifier ('.'Identifier)* SemiColon;
 endianness: EndiannessDecorator SemiColon;
+import_rule: 'import' FilePath SemiColon;
 datatype: Identifier '{' field+ '}';
 enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}';
 enumerand: Identifier '=' NumberLiteral;
