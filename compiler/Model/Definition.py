@@ -3,9 +3,10 @@ from .BuildMessage import BuildMessage
 from collections import defaultdict
 
 class Definition(Node):
-    def __init__(self,name, endianness, namespace, datatypes, enumerations, token):
+    def __init__(self,name, endianness, namespace, imports, datatypes, enumerations, token):
         super().__init__(token)
         self.name = name
+        self.imports = imports
         self.datatypes = datatypes
         self.endianness = endianness
         self.namespace = namespace

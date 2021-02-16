@@ -67,7 +67,8 @@ class Builder(BiPaGeListener):
 
         datatypes = [self.noderesult[d] for d in ctx.datatype()]
         enumerations = self._enumations_by_name.values()
-        self._definition = Definition(self._definition_name, endianness, namespace, datatypes, enumerations, ctx.start)
+        imports = [self.noderesult[i] for i in ctx.import_rule()]
+        self._definition = Definition(self._definition_name, endianness, namespace, imports, datatypes, enumerations, ctx.start)
 
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
@@ -175,6 +176,9 @@ class Builder(BiPaGeListener):
         field = Field(id, type, self._offset, ctx.start)
         self._offset += field.size_in_bits()
         self.noderesult[ctx] = field
+
+    def exitImport_rule(self, ctx:BiPaGeParser.Import_ruleContext):
+        self.noderesult[ctx] = str(ctx.FilePath())
 
 
     def build(self, text, name):
