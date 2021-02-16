@@ -1,22 +1,12 @@
+import "some/dir/bipage1.bp";
 @bigendian;
-
-Bar : uint8
-{
-  val1 = 0,
-  val2 = 253,
-  val3 = 5
-}
 
 Foo
 {
     field1 : uint8;
-    field2: Bar;
-    field3: float64;
-}
-
-FooBar
-{
-    field1 : uint8;
-    field2: Bar;
-    field3: float64;
+    {
+        field2: uint4 { val1 = 0, val2 = 1, val3 = 2};
+        field3: uint4 { val1 = 0, val2 = 1, val3 = 2};
+    }
+    field4: float64;
 }

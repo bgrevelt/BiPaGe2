@@ -1,0 +1,6 @@
+import "../bipage2.bp";
+
+Bla
+{
+    field1 : u32;
+}

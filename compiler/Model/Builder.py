@@ -9,6 +9,7 @@ from .CaptureScope import CaptureScope
 from Model.Types import Integer,Float,Reference
 from Model.Enumeration import Enumeration
 
+import os
 import re
 
 
@@ -34,13 +35,14 @@ def remove_aliases(type):
 
 
 class Builder(BiPaGeListener):
-    def __init__(self):
+    def __init__(self, file, imports):
         self._offset = 0
         self._scoped_offset = 0
         self._definition = None
         self.noderesult = {}
         self._enumations_by_name = {}
-        self._definition_name = None
+        self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
+        self._imports = imports
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
