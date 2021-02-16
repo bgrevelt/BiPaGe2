@@ -1,11 +1,11 @@
 import unittest
-from .Builder import Builder
+from build_model import build_model_from_text
 from Model.Types.Integer import Integer
 from Model.Types.Float import Float
 
 class BuilderUnittests(unittest.TestCase):
     def test_simple(self):
-        _, _, model = Builder().build('''
+        _, _, model = build_model_from_text('''
 SomeDataType
 {
     field1 : int8;
@@ -38,7 +38,7 @@ SomeDataType
         ])
 
     def test_alias(self):
-            _, _, model = Builder().build('''
+            _, _, model = build_model_from_text('''
     SomeDataType
     {
         field1 : s8;
@@ -73,7 +73,7 @@ SomeDataType
             ])
 
     def test_reserved_fields(self):
-            _, _, model = Builder().build('''
+            _, _, model = build_model_from_text('''
     SomeDataType
     {
         field1 : s8;
@@ -102,7 +102,7 @@ SomeDataType
             ])
 
     def test_non_standard_width(self):
-        _, _, model = Builder().build('''
+        _, _, model = build_model_from_text('''
     SomeDataType
     {
         field1 : int32;   
@@ -124,7 +124,7 @@ SomeDataType
         ])
 
     def test_non_standard_width_with_padding(self):
-        _, _, model = Builder().build('''
+        _, _, model = build_model_from_text('''
     SomeDataType
     {
         field1 : int32;   
@@ -147,7 +147,7 @@ SomeDataType
         ])
 
     def test_non_standard_width_alias(self):
-        _, _, model = Builder().build('''
+        _, _, model = build_model_from_text('''
     SomeDataType
     {
         field1 : s32;   

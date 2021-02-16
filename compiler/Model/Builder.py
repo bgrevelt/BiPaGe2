@@ -1,21 +1,16 @@
 from generated.BiPaGeListener import BiPaGeListener
+from generated.BiPaGeParser import BiPaGeParser
+
 from .DataType import DataType
 from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
-from .ErrorListener import BiPaGeErrorListener
+
 from Model.Types import Integer,Float,Reference
 from Model.Enumeration import Enumeration
-from antlr4 import *
-from generated.BiPaGeLexer import BiPaGeLexer
-from generated.BiPaGeParser import BiPaGeParser
+
 import re
-from typing import List
 
-
-def set_error_listener(target, listener):
-    target.removeErrorListeners()
-    target.addErrorListener(listener)
 
 # split a sized type (e.g int16) into the type (int) and the size(16)
 def split_sized_type(type):
@@ -179,29 +174,6 @@ class Builder(BiPaGeListener):
 
     def exitImport_rule(self, ctx:BiPaGeParser.Import_ruleContext):
         self.noderesult[ctx] = str(ctx.FilePath())
-
-
-    def build(self, text, name):
-        self._definition_name = name
-        errors = []
-        warnings = []
-        model = None
-        errorlistener = BiPaGeErrorListener()
-        lexer = BiPaGeLexer(InputStream(text))
-        set_error_listener(lexer, errorlistener)
-
-        parser = BiPaGeParser(CommonTokenStream(lexer))
-        set_error_listener(parser, errorlistener)
-        tree = parser.definition()
-
-        errors.extend(errorlistener.errors())
-        if len(errors) == 0:
-            walker = ParseTreeWalker()
-            walker.walk(self, tree)
-            model = self._definition
-            model.check_semantics(warnings, errors)
-
-        return warnings, errors, model
 
     def model(self):
         return self._definition

@@ -1,9 +1,7 @@
 import sys
-from Model.Builder import Builder
 import argparse
 from compiler.BackEnd.cpp.Generator import Generator as CppGen
-from antlr4.error.ErrorListener import ErrorListener
-import os
+from build_model import build_model_from_file
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -15,16 +13,16 @@ def parse_arguments():
 
     return parser.parse_args()
 
-class BiPaGeErrorListener(ErrorListener):
-    def __init__(self, file):
-        self._file = file
-        self._errors = []
-
-    def syntaxError(self, recognizer, offending_symbol, line, column, msg, e):
-        self._errors.append(f"{self._file}:{line}:{column} Syntax error: {msg}")
-
-    def errors(self):
-        return self._errors
+# class BiPaGeErrorListener(ErrorListener):
+#     def __init__(self, file):
+#         self._file = file
+#         self._errors = []
+#
+#     def syntaxError(self, recognizer, offending_symbol, line, column, msg, e):
+#         self._errors.append(f"{self._file}:{line}:{column} Syntax error: {msg}")
+#
+#     def errors(self):
+#         return self._errors
 
 def print_semantic_messages(file, warnings, errors):
     for error in errors:
@@ -33,14 +31,15 @@ def print_semantic_messages(file, warnings, errors):
     for warning in warnings:
         print(f'{file}:{warning.line}:{warning.column} WARNING {warning.message}')
 
+
+
+
 def main(argv):
     args = parse_arguments()
     codegen = CppGen(args)
 
     for file in args.input:
-        builder = Builder()
-        filename = os.path.splitext(os.path.split(file)[1])[0]
-        warnings, errors, model = builder.build(open(file).read(), filename)
+        warnings, errors, model = build_model_from_file(file)
 
         print_semantic_messages(file, warnings, errors)
         if len(errors) > 0:

@@ -1,11 +1,10 @@
 import unittest
-
-from .Builder import Builder
+from build_model import build_model_from_text
 
 
 class SemanticAnalysisUnittests(unittest.TestCase):
     def test_duplicate_field_name(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     duplicate : int32;
@@ -20,7 +19,7 @@ SomeDataType
                              (7, 4, 'test')])
 
     def test_duplicate_field_different_datatype(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     duplicate : int32;
@@ -36,7 +35,7 @@ SomeOtherDataType
         self.checkErrors(errors, [])
 
     def test_duplicate_datatype_name(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     f1 : int32;
@@ -56,7 +55,7 @@ SomeDataType
                                       (10, 0, 'SomeDataType')])
 
     def test_float_width(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     f1 : float64;
@@ -67,7 +66,7 @@ SomeDataType
 
     def test_integer_size(self):
         # validate that non-valid integer sizes are reported
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     {
@@ -79,7 +78,7 @@ SomeDataType
         self.checkErrors(errors, [(5,17,'outside supported range')])
 
         # Maximum integer size is 64 bits
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     field1 : int128; // not allowed, too large.
@@ -90,7 +89,7 @@ SomeDataType
 
     def test_non_standard_field_outside_of_capture_scope(self):
         # Non-standard types out of capture scope. Should yield errors.
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     f1 : int16;   
@@ -101,7 +100,7 @@ SomeDataType
                                   (6, 4, 'Field f3 should be in a capture scope.')])
 
         # Same object only now with capture scope in place. Should not yield any errors.
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
         SomeDataType
         {
             f1 : int16;   
@@ -115,7 +114,7 @@ SomeDataType
 
     def test_capture_scope_too_large(self):
         # we currently don't support capture scopes larger than 64 bits.
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     {
@@ -126,7 +125,7 @@ SomeDataType
 }''', "")
         self.checkErrors(errors, [(4, 4, 'Larger than the maximum supported capture type')])
 
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
         SomeDataType
         {
             {
@@ -138,7 +137,7 @@ SomeDataType
 
     def test_capture_scope_size(self):
         # multitude of 8 bits, but not a standard type width
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     {
@@ -152,7 +151,7 @@ SomeDataType
         self.checkErrors(errors, [(4, 4, 'fields in capture scope (40 bits) is not a standard size')])
 
         # Standard type width. No errors
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
         SomeDataType
         {
             {
@@ -164,7 +163,7 @@ SomeDataType
         self.checkErrors(errors, [])  # no error
 
     def test_only_standard_in_capture_scope(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
 SomeDataType
 {
     {
@@ -177,7 +176,7 @@ SomeDataType
         self.checkErrors(warnings, [(4, 4, 'Capture scope contains only standard types')])  # no error
 
     def test_empty_data_type(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeDataType
     {
         
@@ -185,7 +184,7 @@ SomeDataType
         self.checkErrors(errors, [(5, 4, '')])  # This should give an error because it doesn't conform to the grammar
 
     def test_one_empty_data_type(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeDataType
     {
         f1 : int32;
@@ -201,7 +200,7 @@ SomeDataType
         self.checkErrors(errors, [(13, 4, '')])  # This should give an error because it doesn't conform to the grammar
 
     def test_empty_data_type_only_comments(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeDataType
     {
         // Just
@@ -211,7 +210,7 @@ SomeDataType
         self.checkErrors(errors, [(7, 4, '')])  # This should give an error because it doesn't conform to the grammar
 
     def test_padding_only_type(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeDataType
     {
         int32;
@@ -222,7 +221,7 @@ SomeDataType
         self.checkErrors(warnings, [(2, 4, 'SomeDataType has no non-padding fields')])
 
     def test_invalid_enumerand_value(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeEnum : uint8
     {
         val1 = 0,
@@ -231,7 +230,7 @@ SomeDataType
     }''', "")
         self.checkErrors(errors, [(2, 4, 'val3 in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
 
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeEnum : int16
     {
         aap = -32768,
@@ -242,7 +241,7 @@ SomeDataType
                                    'mies in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
 
     def test_duplicated_enumerand_value(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeEnum : uint8
     {
         val1 = 0,
@@ -252,7 +251,7 @@ SomeDataType
         self.checkErrors(errors, [(2, 4, 'Same value (35) used by mulitple enumerands in enumeration SomeEnum')],allow_extra_errors=True)
 
     def test_duplicated_enumerand_name(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeEnum : int64
     {
         val1 = 0,
@@ -269,7 +268,7 @@ SomeDataType
         self.checkErrors(errors, [(2, 4, 'Duplicated enumerand val1 in SomeEnum')],allow_extra_errors=True)
 
     def test_non_existing_enumeration(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
     SomeEnum : uint64
     {
         val1 = 0,
@@ -295,7 +294,7 @@ SomeDataType
         self.checkErrors(errors, [(19, 17, 'Reference "SomeOtherEnum" cannot be resolved')],allow_extra_errors=True)
 
     def test_name_duplication(self):
-        warnings, errors, _ = Builder().build('''
+        warnings, errors, _ = build_model_from_text('''
             Foo : uint64
             {
                 val1 = 0,
