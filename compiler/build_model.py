@@ -23,7 +23,9 @@ def walk(input, visitor, errorListener = None):
 def get_imported_types(path):
     imports = []
     analyzed_imports = set()
-    to_analyze = [path]
+    a= ImportAnalyzer(path)
+    walk(open(path).read(), a)
+    to_analyze = a.properties().imports
     while len(to_analyze) > 0:
         new_imports = []
         for file in to_analyze:
@@ -46,7 +48,7 @@ def build_model_from_file(file):
 def build_model_from_text(text, filename=None):
     if len(filename) == 0:
         filename = None
-    imports = get_imported_types(filename) if filename is not None else None
+    imports = get_imported_types(filename) if filename is not None else []
     builder = Builder(filename, imports)
     errors = []
     warnings = []

@@ -27,4 +27,5 @@ field: simple_field | capture_scope | inline_enumeration;
 simple_field: (Identifier ':')? field_type ';';
 inline_enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}' ';';
 capture_scope: '{' (simple_field|inline_enumeration)+ '}';
-field_type: IntegerType | FloatingPointType | Identifier;
+field_type: IntegerType | FloatingPointType | reference;
+reference: (Identifier'.')* Identifier;

@@ -5,15 +5,6 @@ from Model.ImportedFile import ImportedFile
 from Model.Enumeration import Enumeration
 from Model.Types.Integer import Integer
 
-'''
-Simple case: Have an enum in bp file 1, use in in bp file 2
-Different namespaces. Same as the simple case, but both files use different namespaces
-Same name enums in different namespaces. Have an enum with the same name in 2 files with different namespaces. Import both files and use both enumerations.
-Have a Datatype within a namespace use an enumeration in another files that doesn't have a namespace. This validates that we also search for things in the 'default namespace' even when we're in a namespace.
-Semantic analysis
-(fully qualified) names across all imported files should be unique
-'''
-
 
 class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
     # Use an enumeration from an imported file
@@ -67,6 +58,44 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
         warnings, errors, _ = build_model_test(text, imports)
         self.checkErrors(errors, [(2,8,"Mutiple defintions found for MyEnum")])
 
+    def test_duplicated_type_name_in_namespace(self):
+        imports = [
+            ImportedFile(
+                path='import.bp',
+                imports = [],
+                namespace='ns',
+                enumerations=[
+                    Enumeration(
+                        name='MyEnum',
+                        base_type=Integer(8, False, None),
+                        enumerators=[
+                            ('first', 0),
+                            ('second', 1)
+                        ],
+                        token=None
+                    )
+                ]
+            )
+        ]
+        text = '''
+        MyEnum : s32
+        {
+           enumerator_one = 1,
+           enumerator_two = 2,
+           enumerator_three = 3
+        }
+
+        Foo
+        {
+            field1 : uint8;
+            field2 : MyEnum;
+            field3 : float64;
+        }
+        '''
+        warnings, errors, _ = build_model_test(text, imports)
+        # Two enums with the same name but they're in different name spaces, so no errors.
+        self.checkErrors(errors, [])
+
     def test_imported_enum_in_namespace(self):
         imports = [
             ImportedFile(
@@ -85,15 +114,40 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
                     ]
                 )
             ]
-        text = '''
+
+        warnings, errors, _ = build_model_test('''
         Foo
         {
             field1 : uint8;
             field2 : some.name.space.MyEnum;
             field3 : float64;
         }
-        '''
-        warnings, errors, _ = build_model_test(text, imports)
+        ''', imports)
         # Properly used the namespace. Should not lead to errors
         self.checkErrors(errors, [])
+
+        warnings, errors, _ = build_model_test('''
+        namespace my.own.name.space;
+        Foo
+        {
+            field1 : uint8;
+            field2 : some.name.space.MyEnum;
+            field3 : float64;
+        }
+        ''', imports)
+        # Same as before only now the datatype is in a namespace as well. That shouldn't matter
+        self.checkErrors(errors, [])
+
+        warnings, errors, _ = build_model_test('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : sMyEnum;
+            field3 : float64;
+        }
+        ''', imports)
+        # Didn't include the namespace so we should get an unknown type error
+        self.checkErrors(errors, [(5, 21, "Reference \"sMyEnum\" cannot be resolved")])
+
+
 

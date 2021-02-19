@@ -2,6 +2,7 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 from collections import defaultdict
 from Model.ImportedFile import ImportedFile
+from typing import List
 
 class Definition(Node):
     def __init__(self,name, endianness, namespace, imports, datatypes, enumerations, token):
@@ -14,15 +15,15 @@ class Definition(Node):
         self.enumerations = enumerations
 
 
-    def check_semantics(self, imported_types:ImportedFile, warnings, errors):
+    def check_semantics(self, imported_types:List[ImportedFile], warnings, errors):
         names = defaultdict(list)
         for datatype in self.datatypes:
             names[datatype.identifier].append(datatype.location())
         for enum in self.enumerations:
             names[enum.name()].append(enum.location())
         for import_ in imported_types:
-            for enum in import_.enumerations:
-                names[enum.name()].append(enum.location())
+            for name, enum in import_.enumerations_by_fully_qualified_name().items():
+                names[name].append(enum.location())
 
 
         for name, locations in names.items():

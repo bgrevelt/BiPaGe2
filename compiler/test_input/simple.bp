@@ -1,12 +1,11 @@
-import "some/dir/bipage1.bp";
-@bigendian;
+Foo : u8
+{
+ first = 500
+}
 
-Foo
+Bar
 {
     field1 : uint8;
-    {
-        field2: uint4 { val1 = 0, val2 = 1, val3 = 2};
-        field3: uint4 { val1 = 0, val2 = 1, val3 = 2};
-    }
+    field2: some.name.space.Type;
     field4: float64;
 }

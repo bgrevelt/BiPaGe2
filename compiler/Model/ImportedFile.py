@@ -5,6 +5,13 @@ class ImportedFile:
         self.enumerations = enumerations
         self.imports = imports
 
+    def enumerations_by_fully_qualified_name(self):
+        r = {}
+        for enum in self.enumerations:
+            name = (self.namespace + "." if self.namespace else "") + enum.name()
+            r[name] = enum
+        return r
+
     def __str__(self):
         r = '=' * 150 + '\n'
         h = f'== Imported file {self.path}'

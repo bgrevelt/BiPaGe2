@@ -42,10 +42,13 @@ class Builder(BiPaGeListener):
         self.noderesult = {}
         self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
         self._imports = imports
-        if imports is not None:
-            self._enumations_by_name = {enum.name() : enum for imp in imports for enum in imp.enumerations }
-        else:
-            self._enumations_by_name = {}
+        self._imported_enumerations_by_name = {}
+        for imp in imports:
+            for enum in imp.enumerations:
+                name = (imp.namespace + "." if imp.namespace else "") + enum.name()
+                self._imported_enumerations_by_name[name] = enum
+
+        self._enumations_by_name = {}
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
@@ -138,12 +141,19 @@ class Builder(BiPaGeListener):
         elif ctx.FloatingPointType():
             _, size = split_sized_type(str(ctx.FloatingPointType()))
             self.noderesult[ctx] = Float.Float(size, ctx.start)
-        elif ctx.Identifier():
+        elif ctx.reference():
             # Reference to an enumeration
-            name = str(ctx.Identifier())
-            ref = self._enumations_by_name[name] if name in self._enumations_by_name else None
+            name = self.noderesult[ctx.reference()]
+            ref = None
+            if name in self._enumations_by_name:
+                ref = self._enumations_by_name[name]
+            elif name in self._imported_enumerations_by_name:
+                ref = self._imported_enumerations_by_name[name]
+
             self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
 
+    def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
+        self.noderesult[ctx] = ".".join(str(id) for id in ctx.Identifier())
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
         self.noderesult[ctx] = (str(ctx.Identifier()), int(str(ctx.NumberLiteral())))
