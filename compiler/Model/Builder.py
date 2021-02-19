@@ -40,9 +40,12 @@ class Builder(BiPaGeListener):
         self._scoped_offset = 0
         self._definition = None
         self.noderesult = {}
-        self._enumations_by_name = {}
         self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
         self._imports = imports
+        if imports is not None:
+            self._enumations_by_name = {enum.name() : enum for imp in imports for enum in imp.enumerations }
+        else:
+            self._enumations_by_name = {}
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {

@@ -26,7 +26,8 @@ def parse_arguments():
 
 def print_semantic_messages(file, warnings, errors):
     for error in errors:
-        print(f'{file}:{error.line}:{error.column} ERROR {error.message}')
+        msg = error.message.format(file=file)
+        print(f'{file}:{error.line}:{error.column} ERROR {msg}')
 
     for warning in warnings:
         print(f'{file}:{warning.line}:{warning.column} WARNING {warning.message}')

@@ -1,6 +1,8 @@
 import unittest
-from build_model import build_model_from_text
-
+from build_model import build_model_from_text, build_model_test
+from Model.ImportedFile import ImportedFile
+from Model.Enumeration import Enumeration
+from Model.Types.Integer import Integer
 
 class SemanticAnalysisUnittests(unittest.TestCase):
     def test_duplicate_field_name(self):
@@ -51,8 +53,7 @@ SomeDataType
     f3 : u8;
     f4 : s64;
 }''', "")
-        self.checkErrors(errors, [(2, 0, 'SomeDataType'),
-                                      (10, 0, 'SomeDataType')])
+        self.checkErrors(errors, [(2, 0, 'SomeDataType')])
 
     def test_float_width(self):
         warnings, errors, _ = build_model_from_text('''
@@ -310,10 +311,12 @@ SomeDataType
             }
 
             ''', "")
-        self.checkErrors(errors, [
-            (2, 12, 'Name Foo used for multiple type definitions'),
-            (9, 12, 'Name Foo used for multiple type definitions')])
 
+        # A little dodgy. We know the warning will be thrown in the datatype and not the enum because of how SA iterates
+        # the types, but now it looks like that's a requirement. Ideally we'd have some 'or' operation, but this is good
+        # enough for nows
+        self.checkErrors(errors, [
+            (9, 12, 'Mutiple defintions found for Foo')])
 
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []

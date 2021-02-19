@@ -6,4 +6,7 @@ class Node:
        pass
 
     def location(self):
-        return self._token.line, self._token.column
+        if self._token:
+            return self._token.line, self._token.column
+        else: # We often leave the token empty in unit tests
+            return 0,0
