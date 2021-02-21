@@ -13,10 +13,17 @@ class Generator:
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
 
+        imports = self.get_import_includes(model)
         cpp_datatypes = [DataType(dt, model.endianness, self._settings) for dt in model.datatypes]
+        cpp_enums = [Enumeration(e) for e in model.enumerations]
 
         header_path = os.path.join(self.output_dir, f"{model.name}_generated.h")
-        includes = "\n".join(list(set(inc for datatype in cpp_datatypes for inc in datatype.includes())))
+
+        includes = set(inc for datatype in cpp_datatypes for inc in datatype.includes())
+        includes.update(set(inc for enum in cpp_enums for inc in enum.includes()))
+        includes.update(imports)
+        includes = "\n".join(list(includes))
+
         defines = "\n".join([define for datatype in cpp_datatypes for define in datatype.defines()])
 
         content = f'''{includes}
@@ -26,7 +33,7 @@ class Generator:
                 {defines}
                 
                 '''
-        for enum in (Enumeration(e) for e in model.enumerations):
+        for enum in cpp_enums:
             content += enum.defintion()
             if self._settings.cpp_to_string:
                 content += enum.to_string()
@@ -42,6 +49,16 @@ class Generator:
 
         with open(header_path, 'w+') as f:
             f.write(self._beautifier.beautify(content))
+
+    @staticmethod
+    def get_import_includes(model):
+        imports = []
+        for i in model.imports:
+            i = i.replace('"', '')
+            file, _ = os.path.splitext(i)
+            file += "_generated.h"
+            imports.append(f'#include "{file}"')
+        return imports
 
     @staticmethod
     def namespace_open(full_namespace):

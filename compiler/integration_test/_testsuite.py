@@ -11,6 +11,7 @@ from integration_test.simple_integrationtest import *
 from integration_test.simple_enum_integrationtest import *
 from integration_test.non_standard_size_enum_integrationtest import *
 from integration_test.inline_enum_integrationtest import *
+from integration_test.enum_import_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -26,6 +27,7 @@ def suite():
     test_suite.addTest(unittest.makeSuite(SimpleEnum))
     test_suite.addTest(unittest.makeSuite(NonStandardSizeEnum))
     test_suite.addTest(unittest.makeSuite(InlineEnum))
+    test_suite.addTest(unittest.makeSuite(ImportEnum))
 
     return test_suite
 

@@ -29,6 +29,11 @@ class Enumeration:
         }} 
         '''
 
+    def includes(self):
+        incs = ['<cstdint>','<string>']
+
+        return [f'#include {include}' for include in incs]
+
     def _enumerator_cases(self):
         return "\n".join(f'case {self._model.name()}::{n}: return "{self._model.name()}::{n} ({v})";' for n, v in self._model.enumerators())
 

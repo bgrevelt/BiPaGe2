@@ -14,15 +14,21 @@ class IntegrationTest:
         self.test_name = os.path.splitext(os.path.basename(module.__file__))[0]
         self.tempdir = f'temp_{self.test_name}'
         self.clean_temp_dir()
+        self._bipage_files = []
 
     def clean_temp_dir(self):
         if os.path.exists(self.tempdir):
             shutil.rmtree(self.tempdir)
         os.mkdir(self.tempdir)
 
-    def write_bipage_file(self, content):
-        with open(f'temp_{self.test_name}/{self.test_name}.bp', 'w+') as f:
+    def write_bipage_file(self, content, filename=None):
+        if filename is None:
+            filename = f'{self.test_name}.bp'
+
+        with open(f'temp_{self.test_name}/{filename}', 'w+') as f:
             f.write(content)
+
+        self._bipage_files.append(f'temp_{self.test_name}/{filename}')
 
     def write_cmake_file(self):
         with open(f'temp_{self.test_name}/CMakeLists.txt', 'w+') as f:
@@ -48,8 +54,11 @@ class IntegrationTest:
             f.write(content)
 
     def run_bipage(self, args=None):
-        to_execute = [self.python, self.bipage_path, "-i", f"temp_{self.test_name}/{self.test_name}.bp", '-o',
-                      f'temp_{self.test_name}']
+        input_files = []
+        for f in self._bipage_files:
+            input_files.extend(['-i', f])
+
+        to_execute = [self.python, self.bipage_path] + input_files + ['-o', f'temp_{self.test_name}']
         if args:
             to_execute.extend(args)
         subprocess.call(to_execute)
