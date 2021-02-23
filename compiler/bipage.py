@@ -13,17 +13,6 @@ def parse_arguments():
 
     return parser.parse_args()
 
-# class BiPaGeErrorListener(ErrorListener):
-#     def __init__(self, file):
-#         self._file = file
-#         self._errors = []
-#
-#     def syntaxError(self, recognizer, offending_symbol, line, column, msg, e):
-#         self._errors.append(f"{self._file}:{line}:{column} Syntax error: {msg}")
-#
-#     def errors(self):
-#         return self._errors
-
 def print_semantic_messages(file, warnings, errors):
     for error in errors:
         msg = error.message.format(file=file)
