@@ -8,14 +8,13 @@ class EnumReference(Integer):
         super().__init__(type_name, field, endianness, settings)
 
     def cpp_type(self):
-        return self._field.type()._name
+        return self._field.type()._name.replace('.','::')
 
     def default_value(self):
         # We have to set the variable to something in the default constructor of the builder
         # only sensible thing to do seems to be to use the first enumerator
-        enumeration_name = self._referenced_enum.name()
         first_enumerator_name, _ = self._referenced_enum.enumerators()[0]
-        return f'{enumeration_name}::{first_enumerator_name}'
+        return f'{self.cpp_type()}::{first_enumerator_name}'
 
     def base_type(self):
         return Integer.to_cpp_type(self._referenced_enum.standard_size(), self._referenced_enum.signed())
