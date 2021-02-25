@@ -26,6 +26,11 @@ class ToString(unittest.TestCase, IntegrationTest):
             enum3: SomeEnum;
             enum4: SomeEnum;
             enum5: SomeEnum;
+            {
+                flag1: flag;
+                flag2: flag;
+                filler: u6;
+            }
         }
         ''')
         self.write_cmake_file()
@@ -45,6 +50,7 @@ void test_simple()
     p = serialize(p, SomeEnum::five);
     p = serialize(p, SomeEnum::nine);
     p = serialize(p, SomeEnum::twofiftyfive);
+    p = serialize(p, static_cast<std::uint8_t>(0x02));
 
     Foo_view parsed(buffer);
     std::cout << parsed.to_string() << std::endl;
@@ -64,7 +70,7 @@ int main(int argc, char* argv[])
         self.run_bipage(['--cpp-no-to-string'])
         with open(f'temp_{self.test_name}/tostring_integrationtest_generated.h') as f:
             generated = f.read()
-            self.assertFalse('to_string' in generated)
+            self.assertFalse('std::string to_string() const' in generated)
 
     def test_simple(self):
         print(f'Starting {self.test_name}')
@@ -77,7 +83,10 @@ int main(int argc, char* argv[])
                 enum2: SomeEnum::two (2)
                 enum3: SomeEnum::five (5)
                 enum4: SomeEnum::nine (9)
-                enum5: SomeEnum::twofiftyfive (255)''')
+                enum5: SomeEnum::twofiftyfive (255)
+                flag1: cleared
+                flag2: set
+                filler: 0''')
 
     def check_output(self, expected, output):
         # check two strings ignoring whitespace and casing

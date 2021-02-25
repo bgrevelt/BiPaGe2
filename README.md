@@ -64,6 +64,34 @@ The capture scope is necessary to support different endiannesses; we have to kno
 Most languages only support standard width integers. That means that the generated setter code for non-standard field in the builder class will have a wider type argument than the actual data value. This is certainly true for C++ (which is currently our only the only supported backend) where the setter for `SmallSigned` in the example above will look something like
 `void SmallSigned(std::int8_t val)`. That means that the caller of that setter can supply a value that does not fit in the underlying data type. Unfortunately there is no way to have this validated at compile time. Because of that, run time validation code is generated in these setters by default. This runtime validation code generation can be disabled by supplying the `--cpp-no-validate-builder-input` command line argument. 
 
+## Bit flags
+Single bit fields are modeled as flag fields. Like non-standard width integers they need to be 
+inside a capture scope and the size of all fields in the capture scope need to add up to a standard integer size.
+```
+OptionalDataContainer
+{
+    {
+        a_valid: flag;
+        b_valid: flag;
+        c_valid: flag;
+        d_valid: flag;
+        e_valid: flag;
+        f_valid: flag;
+        g_valid: flag;
+        h_valid: flag;
+    }
+    a : u32;
+    b : s16;
+    c : f64;
+    d : u8;
+    e : u8;
+    f : s64;
+    g : f32;
+    h : u16;
+}
+
+```
+
 ## Enumerations
 Enumeration field types can be used by defining an enumeration and referencing it as the field type. 
 An enumeration consists of

@@ -6,7 +6,7 @@ from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
 
-from Model.Types import Integer,Float,Reference
+from Model.Types import Integer,Float,Reference,Flag
 from Model.Enumeration import Enumeration
 
 import os
@@ -151,6 +151,8 @@ class Builder(BiPaGeListener):
                 ref = self._imported_enumerations_by_name[name]
 
             self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
+        elif ctx.FlagType():
+            self.noderesult[ctx] = Flag.Flag(ctx.start)
 
     def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
         self.noderesult[ctx] = ".".join(str(id) for id in ctx.Identifier())

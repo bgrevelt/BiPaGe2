@@ -2,11 +2,13 @@ from BackEnd.cpp.Fields.Float import Float32
 from BackEnd.cpp.Fields.Float import Float64
 from BackEnd.cpp.Fields.Integer import Integer
 from BackEnd.cpp.Fields.EnumReference import EnumReference
+from BackEnd.cpp.Fields.Flag import Flag
 
 from Model.Types.Integer import Integer as ModelInt
 from Model.Types.Float import Float as ModelFloat
 from Model.Types.Reference import Reference as ModelReference
 from Model.Enumeration import Enumeration as ModelEnum
+from Model.Types.Flag import Flag as ModelFlag
 
 def create(type_name, field, endianness, settings):
     if type(field.type()) is ModelInt:
@@ -22,5 +24,8 @@ def create(type_name, field, endianness, settings):
             return EnumReference(type_name, field, endianness, settings)
         else:
             assert False, "Unsupported tield type"
+    elif type(field.type()) is ModelFlag:
+        #TODO
+        return Flag(type_name, field, endianness, settings)
     else:
         assert False, "Unknown type {} and length {}".format(field, field.size_in_bits())

@@ -17,7 +17,8 @@ class NonStandardSizeBigEndian(unittest.TestCase, IntegrationTest):
             }
             field3: f64;
             {
-            field4: u2;
+            field4_1: flag;
+            field4_2: flag;
             field5: s4;
             field6: s18;  
             field7: u24;
@@ -42,7 +43,8 @@ void test_foo_view()
     }
     field3: f64;
     {
-        field4: u2;
+        field4_1: flag;
+        field4_2: flag;
         field5: s4;
         field6: s18;  
         field7: u24;
@@ -53,7 +55,8 @@ void test_foo_view()
     field1: -150 --> 0xf6a
     field2: 1000000 --> 0xf4240
     field3: let's leave those zero for now
-    field4: 3 --> 0x3
+    field4_1: 1;
+    field4_2: 0;
     field5: 0x8 --> -8
     field6: 0x217B8 -125000 // This one is especially confusing since an 18 bit field does not really exist. So conversion tools will tell us the most significant nibble is E, but in reality we only have two bits, so it's really 2  
     field7: 12500000 --> 0xBEBC20
@@ -62,7 +65,7 @@ void test_foo_view()
     That makes 3 encapsulating types
     - 32 bit field          0xf4240f6a
     - 64 bit float field    0x0000000000000000
-    - 64 bit field          0x0000BEBC2085EE23
+    - 64 bit field          0x0000BEBC2085EE21
     
     Those encapsulating types get byte swapped because we use big endian
     - 32 bit field          0x6A0F24F4
@@ -74,7 +77,7 @@ void test_foo_view()
     */
     
     
-    std::vector<std::uint8_t> buffer { 0xF4, 0x24, 0x0F, 0x6A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xBE, 0xBC, 0x20, 0x85, 0xEE, 0x23 };
+    std::vector<std::uint8_t> buffer { 0xF4, 0x24, 0x0F, 0x6A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xBE, 0xBC, 0x20, 0x85, 0xEE, 0x21 };
     // We make an exception for the double and set that to something sensible    
     *reinterpret_cast<double*>(buffer.data() + 4) = naive_swap(-123.456);
 
@@ -83,7 +86,8 @@ void test_foo_view()
     check_equal(parsed.field1(), -150);
     check_equal(parsed.field2(), 1000000);
     check_equal(parsed.field3(), -123.456);
-    check_equal(parsed.field4(), 3);
+    check_equal(parsed.field4_1(), true);
+    check_equal(parsed.field4_2(), false);
     check_equal(parsed.field5(), -8);
     check_equal(parsed.field6(), -125000);
     check_equal(parsed.field7(), 12500000);
@@ -96,15 +100,16 @@ void test_foo_builder()
     std::int16_t field1 = -150;
     std::uint32_t field2 = 1000000;
     double field3 = -123.456;
-    std::uint8_t field4 = 3;
+    bool field4_1 = true;
+    bool field4_2 = false;
     std::int8_t field5 = -8;
     std::int32_t field6 = -125000;
     std::uint32_t field7 = 12500000;
     std::int16_t field8 = 0;
-    Foo_builder builder(field1, field2, field3, field4, field5, field6, field7, field8);
+    Foo_builder builder(field1, field2, field3, field4_1, field4_2, field5, field6, field7, field8);
 
     // See the view test for details on the expected data
-    std::vector<std::uint8_t> expected { 0xF4, 0x24, 0x0F, 0x6A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xBE, 0xBC, 0x20, 0x85, 0xEE, 0x23 };
+    std::vector<std::uint8_t> expected { 0xF4, 0x24, 0x0F, 0x6A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xBE, 0xBC, 0x20, 0x85, 0xEE, 0x21 };
     *reinterpret_cast<double*>(expected.data() + 4) = naive_swap(-123.456);
      
     auto result = builder.build();
@@ -117,7 +122,6 @@ void test_foo_builder2()
     std::int16_t field1 = -150;
     std::uint32_t field2 = 1000000;
     double field3 = -123.456;
-    std::uint8_t field4 = 3;
     std::int8_t field5 = -8;
     std::int32_t field6 = -125000;
     std::uint32_t field7 = 12500000;
@@ -127,14 +131,15 @@ void test_foo_builder2()
     builder.field1(field1);
     builder.field2(field2);
     builder.field3(field3);
-    builder.field4(field4);
+    builder.field4_1(true);
+    builder.field4_2(false);
     builder.field5(field5);
     builder.field6(field6);
     builder.field7(field7);
     builder.field8(field8);
 
     // See the view test for details on the expected data
-    std::vector<std::uint8_t> expected { 0xF4, 0x24, 0x0F, 0x6A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xBE, 0xBC, 0x20, 0x85, 0xEE, 0x23 };
+    std::vector<std::uint8_t> expected { 0xF4, 0x24, 0x0F, 0x6A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xBE, 0xBC, 0x20, 0x85, 0xEE, 0x21 };
     *reinterpret_cast<double*>(expected.data() + 4) = naive_swap(-123.456);
      
     auto result = builder.build();
