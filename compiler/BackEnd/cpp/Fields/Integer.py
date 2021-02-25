@@ -137,9 +137,12 @@ class Integer(Field):
             }}'''
 
     def to_string_code(self):
-        if not self._field.is_signed_type() and self._field.return_type_size() == 8:
+        if self._field.return_type_size() == 8:
             # cast to int to prevent this from being interpreted as an ASCII charactor
-            return f'static_cast<unsigned int>({self._field.name}())'
+            if self._field.is_signed_type():
+                return f'static_cast<int>({self._field.name}())'
+            else:
+                return f'static_cast<unsigned int>({self._field.name}())'
         else:
             return f'{self._field.name}()'
 
