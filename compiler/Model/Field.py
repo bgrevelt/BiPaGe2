@@ -31,7 +31,7 @@ class Field(Node):
 
         line, column = self.location()
         if not self.scoped and not self.is_standard_size():
-            errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits} bits) sized Field {self.name} should be in a capture scope.'))
+            errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
 
     # return the byte aligned offset to the field
     def capture_type_offset(self):
