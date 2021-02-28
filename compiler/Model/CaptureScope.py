@@ -1,5 +1,6 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
+from Model.Collection import Collection
 
 class CaptureScope(Node):
     def __init__(self, offset, fields, token):
@@ -31,4 +32,10 @@ class CaptureScope(Node):
         if all(f.size_in_bits() in standard_widths for f in self._fields):
             warnings.append(BuildMessage(line, column,
                                        f"Capture scope contains only standard types. Capture scope is likely to be superfluous."))
+
+        for field in self._fields:
+            if type(field.type()) is Collection:
+                line, column = field.location()
+                errors.append(BuildMessage(line, column,
+                                           "Collections inside a capture scope are not supported"))
 

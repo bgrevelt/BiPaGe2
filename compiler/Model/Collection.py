@@ -12,10 +12,18 @@ class Collection(Node):
         return self._type.size_in_bits() * self._size
 
     def check_semantics(self, warnings, errors):
-        # TODO:
-        # size not negative
-        # Only stanadard types supported
-        pass # Nothing to check. Just a bit
+        line, column = self.location()
+        if self._size == 0:
+            warnings.append(BuildMessage(line, column,
+                                       'Collection with zero elements. This is line will have no effect on the generated code.'))
+        elif self._size < 0:
+            errors.append(BuildMessage(line, column,
+                                       'Negative number of elements in collection.'))
+
+
+        if self._type.size_in_bits() not in [8,16,32,64]:
+            errors.append(BuildMessage(line, column,
+                                       f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection'))
 
     def type(self):
         return self._type

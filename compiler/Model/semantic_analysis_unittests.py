@@ -318,6 +318,123 @@ SomeDataType
         self.checkErrors(errors, [
             (9, 12, 'Mutiple defintions found for Foo')])
 
+    def test_valid_collection(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : int32[8];
+            field3 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(warnings, [])
+        self.checkErrors(errors, [])
+
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : int8 { one = 1, two=2, eight = 8}[8];
+            field3 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(warnings, [])
+        self.checkErrors(errors, [])
+
+        warnings, errors, _ = build_model_from_text('''
+        MyEnum: s32
+        {
+            one = 1, 
+            two=2, 
+            eight = 8
+        }
+        Foo
+        {
+            field1 : uint8;
+            field2 : MyEnum[8];
+            field3 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(warnings, [])
+        self.checkErrors(errors, [])
+
+    def test_zero_sized_collection(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : int32[0];
+            field3 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(warnings, [
+            (5, 12, 'Collection with zero elements')])
+
+    def test_negative_sized_collection(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : int32[-1];
+            field3 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(errors, [
+            (5, 12, 'Negative number of elements in collection')])
+
+    def test_non_standard_size_collection(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : int4[4];
+            field3 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(errors, [
+            (5, 12, 'Non-standard (4) sized types not supported in collection')])
+
+        warnings, errors, _ = build_model_from_text('''
+        MyEnum : u4
+        {
+            foo = 1,
+            bar = 2
+        }
+    
+        Foo
+        {
+            field1 : uint8;
+            field2 : MyEnum[4];
+            field3 : float64;
+        }
+
+                    ''', "")
+        self.checkErrors(errors, [
+            (11, 12, 'Non-standard (4) sized types not supported in collection')])
+
+    def test_collection_in_capture_scope(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : uint8;
+            {
+                field2 : uint6;
+                field3 : int8[2];
+                field4 : int10;
+            }
+            field5 : float64;
+        }
+
+            ''', "")
+        self.checkErrors(errors, [
+            (7, 16, 'Collections inside a capture scope are not supported')])
+
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
         matched_expected = []

@@ -4,9 +4,13 @@ import math
 from Model.Collection import Collection
 
 def _standard_size(size):
-    bytes_required = math.ceil(size / 8)
-    bytes_nearest_type = 2 ** (math.ceil(math.log(bytes_required, 2)))
-    return bytes_nearest_type * 8
+    if size <= 0:
+        # Yes this is a problem, but we'll accept it here so semantic analysis can catch it
+        return size
+    else:
+        bytes_required = math.ceil(size / 8)
+        bytes_nearest_type = 2 ** (math.ceil(math.log(bytes_required, 2)))
+        return bytes_nearest_type * 8
 
 
 class Field(Node):
