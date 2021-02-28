@@ -25,7 +25,6 @@ def create(type_name, field, endianness, settings):
         else:
             assert False, "Unsupported tield type"
     elif type(field.type()) is ModelFlag:
-        #TODO
         return Flag(type_name, field, endianness, settings)
     else:
-        assert False, "Unknown type {} and length {}".format(field, field.size_in_bits())
+        assert False, "Unknown type {} and length {}".format(field.type(), field.size_in_bits())

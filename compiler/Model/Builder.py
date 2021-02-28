@@ -8,6 +8,7 @@ from .CaptureScope import CaptureScope
 
 from Model.Types import Integer,Float,Reference,Flag
 from Model.Enumeration import Enumeration
+from Model.Collection import Collection
 
 import os
 import re
@@ -103,6 +104,8 @@ class Builder(BiPaGeListener):
                 fields.extend(self.get_fields_from_scoped_capture_scope(field.capture_scope()))
             elif field.inline_enumeration():
                 fields.append(self.noderesult[field.inline_enumeration()])
+            elif field.collection_field():
+                fields.append(self.noderesult[field.collection_field()])
 
 
         capture_scopes = [ self.noderesult[cs_context.capture_scope()] for cs_context in ctx.field() if cs_context.capture_scope()]
@@ -116,6 +119,16 @@ class Builder(BiPaGeListener):
         field = Field(id, type, self._offset, ctx.start)
         self._offset += field.size_in_bits()
         self.noderesult[ctx] = field
+
+    def exitCollection_field(self, ctx: BiPaGeParser.Collection_fieldContext):
+        id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
+        collection_type = self.noderesult[ctx.field_type()]
+        collection_size = int(str(ctx.NumberLiteral()))
+        collection = Collection(collection_type, collection_size, ctx.start)
+        field = Field(id, collection, self._offset, ctx.start)
+        self._offset += collection.size_in_bits()
+        self.noderesult[ctx] = field
+
 
     def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         # store the current offset as that is the offset of the capture scope
@@ -153,6 +166,7 @@ class Builder(BiPaGeListener):
             self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
         elif ctx.FlagType():
             self.noderesult[ctx] = Flag.Flag(ctx.start)
+
 
     def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
         self.noderesult[ctx] = ".".join(str(id) for id in ctx.Identifier())

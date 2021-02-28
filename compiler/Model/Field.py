@@ -1,6 +1,7 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
 import math
+from Model.Collection import Collection
 
 def _standard_size(size):
     bytes_required = math.ceil(size / 8)
@@ -30,7 +31,7 @@ class Field(Node):
         self._type.check_semantics(warnings, errors)
 
         line, column = self.location()
-        if not self.scoped and not self.is_standard_size():
+        if not type(self._type) is Collection and not self.scoped and not self.is_standard_size():
             errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
 
     # return the byte aligned offset to the field
