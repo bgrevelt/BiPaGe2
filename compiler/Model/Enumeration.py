@@ -13,6 +13,9 @@ class Enumeration(Node):
     def name(self):
         return self._name
 
+    def setname(self, name):
+        self._name = name
+
     def size_in_bits(self):
         return self._base_type.size_in_bits()
 

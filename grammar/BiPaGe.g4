@@ -21,13 +21,16 @@ definition: import_rule* namespace? endianness? (datatype|enumeration)+;
 namespace: NameSpace Identifier ('.'Identifier)* SemiColon;
 endianness: EndiannessDecorator SemiColon;
 import_rule: 'import' FilePath SemiColon;
-datatype: Identifier '{' field+ '}';
+datatype: Identifier '{' (field | capture_scope)+ '}';
 enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}';
 enumerand: Identifier '=' NumberLiteral;
-field: simple_field | capture_scope | inline_enumeration | collection_field;
-simple_field: (Identifier ':')? field_type ';';
-collection_field: (Identifier ':')? field_type '[' NumberLiteral ']' ';';
-inline_enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}' ';';
-capture_scope: '{' (simple_field|inline_enumeration)+ '}';
-field_type: IntegerType | FloatingPointType | FlagType | reference;
+field: (Identifier ':')? field_type ('[' NumberLiteral ']')? ';';
+field_type:
+    IntegerType |
+    FloatingPointType |
+    FlagType |
+    reference |
+    inline_enumeration;
+inline_enumeration: IntegerType '{' (enumerand ',')* enumerand '}';
+capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;

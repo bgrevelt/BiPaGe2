@@ -58,6 +58,16 @@ class Builder(BiPaGeListener):
             'f' : 'float'
         }
 
+        # We have this here to store fields in the current datatype as we encounter them. The reason that we can't
+        # use noderesult like we do with everything else is that we want to have all fields that are in a datatype
+        # included those that are in a capture scope directly in the datatype. If we used the 'normal' approach, we
+        # could still add all the fields in all capture scopes directly to the datatype, but we'd lose the ordering information
+        # For example, Foo{ f1 : u8; { f2: u4; f3:u4; } f3:s32;} would give us two fields and a capture scope, but we w
+        # would need to resort to hacky tricks to find out in which order they were defined. This doesn't really matter
+        # because the generated code would still be valid, but it's nicer if the getters/setters in the generated code
+        # have the same order as in the input file. So we use this approach to do just that.
+        self._current_datatype_fields = []
+
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
         namespace = []
         if ctx.namespace():
@@ -78,70 +88,53 @@ class Builder(BiPaGeListener):
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         self._offset = 0
 
-    def get_fields_from_scoped_capture_scope(self, capture_scope):
-         return [self.noderesult[field] for field in capture_scope.simple_field() if self.noderesult[field].name is not None] + [self.noderesult[field] for field in capture_scope.inline_enumeration()]
-
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
-        fields = []
-        ''' We get a little dodgy with the mode here. Our model looks like this
-        DataType
-        +-Fields
-        +-Capture Scope
-          +-Fields
-          
-        However, because we really only use the capture scope to determine offsets and capture width
-        for the fields it encompasses (and some semantic analysis). After that, the extra nesting only
-        makes our life harder. That's why we add all fields (including those in capture scopes) directly
-        to the datatype. We still create a capture type and put the fields inside the capture type to it,
-        but that's only used for semantic analysis.
-        '''
+        capture_scopes = [self.noderesult[capture_scope] for capture_scope in ctx.capture_scope()]
 
-        for field in ctx.field():
-            if field.simple_field() and self.noderesult[field.simple_field()].name is not None:
-                fields.append(self.noderesult[field.simple_field()])
-            elif field.capture_scope():
-                # Add fields from the capture scope directly to the datatype as well.
-                fields.extend(self.get_fields_from_scoped_capture_scope(field.capture_scope()))
-            elif field.inline_enumeration():
-                fields.append(self.noderesult[field.inline_enumeration()])
-            elif field.collection_field():
-                fields.append(self.noderesult[field.collection_field()])
-
-
-        capture_scopes = [ self.noderesult[cs_context.capture_scope()] for cs_context in ctx.field() if cs_context.capture_scope()]
-
-        node = DataType(str(ctx.Identifier()), capture_scopes, fields, ctx.start)
+        node = DataType(str(ctx.Identifier()), capture_scopes, self._current_datatype_fields, ctx.start)
         self.noderesult[ctx] = node
 
-    def exitSimple_field(self, ctx:BiPaGeParser.Simple_fieldContext):
+        self._current_datatype_fields = []
+
+    def exitField(self, ctx:BiPaGeParser.FieldContext):
         id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
-        type = self.noderesult[ctx.field_type()]
-        field = Field(id, type, self._offset, ctx.start)
+        field_type = self.noderesult[ctx.field_type()]
+
+        if id is not None and type(field_type) is Enumeration and field_type.name() == "":
+            # This is an inline enumeration. By definition it doesn't have a name. We use the name of the field to name
+            # the enumeration
+            name = f'{id}_ENUM'
+            enum = field_type
+            enum.setname(name)
+            self._enumations_by_name[name] = enum
+
+            # Create a reference. This way our model doesn't have to know about the difference between a normal enum
+            # and an inline enumeration. Just like with a normal enum, we create an enum definition (using the field
+            # name to generate a name for the enum) and we refer to that type by name in the field.
+            reference = Reference.Reference(name, enum, ctx.start)
+            self.noderesult[ctx.field_type()] = reference
+            field_type = reference
+
+        if ctx.NumberLiteral():
+            # this is a collection
+            field_type = Collection(field_type, int(str(ctx.NumberLiteral())),ctx.start)
+
+        field = Field(id, field_type, self._offset, ctx.start)
         self._offset += field.size_in_bits()
         self.noderesult[ctx] = field
-
-    def exitCollection_field(self, ctx: BiPaGeParser.Collection_fieldContext):
-        id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
-        collection_type = self.noderesult[ctx.field_type()]
-        collection_size = int(str(ctx.NumberLiteral()))
-        collection = Collection(collection_type, collection_size, ctx.start)
-        field = Field(id, collection, self._offset, ctx.start)
-        self._offset += collection.size_in_bits()
-        self.noderesult[ctx] = field
-
+        if id is not None:
+            self._current_datatype_fields.append(field)\
 
     def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         # store the current offset as that is the offset of the capture scope
         self._scoped_offset = self._offset
 
     def exitCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
-        fields = [self.noderesult[field] for field in ctx.simple_field()] + [self.noderesult[field] for field in ctx.inline_enumeration()]
+        fields = [self.noderesult[field] for field in ctx.field()]
         capture_scope_size = sum(f.size_in_bits() for f in fields)
         capture_scope_offset = self._scoped_offset
 
-        for field in ctx.simple_field():
-            self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
-        for field in ctx.inline_enumeration():
+        for field in ctx.field():
             self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
 
         self.noderesult[ctx] = CaptureScope(capture_scope_offset, fields, ctx.start)
@@ -162,10 +155,11 @@ class Builder(BiPaGeListener):
                 ref = self._enumations_by_name[name]
             elif name in self._imported_enumerations_by_name:
                 ref = self._imported_enumerations_by_name[name]
-
             self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
         elif ctx.FlagType():
             self.noderesult[ctx] = Flag.Flag(ctx.start)
+        elif ctx.inline_enumeration():
+            self.noderesult[ctx] = self.noderesult[ctx.inline_enumeration()]
 
 
     def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
@@ -190,18 +184,9 @@ class Builder(BiPaGeListener):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
         signed = type == 'int'
         type = Integer.Integer(size, signed, ctx.start)
-
-        name = f'{str(ctx.Identifier())}_ENUM'
         enumerands = [self.noderesult[e] for e in ctx.enumerand()]
-
-        enum = Enumeration(name, type, enumerands, ctx.start)
-        self._enumations_by_name[name] = enum
-
-        id = str(ctx.Identifier())
-        type = Reference.Reference(name, enum, ctx.start)
-        field = Field(id, type, self._offset, ctx.start)
-        self._offset += field.size_in_bits()
-        self.noderesult[ctx] = field
+        enum = Enumeration("", type, enumerands, ctx.start)
+        self.noderesult[ctx] = enum
 
     def exitImport_rule(self, ctx:BiPaGeParser.Import_ruleContext):
         self.noderesult[ctx] = str(ctx.FilePath())

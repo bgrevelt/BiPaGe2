@@ -16,3 +16,6 @@ class Collection(Node):
         # size not negative
         # Only stanadard types supported
         pass # Nothing to check. Just a bit
+
+    def type(self):
+        return self._type
