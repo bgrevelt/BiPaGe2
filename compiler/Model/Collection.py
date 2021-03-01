@@ -11,6 +11,9 @@ class Collection(Node):
     def size_in_bits(self):
         return self._type.size_in_bits() * self._size
 
+    def collection_size(self):
+        return self._size
+
     def check_semantics(self, warnings, errors):
         line, column = self.location()
         if self._size == 0:

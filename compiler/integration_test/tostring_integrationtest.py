@@ -31,6 +31,7 @@ class ToString(unittest.TestCase, IntegrationTest):
                 flag2: flag;
                 filler: u6;
             }
+            collection: f32[6];
         }
         ''')
         self.write_cmake_file()
@@ -51,6 +52,12 @@ void test_simple()
     p = serialize(p, SomeEnum::nine);
     p = serialize(p, SomeEnum::twofiftyfive);
     p = serialize(p, static_cast<std::uint8_t>(0x02));
+    p = serialize(p, 1.23f);
+    p = serialize(p, 2.34f);
+    p = serialize(p, 3.45f);
+    p = serialize(p, 4.56f);
+    p = serialize(p, 5.67f);
+    p = serialize(p, 6.78f);
 
     Foo_view parsed(buffer);
     std::cout << parsed.to_string() << std::endl;
@@ -86,7 +93,8 @@ int main(int argc, char* argv[])
                 enum5: SomeEnum::twofiftyfive (255)
                 flag1: cleared
                 flag2: set
-                filler: 0''')
+                filler: 0
+                collection: [1.23, 2.34, 3.45, 4.56, 5.67, 6.78]''')
 
     def check_output(self, expected, output):
         # check two strings ignoring whitespace and casing

@@ -1,5 +1,7 @@
 #pragma once
 #include <type_traits>
+#include <string>
+#include <sstream>
 
 namespace BiPaGe
 {
@@ -44,6 +46,15 @@ namespace BiPaGe
         const T& operator[](size_t index) const
         {
             return at(index);
+        }
+        std::string to_string() const
+        {
+            std::stringstream ss;
+            ss << "[ ";
+            for(auto current = begin() ; current < end() ; ++current)
+                ss << *current << (current < (end()-1) ? ", " : "");
+            ss << " ]";
+            return ss.str();
         }
     private:
         const T* const data_;

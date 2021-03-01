@@ -48,6 +48,8 @@ private:
         if self._settings.cpp_to_string:
             incs.extend(['<sstream>', '<iomanip>'])
 
+        incs.extend([inc for field in self._fields for inc in field.includes()])
+
         return [f'#include {include}' for include in incs]
 
     def defines(self):
