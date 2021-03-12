@@ -8,9 +8,11 @@ class Collection(Field):
 
     def cpp_type(self):
         collection = self._field.type()
-        return f'BiPaGe::Collection<{self._collection_type},{collection.collection_size()}>'
+        if self._endianness == 'big' and self._field.size_in_bits() != 8:
+            return f'BiPaGe::CollectionBigEndian<{self._collection_type},{collection.collection_size()}>'
+        else:
+            return f'BiPaGe::CollectionLittleEndian<{self._collection_type},{collection.collection_size()}>'
 
-    #todo
     def default_value(self):
         return ""
 
@@ -21,16 +23,11 @@ class Collection(Field):
         }}'''
 
     def includes(self):
-        return ['<BiPaGe/Collection.h>', '<vector>']
+        return ['<BiPaGe/Collection.h>']
 
     def builder_parameter_code(self):
         # std::uintt_t foo
         return f'std::vector<{self._collection_type}> {self._field.name}'
-
-    # def builder_initializer_code(self):
-    #     # foo_(foo)
-    #     return f'{self._field.name}_({self._field.name})'
-
 
     def builder_field_code(self):
         # std::uint8_t foo_ = 0;
@@ -54,11 +51,10 @@ class Collection(Field):
 
     def builder_serialize_code(self):
         collection_size = self._field.type().collection_size()
-        # TODO: endianness
-        # if self._endianness == 'little' or self._field.size_in_bits() == 8:
-        #
-        #     return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = {self._field.name}_;\n'
-        # else:
-        #     return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = BiPaGe::swap_bytes({self._field.name}_);\n'
-        return f'''for(size_t i = 0 ; i < {collection_size} ; ++i)
-                *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = {self._field.name}_[i];'''
+        if self._endianness == 'little' or self._field.size_in_bits() == 8:
+            return f'''for(size_t i = 0 ; i < {collection_size} ; ++i)
+                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = {self._field.name}_[i];
+                '''
+        else:
+            return f'''for(size_t i = 0 ; i < {collection_size} ; ++i)
+                            *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
