@@ -69,6 +69,10 @@ class Field:
     def validation_code(self, variable_name):
         return ""
 
+    # Method can be overridden if the field needs to do some prep work to represent itself as a string
+    def to_string_prep(self):
+        return None
+
     def to_string_code(self):
         return f'{self._field.name}()'
 

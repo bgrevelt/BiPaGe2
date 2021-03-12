@@ -13,6 +13,9 @@ from integration_test.non_standard_size_enum_integrationtest import *
 from integration_test.inline_enum_integrationtest import *
 from integration_test.enum_import_integrationtest import *
 from integration_test.enum_import_namespace_integrationtest import *
+from integration_test.collection_integrationtest import *
+from integration_test.collection_big_endian_integrationtest import *
+from integration_test.collection_enum_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -30,6 +33,9 @@ def suite():
     test_suite.addTest(unittest.makeSuite(InlineEnum))
     test_suite.addTest(unittest.makeSuite(ImportEnum))
     test_suite.addTest(unittest.makeSuite(ImportEnumNamepace))
+    test_suite.addTest(unittest.makeSuite(Collection))
+    test_suite.addTest(unittest.makeSuite(CollectionBigEndian))
+    test_suite.addTest(unittest.makeSuite(CollectionEnum))
 
     return test_suite
 

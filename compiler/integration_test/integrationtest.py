@@ -76,3 +76,9 @@ class IntegrationTest:
         self.run_bipage(bipageargs)
         self.run_cmake()
         return self.run_test(testargs)
+
+    def check_output(self, expected, output):
+        # check two strings ignoring whitespace and casing
+        output = ''.join(output.split()).lower()
+        expected = ''.join(expected.split()).lower()
+        self.assertEqual(output, expected)

@@ -1,9 +1,11 @@
 from BackEnd.cpp.Fields.Field import Field
 from Model.Field import Field as ModelField
+from Model.Types.Reference import Reference as ModelRef
 
 class Collection(Field):
     def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str, settings):
         self._collection_type = cpp_type
+        self._is_enum_collection = type(field.type().type()) is ModelRef
         super().__init__(type_name, field, endianness)
 
     def cpp_type(self):
@@ -46,8 +48,18 @@ class Collection(Field):
             return {self._field.name}_;
         }}'''
 
+    def to_string_prep(self):
+        return f'''
+            auto {self._field.name}_iterator = {self._field.name}();
+            std::stringstream {self._field.name}_stream;
+            {self._field.name}_stream << "[ ";
+            for(auto current = {self._field.name}_iterator.begin() ; current < {self._field.name}_iterator.end() ; ++current)
+                {self._field.name}_stream << {"enum_to_string(*current)" if self._is_enum_collection else "*current"} << (current < ({self._field.name}_iterator.end()-1) ? ", " : "");
+            {self._field.name}_stream << " ]";
+        '''
+
     def to_string_code(self):
-        return f'{self._field.name}().to_string()'
+        return f'{self._field.name}_stream.str()'
 
     def builder_serialize_code(self):
         collection_size = self._field.type().collection_size()

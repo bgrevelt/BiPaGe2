@@ -123,14 +123,19 @@ private:
         r += '}'
         return r
 
+    def to_string_prep(self):
+        return "\n".join(field.to_string_prep() for field in self._fields if field.to_string_prep() is not None)
+
     def to_string_code(self):
         if not self._settings.cpp_to_string:
             return ""
 
         longest_field_name = max(len(field.name) for field in self._datatype.fields)
 
-        r = '''std::string to_string() const
-    {
+        r = f'''std::string to_string() const
+    {{
+        {self.to_string_prep()}
+        
         std::stringstream ss;
         
         '''

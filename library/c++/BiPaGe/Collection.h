@@ -78,7 +78,7 @@ namespace BiPaGe
     class Collection;
 
     template<typename T, template<typename> class ITERATOR_TYPE, size_t COLLECTION_SIZE>
-    class Collection<T, ITERATOR_TYPE, COLLECTION_SIZE, typename std::enable_if<std::is_integral<T>::value || std::is_floating_point<T>::value, void>::type>
+    class Collection<T, ITERATOR_TYPE, COLLECTION_SIZE, typename std::enable_if<std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_enum<T>::value, void>::type>
     {
     public:
         Collection(const void* data)
@@ -114,16 +114,6 @@ namespace BiPaGe
         T operator[](size_t index) const
         {
             return at(index);
-        }
-
-        std::string to_string() const
-        {
-            std::stringstream ss;
-            ss << "[ ";
-            for(auto current = begin() ; current < end() ; ++current)
-                ss << *current << (current < (end()-1) ? ", " : "");
-            ss << " ]";
-            return ss.str();
         }
     private:
         const T* data_;
