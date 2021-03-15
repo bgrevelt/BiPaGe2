@@ -115,9 +115,9 @@ class Builder(BiPaGeListener):
             self.noderesult[ctx.field_type()] = reference
             field_type = reference
 
-        if ctx.NumberLiteral():
+        if ctx.multiplier():
             # this is a collection
-            field_type = Collection(field_type, int(str(ctx.NumberLiteral())),ctx.start)
+            field_type = Collection(field_type, self.noderesult[ctx.multiplier()],ctx.start)
 
         field = Field(id, field_type, self._offset, ctx.start)
         self._offset += field.size_in_bits()
@@ -190,6 +190,14 @@ class Builder(BiPaGeListener):
 
     def exitImport_rule(self, ctx:BiPaGeParser.Import_ruleContext):
         self.noderesult[ctx] = str(ctx.FilePath())
+
+    def exitMultiplier(self, ctx:BiPaGeParser.MultiplierContext):
+        assert ctx.expression()
+        self.noderesult[ctx] = self.noderesult[ctx.expression()]
+
+    def exitExpression(self, ctx:BiPaGeParser.ExpressionContext):
+        assert ctx.NumberLiteral()
+        self.noderesult[ctx] = int(str(ctx.NumberLiteral()))
 
     def model(self):
         return self._definition

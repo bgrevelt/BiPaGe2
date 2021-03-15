@@ -24,7 +24,8 @@ import_rule: 'import' FilePath SemiColon;
 datatype: Identifier '{' (field | capture_scope)+ '}';
 enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}';
 enumerand: Identifier '=' NumberLiteral;
-field: (Identifier ':')? field_type ('[' NumberLiteral ']')? ';';
+field: (Identifier ':')? field_type multiplier? ';';
+multiplier: ('[' expression ']');
 field_type:
     IntegerType |
     FloatingPointType |
@@ -34,3 +35,4 @@ field_type:
 inline_enumeration: IntegerType '{' (enumerand ',')* enumerand '}';
 capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;
+expression: NumberLiteral;
