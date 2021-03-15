@@ -49,7 +49,7 @@ class Builder(BiPaGeListener):
                 name = (imp.namespace + "." if imp.namespace else "") + enum.name()
                 self._imported_enumerations_by_name[name] = enum
 
-        self._enumations_by_name = {}
+        self._enumerations_by_name = {}
 
         # remove the type aliases here so we don't have to worry about it in the backend.
         self.fieldtype_translation = {
@@ -80,7 +80,7 @@ class Builder(BiPaGeListener):
             endianness = 'big'
 
         datatypes = [self.noderesult[d] for d in ctx.datatype()]
-        enumerations = self._enumations_by_name.values()
+        enumerations = self._enumerations_by_name.values()
         imports = [self.noderesult[i] for i in ctx.import_rule()]
         self._definition = Definition(self._definition_name, endianness, namespace, imports, datatypes, enumerations, ctx.start)
 
@@ -106,7 +106,7 @@ class Builder(BiPaGeListener):
             name = f'{id}_ENUM'
             enum = field_type
             enum.setname(name)
-            self._enumations_by_name[name] = enum
+            self._enumerations_by_name[name] = enum
 
             # Create a reference. This way our model doesn't have to know about the difference between a normal enum
             # and an inline enumeration. Just like with a normal enum, we create an enum definition (using the field
@@ -123,7 +123,7 @@ class Builder(BiPaGeListener):
         self._offset += field.size_in_bits()
         self.noderesult[ctx] = field
         if id is not None:
-            self._current_datatype_fields.append(field)\
+            self._current_datatype_fields.append(field)
 
     def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         # store the current offset as that is the offset of the capture scope
@@ -151,8 +151,8 @@ class Builder(BiPaGeListener):
             # Reference to an enumeration
             name = self.noderesult[ctx.reference()]
             ref = None
-            if name in self._enumations_by_name:
-                ref = self._enumations_by_name[name]
+            if name in self._enumerations_by_name:
+                ref = self._enumerations_by_name[name]
             elif name in self._imported_enumerations_by_name:
                 ref = self._imported_enumerations_by_name[name]
             self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
@@ -178,7 +178,7 @@ class Builder(BiPaGeListener):
 
         enum = Enumeration(name, type, enumerands, ctx.start)
         self.noderesult[ctx] = enum
-        self._enumations_by_name[name] = enum
+        self._enumerations_by_name[name] = enum
 
     def exitInline_enumeration(self, ctx:BiPaGeParser.Inline_enumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
