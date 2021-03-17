@@ -1,11 +1,13 @@
-Foo : u8
+@bigendian;
+
+Bla : u8
 {
- first = 500
+  aap = 1
 }
 
-Bar
+Foo
 {
-    field1 : uint8;
-    field2: some.name.space.Type;
-    field4: float64;
+    f1: s32;
+    f2: Bla[12];
+    f3 : s32;
 }

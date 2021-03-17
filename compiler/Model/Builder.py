@@ -9,6 +9,7 @@ from .CaptureScope import CaptureScope
 from Model.Types import Integer,Float,Reference,Flag
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
+from Model.Expressions.NumberLiteral import NumberLiteral
 
 import os
 import re
@@ -197,7 +198,7 @@ class Builder(BiPaGeListener):
 
     def exitExpression(self, ctx:BiPaGeParser.ExpressionContext):
         assert ctx.NumberLiteral()
-        self.noderesult[ctx] = int(str(ctx.NumberLiteral()))
+        self.noderesult[ctx] = NumberLiteral(int(str(ctx.NumberLiteral())), ctx.start)
 
     def model(self):
         return self._definition

@@ -1,6 +1,6 @@
 from Model.Node import Node
 from Model.BuildMessage import BuildMessage
-
+from Model.Expressions.NumberLiteral import NumberLiteral
 
 class Collection(Node):
     def __init__(self, type, size, token):
@@ -9,24 +9,34 @@ class Collection(Node):
         super().__init__(token)
 
     def size_in_bits(self):
-        return self._type.size_in_bits() * self._size
+        assert type(self._size) is NumberLiteral, "Other expressions aren't supported yet so this is odd"
+        assert type(self._size.evaluate()) is int, "Number literal expression should evaluate to an int because it is an int"
+
+        return self._type.size_in_bits() * self._size.evaluate()
 
     def collection_size(self):
-        return self._size
-
-    def check_semantics(self, warnings, errors):
-        line, column = self.location()
-        if self._size == 0:
-            warnings.append(BuildMessage(line, column,
-                                       'Collection with zero elements. This is line will have no effect on the generated code.'))
-        elif self._size < 0:
-            errors.append(BuildMessage(line, column,
-                                       'Negative number of elements in collection.'))
-
-
-        if self._type.size_in_bits() not in [8,16,32,64]:
-            errors.append(BuildMessage(line, column,
-                                       f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection'))
+        return self._size.evaluate()
 
     def type(self):
         return self._type
+
+    def check_semantics(self, warnings, errors):
+        if type(self._size) is NumberLiteral:
+            self.check_semantics_number_literal(warnings, errors)
+
+        else:
+            assert False, "Unsupported size type"
+
+    def check_semantics_number_literal(self, warnings, errors):
+        assert type(self._size) is NumberLiteral
+        size = self._size.evaluate()
+        line, column = self.location()
+        if size == 0:
+            warnings.append(BuildMessage(line, column,
+                                       'Collection with zero elements. This line will have no effect on the generated code.'))
+        elif self._size.evaluate() < 0:
+            errors.append(BuildMessage(line, column,
+                                       'Negative number of elements in collection.'))
+        if self._type.size_in_bits() not in [8,16,32,64]:
+            errors.append(BuildMessage(line, column,
+                                       f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection'))
