@@ -1,43 +1,16 @@
-from .Field import Field
+from BackEnd.cpp.Fields.Integral import Integral
 import math
 
-class Integer(Field):
+class Integer(Integral):
     def __init__(self, type_name, field, endianness, settings):
         super().__init__(type_name, field, endianness)
         self._settings = settings
-        self._scoped = field.scoped
-        self.capture_type = self.to_cpp_type(field.capture_size, field.is_signed_type())
 
     def cpp_type(self):
         return self.to_cpp_type(self._field.standard_size, self._field.is_signed_type())
 
     def default_value(self):
         return '0'
-
-    def base_type(self):
-        return self.cpp_type()
-
-    def builder_serialize_code(self):
-        if not self._scoped:
-            return super().builder_serialize_code()
-
-        offset_in_byte = (self._field.offset - self._field.capture_offset)
-        mask = (2 ** self._field.size_in_bits() - 1) << offset_in_byte  # mask should not include sign bit
-
-        if self.base_type() != self.cpp_type():
-            r = f'{self.capture_type} {self._field.name} = static_cast<{self.base_type()}>({self._field.name}_);\n'
-        else:
-            r = f'{self.capture_type} {self._field.name} = {self._field.name}_;\n'
-        if offset_in_byte != 0:
-            r += f'{self._field.name} <<= {offset_in_byte};\n'
-
-        r += f'{self._field.name} &= 0x{mask:x};\n'
-
-        # Note: byte swapping for big endian types happens at the datatype level so we can swap the
-        # entire capture scope at once
-
-        r += f'*reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
-        return r
 
     def builder_setter_code(self):
         # only add validation code for non-standard width types and when validation generation is enabled
@@ -50,64 +23,6 @@ class Integer(Field):
             {self.validation_code("val")}
             {self._field.name}_ = val; 
         }}'''
-
-    def view_getter_code(self):
-        if not self._scoped:
-            return super().view_getter_code()
-
-        fieldname = self._field.name
-        return_type = self.cpp_type()
-        body = self._body()
-
-        return f'''{return_type} {fieldname}() const
-        {{
-            {body}
-        }}'''
-
-    def _body(self):
-        capture_type = self.to_cpp_type(self._field.capture_size, self._issigned())
-
-        body = f'auto capture_type = *reinterpret_cast<const {capture_type}*>(data_ + {self._offset_name()});\n'
-        if self._endianness == 'big' and self._field.capture_size != 8:
-            body += 'capture_type = BiPaGe::swap_bytes(capture_type);'
-        body += self._add_shift()
-        body += self._add_mask()
-        body += self._add_return()
-
-        return body
-
-    def _add_shift(self):
-        offset_in_byte = self._field.offset - self._field.capture_offset
-        if offset_in_byte != 0:
-            return f'capture_type >>= {offset_in_byte};\n'
-        else:
-            return ""
-
-    def _add_mask(self):
-        if not self._issigned():
-            mask = 2 ** self._field.size_in_bits() - 1
-            return f'capture_type &= 0x{mask:x};\n'
-        else:
-            r = ""
-            mask = 2 ** (self._field.size_in_bits() - 1) - 1  # mask should not include sign bit
-            sign_mask = 2 ** (self._field.size_in_bits() - 1)
-            sign_mask_return_type = (2 ** self._field.standard_size - 1) - mask
-
-            r += f'bool negative = ((capture_type & 0x{sign_mask:x}) == 0x{sign_mask:x});\n'
-            r += f'capture_type &= 0x{mask:x};\n'
-            r += f'''if(negative)
-                    {{
-                        // Set sign bit and all bits that are not part of the data (2's complement).
-                        capture_type |= 0x{sign_mask_return_type:x}; 
-                    }}
-                    '''
-            return r
-
-    def _add_return(self):
-        if self._field.capture_size != self._field.standard_size or self.base_type() != self.cpp_type():
-            return f'return static_cast<{self.cpp_type()}>(capture_type);'
-        else:
-            return 'return capture_type;'
 
     def _issigned(self):
         return self._field.is_signed_type()
@@ -136,15 +51,15 @@ class Integer(Field):
                 throw std::runtime_error({error_msg});
             }}'''
 
-    def to_string_code(self):
+    def to_string_code(self, string_stream_var_name:str):
         if self._field.return_type_size() == 8:
             # cast to int to prevent this from being interpreted as an ASCII charactor
             if self._field.is_signed_type():
-                return f'static_cast<int>({self._field.name}())'
+                return f'{string_stream_var_name} << static_cast<int>({self._field.name}());'
             else:
-                return f'static_cast<unsigned int>({self._field.name}())'
+                return f'{string_stream_var_name} << static_cast<unsigned int>({self._field.name}());'
         else:
-            return f'{self._field.name}()'
+            return f'{string_stream_var_name} << {self._field.name}();'
 
     @staticmethod
     def to_cpp_type(size, signed):

@@ -1,11 +1,11 @@
-from BackEnd.cpp.Fields.Integer import Integer
+from BackEnd.cpp.Fields.Integral import Integral
 from Model.Field import Field as ModelField
 
-class EnumReference(Integer):
+class EnumReference(Integral):
     def __init__(self, type_name:str, field:ModelField, endianness:str, settings):
         self._referenced_enum = field.type().referenced_type()
         self._field = field
-        super().__init__(type_name, field, endianness, settings)
+        super().__init__(type_name, field, endianness)
 
     def cpp_type(self):
         return self._field.type()._name.replace('.','::')
@@ -17,10 +17,10 @@ class EnumReference(Integer):
         return f'{self.cpp_type()}::{first_enumerator_name}'
 
     def base_type(self):
-        return Integer.to_cpp_type(self._referenced_enum.standard_size(), self._referenced_enum.signed())
+        return self._to_cpp_type(self._referenced_enum.standard_size(), self._referenced_enum.signed())
 
-    def to_string_code(self):
-        return f'enum_to_string({self._field.name}())'
+    def to_string_code(self, string_stream_var_name):
+        return f'{string_stream_var_name} << enum_to_string({self._field.name}());'
 
     def validation_code(self, variable_name):
         # We don't ned validation for the enumeration because they're limited to the values

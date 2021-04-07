@@ -1,9 +1,9 @@
-from BackEnd.cpp.Fields.Integer import Integer
+from BackEnd.cpp.Fields.Integral import Integral
 from Model.Field import Field as ModelField
 
-class Flag(Integer):
+class Flag(Integral):
     def __init__(self, type_name:str, field:ModelField, endianness:str, settings):
-        super().__init__(type_name, field, endianness, settings)
+        super().__init__(type_name, field, endianness)
 
     def cpp_type(self):
         return 'bool'
@@ -11,10 +11,7 @@ class Flag(Integer):
     def default_value(self):
         return 'false'
 
-    def base_type(self):
-        return Integer.to_cpp_type(8, False)
-
-    def builder_serialize_code(self):
+    def builder_serialize_body(self):
         offset_in_capture = (self._field.offset - self._field.capture_offset)
         return f'''if({self._field.name}_)
         {{
@@ -36,8 +33,8 @@ class Flag(Integer):
         offset_in_capture = (self._field.offset - self._field.capture_offset)
         return f'return (capture_type & (1<<{offset_in_capture})) == (1<<{offset_in_capture});'
 
-    def to_string_code(self):
-        return f'({self._field.name}() ? "set" : "cleared")'
+    def to_string_code(self, string_stream_var_name):
+        return f'{string_stream_var_name} << ({self._field.name}() ? "set" : "cleared");'
 
     def validation_code(self, variable_name):
         # We don't ned validation for the flag because a bool can't be anything other than true or false

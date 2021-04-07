@@ -8,6 +8,9 @@ class Collection(Field):
         self._is_enum_collection = type(field.type().type()) is ModelRef
         super().__init__(type_name, field, endianness)
 
+    def getter_body(self):
+        return f'return {self.cpp_type()}(data_ + {self._offset_name()});'
+
     def cpp_type(self):
         collection = self._field.type()
         if self._endianness == 'big' and self._field.size_in_bits() != 8:
@@ -17,12 +20,6 @@ class Collection(Field):
 
     def default_value(self):
         return ""
-
-    def view_getter_code(self):
-        return f'''{self.cpp_type()} {self._field.name}() const
-        {{
-            return {self.cpp_type()}(data_ + {self._offset_name()});
-        }}'''
 
     def includes(self):
         return ['<BiPaGe/Collection.h>']
@@ -48,20 +45,14 @@ class Collection(Field):
             return {self._field.name}_;
         }}'''
 
-    def to_string_prep(self):
-        return f'''
-            auto {self._field.name}_iterator = {self._field.name}();
-            std::stringstream {self._field.name}_stream;
-            {self._field.name}_stream << "[ ";
+    def to_string_code(self, string_stream_var_name):
+        return f'''auto {self._field.name}_iterator = {self._field.name}();
+            {string_stream_var_name} << "[ ";
             for(auto current = {self._field.name}_iterator.begin() ; current < {self._field.name}_iterator.end() ; ++current)
-                {self._field.name}_stream << {"enum_to_string(*current)" if self._is_enum_collection else "*current"} << (current < ({self._field.name}_iterator.end()-1) ? ", " : "");
-            {self._field.name}_stream << " ]";
-        '''
+                {string_stream_var_name} << {"enum_to_string(*current)" if self._is_enum_collection else "*current"} << (current < ({self._field.name}_iterator.end()-1) ? ", " : "");
+            {string_stream_var_name} << " ]";'''
 
-    def to_string_code(self):
-        return f'{self._field.name}_stream.str()'
-
-    def builder_serialize_code(self):
+    def builder_serialize_body(self, ):
         collection_size = self._field.type().collection_size()
         if self._endianness == 'little' or self._field.size_in_bits() == 8:
             return f'''for(size_t i = 0 ; i < {collection_size} ; ++i)

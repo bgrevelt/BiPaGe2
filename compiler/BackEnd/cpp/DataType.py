@@ -102,7 +102,7 @@ private:
         }}'''
 
     def _builder_build_method(self):
-        body = "".join([field.builder_serialize_code() for field in self._fields])
+        body = "".join([field.builder_serialize_body() for field in self._fields])
 
         r = \
             f'''void build(uint8_t * sink) const // serialize the data to the given buffer
@@ -133,15 +133,15 @@ private:
         longest_field_name = max(len(field.name) for field in self._datatype.fields)
 
         r = f'''std::string to_string() const
-    {{
-        {self.to_string_prep()}
-        
+    {{  
         std::stringstream ss;
         
         '''
 
         for field in self._fields:
-            r += f'ss << std::setw({longest_field_name + 2}) << "{field.name()}: " << {field.to_string_code()} << std::endl;\n'
+            r += f'ss << std::setw({longest_field_name + 2}) << "{field.name()}: ";'
+            r += field.to_string_code('ss')
+            r += 'ss << std::endl;\n'
 
         r+= '''
         return ss.str();

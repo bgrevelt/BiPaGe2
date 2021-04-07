@@ -1,4 +1,6 @@
-class Field:
+from abc import ABC, abstractmethod
+
+class Field(ABC):
     def __init__(self, type_name, field, endianness):
         self._type_name = type_name
         self._field = field
@@ -10,20 +12,43 @@ class Field:
             {body}
         }}'''
 
+    @abstractmethod
+    def getter_body(self):
+        pass
+
+    @abstractmethod
+    def cpp_type(self):
+        pass
+
+    @abstractmethod
+    def builder_serialize_body(self):
+        pass
+
+    @abstractmethod
+    def default_value(self):
+        pass
+
+    @abstractmethod
+    def to_string_code(self, string_stream_var_name):
+        pass
+
+    def add_swap_if_required(self, statement):
+        if self._endianness == 'big' and self._field.size_in_bits() != 8:
+            return f'BiPaGe::swap_bytes({statement})'
+        else:
+            return statement
+
     def name(self):
         return self._field.name
 
     def view_getter_code(self):
-        if self._endianness == 'little' or self._field.size_in_bits() == 8:
-            return f'''{self._cpp_type} {self._field.name}() const
-                    {{
-                        return *reinterpret_cast<const {self._cpp_type}*>(data_ + {self._offset_name()});
-                    }}'''
-        else:
-            return f'''{self._cpp_type} {self._field.name}() const
-                    {{
-                        return BiPaGe::swap_bytes(*reinterpret_cast<const {self._cpp_type}*>(data_ + {self._offset_name()}));
-                    }}'''
+        return_type = self.cpp_type();
+        method_name = self._field.name
+        method_body = self.getter_body()
+        return f'''{return_type} {method_name}() const
+        {{
+            {method_body}
+        }}'''
 
     def builder_setter_code(self):
         return \
@@ -37,12 +62,6 @@ class Field:
         {{
             return {self._field.name}_;
         }}'''
-
-    def builder_serialize_code(self):
-        if self._endianness == 'little' or self._field.size_in_bits() == 8:
-            return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = {self._field.name}_;\n'
-        else:
-            return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = BiPaGe::swap_bytes({self._field.name}_);\n'
 
     def builder_parameter_code(self):
         # std::uintt_t foo
@@ -68,13 +87,6 @@ class Field:
 
     def validation_code(self, variable_name):
         return ""
-
-    # Method can be overridden if the field needs to do some prep work to represent itself as a string
-    def to_string_prep(self):
-        return None
-
-    def to_string_code(self):
-        return f'{self._field.name}()'
 
     def includes(self):
         return []
