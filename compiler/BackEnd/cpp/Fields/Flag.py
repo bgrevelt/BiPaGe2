@@ -12,14 +12,14 @@ class Flag(Integral):
         return 'false'
 
     def builder_serialize_body(self):
-        offset_in_capture = (self._field.offset - self._field.capture_offset)
+        assert self._field.offset_in_capture is not None
         return f'''if({self._field.name}_)
         {{
-            *reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= (1<<{offset_in_capture});
+            *reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= (1<<{self._field.offset_in_capture});
         }}
         else
         {{
-            *reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) &= ~(1<<{offset_in_capture});
+            *reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) &= ~(1<<{self._field.offset_in_capture});
         }}
         '''
 
@@ -30,8 +30,8 @@ class Flag(Integral):
         return ""
 
     def _add_return(self):
-        offset_in_capture = (self._field.offset - self._field.capture_offset)
-        return f'return (capture_type & (1<<{offset_in_capture})) == (1<<{offset_in_capture});'
+        assert self._field.offset_in_capture is not None
+        return f'return (capture_type & (1<<{self._field.offset_in_capture})) == (1<<{self._field.offset_in_capture});'
 
     def to_string_code(self, string_stream_var_name):
         return f'{string_stream_var_name} << ({self._field.name}() ? "set" : "cleared");'

@@ -11,14 +11,14 @@ class DataType(Node):
     def __str__(self):
         s = self.identifier + "\n"
         for field in self.fields:
-            s += f"\t{field.name} : {field.type} at {field.offset}\n"
+            s += f"\t{field.name} : {field.type} at {field.offset()}\n"
         return s
 
     def size_in_bits(self):
         if len(self.fields) == 0:
             return 0
         last_field = self.fields[-1]
-        return last_field.offset + last_field.size_in_bits()
+        return last_field.offset() + last_field.size_in_bits()
 
     def check_semantics(self, warnings, errors):
         self.check_empty(warnings, errors)

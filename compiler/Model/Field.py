@@ -17,33 +17,47 @@ class Field(Node):
     def __init__(self, name, type, offset, token):
         super().__init__(token)
         self.name = name
-        self.offset = offset
         self._type = type
         self.standard_size = _standard_size(self.size_in_bits())
         # capture size and offset default to type size and offset. If this is non-standard type set_capture will be
         # called to override these values.
         self.capture_size = self.size_in_bits()
-        self.capture_offset = offset
-        self.scoped = False
+        self._static_capture_offset = offset
+        self.offset_in_capture = 0
+        self._scoped = False
 
-    def set_capture(self, size, offset):
-        self.capture_size = size
-        self.capture_offset = offset
-        self.scoped = True
+    def set_capture(self, capture_size, capture_offset):
+        # default capture offset is the field offset
+        field_offset = self._static_capture_offset
+
+        assert field_offset >= capture_offset
+        self.offset_in_capture =  field_offset - capture_offset
+        self.capture_size = capture_size
+        self._static_capture_offset = capture_offset
+
+        self._scoped = True
+
+    def scoped(self):
+        return self._scoped
+
+    def offset(self):
+        return self._static_capture_offset + self.offset_in_capture
+
+    def static_capture_offset(self):
+        return self._static_capture_offset
+
+    def dynamic_capture_offset(self):
+        return None
 
     def check_semantics(self, warnings, errors):
         self._type.check_semantics(warnings, errors)
 
         line, column = self.location()
-        if not type(self._type) is Collection and not self.scoped and not self.is_standard_size():
+        if not type(self._type) is Collection and not self.scoped() and not self.is_standard_size():
             errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
 
-    # return the byte aligned offset to the field
-    def capture_type_offset(self):
-        return self.capture_offset
-
     def capture_type_mask(self):
-        offset_in_capture_type = self.offset - self.capture_offset
+        offset_in_capture_type = 0 if self.offset_in_capture is None else self.offset_in_capture
 
         return (2**(self.size_in_bits() + offset_in_capture_type)) - 2**offset_in_capture_type
 

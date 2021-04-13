@@ -78,7 +78,7 @@ class Field(ABC):
 
     # Return key value pairs. They will be tured into #define {key} {value}
     def defines(self):
-        return [(self._offset_name(), (self._field.capture_offset // 8))]
+        return [(self._offset_name(), (self._field.static_capture_offset() // 8))]
 
     def _offset_name(self):
         typename = self._type_name.upper()

@@ -3,7 +3,7 @@ from BackEnd.cpp.Fields.Field import Field
 class Integral(Field):
     def __init__(self, type_name, field, endianness):
         super().__init__(type_name, field, endianness)
-        self._scoped = field.scoped
+        self._scoped = field.scoped()
         self.capture_type = self._to_cpp_type(field.capture_size, field.is_signed_type())
 
     def getter_body(self):
@@ -18,7 +18,7 @@ class Integral(Field):
         if not self._scoped:
             return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = {self.add_swap_if_required(self._field.name+"_")};\n'
 
-        offset_in_byte = (self._field.offset - self._field.capture_offset)
+        offset_in_byte = self._field.offset_in_capture
         mask = (2 ** self._field.size_in_bits() - 1) << offset_in_byte  # mask should not include sign bit
 
         if self.base_type() is not None:
@@ -52,9 +52,8 @@ class Integral(Field):
         return body
 
     def _add_shift(self):
-        offset_in_byte = self._field.offset - self._field.capture_offset
-        if offset_in_byte != 0:
-            return f'capture_type >>= {offset_in_byte};\n'
+        if self._field.offset_in_capture is not None and self._field.offset_in_capture != 0:
+            return f'capture_type >>= {self._field.offset_in_capture};\n'
         else:
             return ""
 

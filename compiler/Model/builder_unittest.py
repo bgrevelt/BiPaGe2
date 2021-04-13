@@ -183,11 +183,12 @@ SomeDataType
         #self.assertEqual(field.type, type)
         self.assertTrue(type(field_type) is type(field._type))
 
-        self.assertEqual(field.offset, offset)
+        offset_in_capture = 0 if encapsulating_type_offset is None else offset-encapsulating_type_offset
+        self.assertEqual(field.offset_in_capture, offset_in_capture)
         self.assertEqual(field.size_in_bits(), field_type.size_in_bits())
         if encapsulating_type_size is not None:
             self.assertEqual(field.capture_size, encapsulating_type_size)
         if encapsulating_type_offset is not None:
-            self.assertEqual(field.capture_type_offset(), encapsulating_type_offset)
+            self.assertEqual(field.static_capture_offset(), encapsulating_type_offset)
         if encapsulating_type_mask is not None:
             self.assertEqual(field.capture_type_mask(), encapsulating_type_mask)
