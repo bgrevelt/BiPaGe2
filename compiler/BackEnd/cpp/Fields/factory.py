@@ -32,7 +32,7 @@ def create(type_name, field, endianness, settings):
     elif type(field.type()) is ModelCollection:
         # This is very dodgy. We create a fake new field based on the type of the collection
         # The only reason we do that is so we can translate it to a cpp field so we can query it for it's cpp type
-        fakeField = ModelField("", field.type().type(), 0, None)
+        fakeField = ModelField("", field.type().type(), 0, None, None)
         fakeField = create("", fakeField, endianness, settings)
         return Collection(type_name, field, fakeField.cpp_type(), endianness, settings)
     else:

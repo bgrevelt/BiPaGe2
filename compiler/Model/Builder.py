@@ -38,8 +38,10 @@ def remove_aliases(type):
 
 class Builder(BiPaGeListener):
     def __init__(self, file, imports):
-        self._offset = 0
-        self._scoped_offset = 0
+        self._static_offset = 0
+        self._dynamic_offset = None
+        self._static_capture_offset = 0
+        self._dynamic_capture_offset = None
         self._definition = None
         self.noderesult = {}
         self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
@@ -87,7 +89,7 @@ class Builder(BiPaGeListener):
 
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
-        self._offset = 0
+        self._static_offset = 0
 
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         capture_scopes = [self.noderesult[capture_scope] for capture_scope in ctx.capture_scope()]
@@ -120,25 +122,34 @@ class Builder(BiPaGeListener):
             # this is a collection
             field_type = Collection(field_type, self.noderesult[ctx.multiplier()],ctx.start)
 
-        field = Field(id, field_type, self._offset, ctx.start)
-        self._offset += field.size_in_bits()
+        field = Field(id, field_type, self._static_offset, self._dynamic_offset, ctx.start)
+
+        size = field.size_in_bits()
+        if size is None:
+            # This field has a dynamic size. This will be the dynamic offset for the next field
+            self._dynamic_offset = field
+            self._static_offset = 0
+        else:
+            # This field has a static size
+            self._static_offset += field.size_in_bits()
+
         self.noderesult[ctx] = field
         if id is not None:
             self._current_datatype_fields.append(field)
 
     def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         # store the current offset as that is the offset of the capture scope
-        self._scoped_offset = self._offset
+        self._static_capture_offset = self._static_offset
+        self._dynamic_capture_offset = self._dynamic_offset
 
     def exitCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         fields = [self.noderesult[field] for field in ctx.field()]
         capture_scope_size = sum(f.size_in_bits() for f in fields)
-        capture_scope_offset = self._scoped_offset
 
         for field in ctx.field():
-            self.noderesult[field].set_capture(capture_scope_size, capture_scope_offset)
+            self.noderesult[field].set_capture(capture_scope_size, self._static_capture_offset, self._dynamic_capture_offset)
 
-        self.noderesult[ctx] = CaptureScope(capture_scope_offset, fields, ctx.start)
+        self.noderesult[ctx] = CaptureScope(self._static_capture_offset, fields, ctx.start)
 
     def exitField_type(self, ctx:BiPaGeParser.Field_typeContext):
         if ctx.IntegerType():
@@ -149,14 +160,14 @@ class Builder(BiPaGeListener):
             _, size = split_sized_type(str(ctx.FloatingPointType()))
             self.noderesult[ctx] = Float.Float(size, ctx.start)
         elif ctx.reference():
-            # Reference to an enumeration
-            name = self.noderesult[ctx.reference()]
-            ref = None
-            if name in self._enumerations_by_name:
-                ref = self._enumerations_by_name[name]
-            elif name in self._imported_enumerations_by_name:
-                ref = self._imported_enumerations_by_name[name]
-            self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
+            # # Reference to an enumeration
+            # name = self.noderesult[ctx.reference()]
+            # ref = None
+            # if name in self._enumerations_by_name:
+            #     ref = self._enumerations_by_name[name]
+            # elif name in self._imported_enumerations_by_name:
+            #     ref = self._imported_enumerations_by_name[name]
+            self.noderesult[ctx] = self.noderesult[ctx.reference()]
         elif ctx.FlagType():
             self.noderesult[ctx] = Flag.Flag(ctx.start)
         elif ctx.inline_enumeration():
@@ -164,7 +175,13 @@ class Builder(BiPaGeListener):
 
 
     def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
-        self.noderesult[ctx] = ".".join(str(id) for id in ctx.Identifier())
+        name = ".".join(str(id) for id in ctx.Identifier())
+        ref = None
+        if name in self._enumerations_by_name:
+            ref = self._enumerations_by_name[name]
+        elif name in self._imported_enumerations_by_name:
+            ref = self._imported_enumerations_by_name[name]
+        self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
         self.noderesult[ctx] = (str(ctx.Identifier()), int(str(ctx.NumberLiteral())))
@@ -197,8 +214,10 @@ class Builder(BiPaGeListener):
         self.noderesult[ctx] = self.noderesult[ctx.expression()]
 
     def exitExpression(self, ctx:BiPaGeParser.ExpressionContext):
-        assert ctx.NumberLiteral()
-        self.noderesult[ctx] = NumberLiteral(int(str(ctx.NumberLiteral())), ctx.start)
+        if ctx.NumberLiteral():
+            self.noderesult[ctx] = NumberLiteral(int(str(ctx.NumberLiteral())), ctx.start)
+        elif ctx.reference():
+            self.noderesult[ctx] = self.noderesult[ctx.reference()]
 
     def model(self):
         return self._definition

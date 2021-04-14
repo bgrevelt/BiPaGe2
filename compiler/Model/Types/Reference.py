@@ -1,8 +1,8 @@
-from ..Node import Node
+from compiler.Model.Expressions.Expression import Expression
 from ..BuildMessage import BuildMessage
 
 
-class Reference(Node):
+class Reference(Expression):
     def __init__(self, name, referenced_type, token):
         super().__init__(token)
         self._name = name
@@ -28,3 +28,6 @@ class Reference(Node):
         if self._referenced_type is None:
             errors.append(BuildMessage(line, column,
                                        f'Reference "{self._name}" cannot be resolved'))
+
+    def evaluate(self):
+        return None

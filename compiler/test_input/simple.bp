@@ -8,6 +8,6 @@ Bla : u8
 Foo
 {
     f1: s32;
-    f2: Bla[12];
+    f2: Bla[f1];
     f3 : s32;
 }

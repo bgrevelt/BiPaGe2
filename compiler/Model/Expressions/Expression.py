@@ -1,7 +1,10 @@
 from Model.Node import Node
+from abc import ABC, abstractmethod
 
-#TODO make this an ABC
-
-class Expression(Node):
+class Expression(Node, ABC):
     def __init__(self, token):
         super().__init__(token)
+
+    @abstractmethod
+    def evaluate(self):
+        pass

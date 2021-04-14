@@ -35,4 +35,4 @@ field_type:
 inline_enumeration: IntegerType '{' (enumerand ',')* enumerand '}';
 capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;
-expression: NumberLiteral;
+expression: NumberLiteral | reference;

@@ -14,26 +14,28 @@ def _standard_size(size):
 
 
 class Field(Node):
-    def __init__(self, name, type, offset, token):
+    def __init__(self, name, type, static_offset, dynamic_offset, token):
         super().__init__(token)
         self.name = name
         self._type = type
-        self.standard_size = _standard_size(self.size_in_bits())
+        self.standard_size = _standard_size(self.size_in_bits()) if self.size_in_bits() is not None else None
         # capture size and offset default to type size and offset. If this is non-standard type set_capture will be
         # called to override these values.
         self.capture_size = self.size_in_bits()
-        self._static_capture_offset = offset
+        self._static_capture_offset = static_offset
+        self._dynamic_capture_offset = dynamic_offset
         self.offset_in_capture = 0
         self._scoped = False
 
-    def set_capture(self, capture_size, capture_offset):
+    def set_capture(self, capture_size, static_capture_offset, dynamic_capture_offset):
         # default capture offset is the field offset
         field_offset = self._static_capture_offset
 
-        assert field_offset >= capture_offset
-        self.offset_in_capture =  field_offset - capture_offset
+        assert field_offset >= static_capture_offset
+        self.offset_in_capture =  field_offset - static_capture_offset
         self.capture_size = capture_size
-        self._static_capture_offset = capture_offset
+        self._static_capture_offset = static_capture_offset
+        self._dynamic_capture_offset = dynamic_capture_offset
 
         self._scoped = True
 
