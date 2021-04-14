@@ -10,16 +10,13 @@ class Collection(Node):
         super().__init__(token)
 
     def size_in_bits(self):
-        #assert type(self._size) is NumberLiteral, "Other expressions aren't supported yet so this is odd"
-        #assert type(self._size.evaluate()) is int, "Number literal expression should evaluate to an int because it is an int"
-
         if self._size.evaluate() is None:
             return None
         else:
             return self._type.size_in_bits() * self._size.evaluate()
 
     def collection_size(self):
-        return self._size.evaluate()
+        return self._size
 
     def type(self):
         return self._type

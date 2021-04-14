@@ -74,15 +74,16 @@ namespace BiPaGe
         IteratorLittleEndian(typename Iterator<T,deref_little_endian>::pointer p) : Iterator<T,deref_little_endian>(p) {}
     };
 
-    template<typename T, template<typename> class ITERATOR_TYPE, size_t COLLECTION_SIZE, typename Enable=void>
+    template<typename T, template<typename> class ITERATOR_TYPE, typename Enable=void>
     class Collection;
 
-    template<typename T, template<typename> class ITERATOR_TYPE, size_t COLLECTION_SIZE>
-    class Collection<T, ITERATOR_TYPE, COLLECTION_SIZE, typename std::enable_if<std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_enum<T>::value, void>::type>
+    template<typename T, template<typename> class ITERATOR_TYPE>
+    class Collection<T, ITERATOR_TYPE, typename std::enable_if<std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_enum<T>::value, void>::type>
     {
     public:
-        Collection(const void* data)
+        Collection(const void* data, size_t size)
             : data_(reinterpret_cast<const T*>(data))
+            , size_(size)
         {
 
         }
@@ -93,7 +94,7 @@ namespace BiPaGe
         }
         ITERATOR_TYPE<T> end() const
         {
-            return ITERATOR_TYPE<T>(data_ + COLLECTION_SIZE);
+            return ITERATOR_TYPE<T>(data_ + size_);
         }
         T at(size_t index) const
         {
@@ -101,7 +102,7 @@ namespace BiPaGe
         }
         T back() const
         {
-            return *(begin() + COLLECTION_SIZE -1);
+            return *(begin() + size_ -1);
         }
         T front() const
         {
@@ -109,7 +110,7 @@ namespace BiPaGe
         }
         size_t size() const
         {
-            return COLLECTION_SIZE;
+            return size_;
         }
         T operator[](size_t index) const
         {
@@ -117,23 +118,24 @@ namespace BiPaGe
         }
     private:
         const T* data_;
+        const size_t size_;
     };
 
-    template<typename T, size_t COLLECTION_SIZE>
-    class CollectionLittleEndian : public Collection<T, IteratorLittleEndian, COLLECTION_SIZE>
+    template<typename T>
+    class CollectionLittleEndian : public Collection<T, IteratorLittleEndian>
     {
     public:
-        CollectionLittleEndian(const void* data): Collection<T, IteratorLittleEndian, COLLECTION_SIZE>(data)
+        CollectionLittleEndian(const void* data, size_t size): Collection<T, IteratorLittleEndian>(data, size)
         {
 
         }
     };
 
-    template<typename T, size_t COLLECTION_SIZE>
-    class CollectionBigEndian : public Collection<T, IteratorBigEndian, COLLECTION_SIZE>
+    template<typename T>
+    class CollectionBigEndian : public Collection<T, IteratorBigEndian>
     {
     public:
-        CollectionBigEndian(const void* data): Collection<T, IteratorBigEndian, COLLECTION_SIZE>(data)
+        CollectionBigEndian(const void* data, size_t size): Collection<T, IteratorBigEndian>(data, size)
         {
 
         }

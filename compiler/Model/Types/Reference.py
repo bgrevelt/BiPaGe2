@@ -23,6 +23,9 @@ class Reference(Expression):
     def referenced_type(self):
         return self._referenced_type
 
+    def name(self):
+        return self._name
+
     def check_semantics(self, warnings, errors):
         line, column = self.location()
         if self._referenced_type is None:

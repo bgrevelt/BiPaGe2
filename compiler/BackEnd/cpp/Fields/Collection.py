@@ -1,6 +1,7 @@
 from BackEnd.cpp.Fields.Field import Field
 from Model.Field import Field as ModelField
 from Model.Types.Reference import Reference as ModelRef
+from Model.Expressions.NumberLiteral import NumberLiteral as ModelNumber
 
 class Collection(Field):
     def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str, settings):
@@ -8,15 +9,20 @@ class Collection(Field):
         self._is_enum_collection = type(field.type().type()) is ModelRef
         super().__init__(type_name, field, endianness)
 
+        self._collection_size = self._field.type().collection_size()
+        if type(self._collection_size) is ModelNumber:
+            self._collection_size = self._collection_size.evaluate()
+        elif type(self._collection_size) is ModelRef:
+            self._collection_size = f'static_cast<size_t>({self._collection_size.name()}())'
+
     def getter_body(self):
-        return f'return {self.cpp_type()}(data_ + {self._offset_name()});'
+        return f'return {self.cpp_type()}(data_ + {self._offset_name()}, {self._collection_size});'
 
     def cpp_type(self):
-        collection = self._field.type()
         if self._endianness == 'big' and self._field.size_in_bits() != 8:
-            return f'BiPaGe::CollectionBigEndian<{self._collection_type},{collection.collection_size()}>'
+            return f'BiPaGe::CollectionBigEndian<{self._collection_type}>'
         else:
-            return f'BiPaGe::CollectionLittleEndian<{self._collection_type},{collection.collection_size()}>'
+            return f'BiPaGe::CollectionLittleEndian<{self._collection_type}>'
 
     def default_value(self):
         return ""
@@ -53,11 +59,10 @@ class Collection(Field):
             {string_stream_var_name} << " ]";'''
 
     def builder_serialize_body(self, ):
-        collection_size = self._field.type().collection_size()
         if self._endianness == 'little' or self._field.size_in_bits() == 8:
-            return f'''for(size_t i = 0 ; i < {collection_size} ; ++i)
+            return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
                     *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = {self._field.name}_[i];
                 '''
         else:
-            return f'''for(size_t i = 0 ; i < {collection_size} ; ++i)
+            return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
                             *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
