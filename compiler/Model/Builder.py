@@ -160,13 +160,6 @@ class Builder(BiPaGeListener):
             _, size = split_sized_type(str(ctx.FloatingPointType()))
             self.noderesult[ctx] = Float.Float(size, ctx.start)
         elif ctx.reference():
-            # # Reference to an enumeration
-            # name = self.noderesult[ctx.reference()]
-            # ref = None
-            # if name in self._enumerations_by_name:
-            #     ref = self._enumerations_by_name[name]
-            # elif name in self._imported_enumerations_by_name:
-            #     ref = self._imported_enumerations_by_name[name]
             self.noderesult[ctx] = self.noderesult[ctx.reference()]
         elif ctx.FlagType():
             self.noderesult[ctx] = Flag.Flag(ctx.start)
