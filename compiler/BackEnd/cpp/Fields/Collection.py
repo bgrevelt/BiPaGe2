@@ -16,7 +16,7 @@ class Collection(Field):
             self._collection_size = f'static_cast<size_t>({self._collection_size.name()}())'
 
     def getter_body(self):
-        return f'return {self.cpp_type()}(data_ + {self._offset_name()}, {self._collection_size});'
+        return f'return {self.cpp_type()}(data_ + {self._dynamic_offset} {self._offset_name()}, {self._collection_size});'
 
     def cpp_type(self):
         if self._endianness == 'big' and self._field.size_in_bits() != 8:
@@ -61,8 +61,8 @@ class Collection(Field):
     def builder_serialize_body(self, ):
         if self._endianness == 'little' or self._field.size_in_bits() == 8:
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
-                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = {self._field.name}_[i];
+                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) + i) = {self._field.name}_[i];
                 '''
         else:
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
-                            *(reinterpret_cast<{self._collection_type}*>(sink + {self._offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
+                            *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''

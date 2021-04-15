@@ -36,6 +36,7 @@ public:
 
 private:
     {fields}
+    {dynamic_offsets}
 }};
 '''
 
@@ -73,8 +74,9 @@ private:
     
             private:
                 const std::uint8_t* data_;
+                {dynamic_offsets}
             }};
-            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code())
+            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets())
 
     def builder_code(self):
         fields = '\n'.join([field.builder_field_code() for field in self._fields])
@@ -86,7 +88,8 @@ private:
                                     getters=getters,
                                     pointer_build=self._builder_build_method(),
                                     size=self._builder_size(),
-                                    fields=fields)
+                                    fields=fields,
+                                    dynamic_offsets=self._builder_dynamic_offsets())
 
     def _builder_ctor(self):
         parameters = ",\n".join([field.builder_parameter_code() for field in self._fields])
@@ -151,9 +154,62 @@ private:
 
 
     def _builder_size(self):
-        size = math.ceil(self._datatype.size_in_bits() / 8 )
+        size = str(math.ceil(self._datatype.static_size_in_bits() / 8))
+        if self._datatype.size_in_bits() is not None: # static size
+            #size = str(size)
+            pass
+        else:
+            dynamic_fields = {field.dynamic_capture_offset() for field in self._datatype.fields if field.dynamic_capture_offset() is not None}
+            dynamic_fields = [f'{field.name}_.size() * sizeof(decltype ({field.name}_)::value_type)' for field in dynamic_fields]
+            size = size + '+ ' + ' + '.join(dynamic_fields)
+
         return \
             f'''size_t size() const // return the size of the serialized data
             {{
                 return {size};
             }}'''
+
+    def _view_dynamic_offsets(self):
+        offsets = {field.dynamic_capture_offset() for field in self._datatype.fields if field.dynamic_capture_offset() is not None}
+        getters = []
+        indexes = []
+
+        for offset in offsets:
+            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name}() +' if offset.dynamic_capture_offset() is not None else ""
+            offset_static_offset = f'{self._identifier.upper()}_{offset.name.upper()}_CAPTURE_OFFSET' # TODO: tripple duplication of code to make #define name
+            getters.append(f'''size_t GetEndOf{offset.name}() const
+            {{
+                if(end_of_{offset.name}_ == 0)
+                    end_of_{offset.name}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name}().size_in_bytes();
+        
+                return end_of_{offset.name}_;
+            }}''')
+
+            indexes.append(f'mutable size_t end_of_{offset.name}_ = 0;')
+
+        getters = '\n'.join(getters)
+        indexes = '\n'.join(indexes)
+        return getters + '\n' + indexes
+
+    def _builder_dynamic_offsets(self):
+        offsets = {field.dynamic_capture_offset() for field in self._datatype.fields if
+                   field.dynamic_capture_offset() is not None}
+        getters = []
+        indexes = []
+
+        for offset in offsets:
+            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name}() +' if offset.dynamic_capture_offset() is not None else ""
+            offset_static_offset = f'{self._identifier.upper()}_{offset.name.upper()}_CAPTURE_OFFSET'  # TODO: tripple duplication of code to make #define name
+            getters.append(f'''size_t GetEndOf{offset.name}() const
+            {{
+                if(end_of_{offset.name}_ == 0)
+                    end_of_{offset.name}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name}_.size() * sizeof(decltype ({offset.name}_)::value_type);
+
+                return end_of_{offset.name}_;
+            }}''')
+
+            indexes.append(f'mutable size_t end_of_{offset.name}_ = 0;')
+
+        getters = '\n'.join(getters)
+        indexes = '\n'.join(indexes)
+        return getters + '\n' + indexes

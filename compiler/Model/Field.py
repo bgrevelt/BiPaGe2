@@ -49,7 +49,7 @@ class Field(Node):
         return self._static_capture_offset
 
     def dynamic_capture_offset(self):
-        return None
+        return self._dynamic_capture_offset
 
     def check_semantics(self, warnings, errors):
         self._type.check_semantics(warnings, errors)

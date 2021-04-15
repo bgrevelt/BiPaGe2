@@ -8,7 +8,7 @@ class Integral(Field):
 
     def getter_body(self):
         if not self._scoped:
-            body = f'*reinterpret_cast<const {self._cpp_type}*>(data_ + {self._offset_name()})'
+            body = f'*reinterpret_cast<const {self._cpp_type}*>(data_ + {self._dynamic_offset} {self._offset_name()})'
             body = self.add_swap_if_required(body);
             return f'return {body};'
         else:
@@ -16,7 +16,7 @@ class Integral(Field):
 
     def builder_serialize_body(self):
         if not self._scoped:
-            return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._offset_name()}) = {self.add_swap_if_required(self._field.name+"_")};\n'
+            return f'*reinterpret_cast<{self._cpp_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) = {self.add_swap_if_required(self._field.name+"_")};\n'
 
         offset_in_byte = self._field.offset_in_capture
         mask = (2 ** self._field.size_in_bits() - 1) << offset_in_byte  # mask should not include sign bit
@@ -33,7 +33,7 @@ class Integral(Field):
         # Note: byte swapping for big endian types happens at the datatype level so we can swap the
         # entire capture scope at once
 
-        r += f'*reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= {self._field.name};\n\n'
+        r += f'*reinterpret_cast<{self.capture_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) |= {self._field.name};\n\n'
         return r
 
     # override for types that have a 'base' integral type (like enumerations)
@@ -43,7 +43,7 @@ class Integral(Field):
     def _body(self):
         capture_type = self._to_cpp_type()
 
-        body = f'*reinterpret_cast<const {capture_type}*>(data_ + {self._offset_name()})'
+        body = f'*reinterpret_cast<const {capture_type}*>(data_ + {self._offset_name()} {self._dynamic_offset})'
         body = f'auto capture_type = {self.add_swap_if_required(body)};\n'
         body += self._add_shift()
         body += self._add_mask()

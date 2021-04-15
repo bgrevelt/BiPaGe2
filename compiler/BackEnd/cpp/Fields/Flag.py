@@ -15,11 +15,11 @@ class Flag(Integral):
         assert self._field.offset_in_capture is not None
         return f'''if({self._field.name}_)
         {{
-            *reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) |= (1<<{self._field.offset_in_capture});
+            *reinterpret_cast<{self.capture_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) |= (1<<{self._field.offset_in_capture});
         }}
         else
         {{
-            *reinterpret_cast<{self.capture_type}*>(sink + {self._offset_name()}) &= ~(1<<{self._field.offset_in_capture});
+            *reinterpret_cast<{self.capture_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) &= ~(1<<{self._field.offset_in_capture});
         }}
         '''
 

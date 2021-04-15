@@ -15,10 +15,17 @@ class DataType(Node):
         return s
 
     def size_in_bits(self):
-        if len(self.fields) == 0:
+        # If any of the fields has a dynamic size, we don't have an 'a-priori' size for this data type
+        if any(field.size_in_bits() is None for field in self.fields):
+            return None
+        elif len(self.fields) == 0:
             return 0
-        last_field = self.fields[-1]
-        return last_field.offset() + last_field.size_in_bits()
+        else:
+            last_field = self.fields[-1]
+            return last_field.offset() + last_field.size_in_bits()
+
+    def static_size_in_bits(self):
+        return sum(field.size_in_bits() for field in self.fields if field.size_in_bits() is not None)
 
     def check_semantics(self, warnings, errors):
         self.check_empty(warnings, errors)
@@ -52,7 +59,7 @@ class DataType(Node):
             field.check_semantics(warnings, errors)
 
     def check_size(self, warnings, errors):
-        if self.size_in_bits() % 8 != 0:
+        if self.size_in_bits() is not None and self.size_in_bits() % 8 != 0:
             line, column = self.location()
             errors.append(BuildMessage(line, column,
                             f'''DataType {self.identifier} is ({self.size_in_bits()}) bits in size. Datatypes should be a multiple of eight in size (e.g a number of bytes).'''))

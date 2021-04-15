@@ -116,6 +116,10 @@ namespace BiPaGe
         {
             return at(index);
         }
+        size_t size_in_bytes() const
+        {
+            return sizeof(T) * size();
+        }
     private:
         const T* data_;
         const size_t size_;
