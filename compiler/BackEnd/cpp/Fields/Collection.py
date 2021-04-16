@@ -2,6 +2,7 @@ from BackEnd.cpp.Fields.Field import Field
 from Model.Field import Field as ModelField
 from Model.Types.Reference import Reference as ModelRef
 from Model.Expressions.NumberLiteral import NumberLiteral as ModelNumber
+from Model.Collection import Collection as ModelCollection
 
 class Collection(Field):
     def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str, settings):
@@ -19,7 +20,7 @@ class Collection(Field):
         return f'return {self.cpp_type()}(data_ + {self._dynamic_offset} {self._offset_name()}, {self._collection_size});'
 
     def cpp_type(self):
-        if self._endianness == 'big' and self._field.size_in_bits() != 8:
+        if self._is_big_endian():
             return f'BiPaGe::CollectionBigEndian<{self._collection_type}>'
         else:
             return f'BiPaGe::CollectionLittleEndian<{self._collection_type}>'
@@ -59,10 +60,15 @@ class Collection(Field):
             {string_stream_var_name} << " ]";'''
 
     def builder_serialize_body(self, ):
-        if self._endianness == 'little' or self._field.size_in_bits() == 8:
+        if not self._is_big_endian():
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
                     *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) + i) = {self._field.name}_[i];
                 '''
         else:
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
                             *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
+
+    def _is_big_endian(self):
+        collection = self._field.type()
+        assert type(collection) is ModelCollection, f"We're building a collection object but the model type passed in is not an object, but {collection}"
+        return self._endianness == 'big' and collection.element_size_in_bits() != 8

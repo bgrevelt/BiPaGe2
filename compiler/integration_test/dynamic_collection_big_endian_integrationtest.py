@@ -1,12 +1,14 @@
 import unittest
 from integration_test.integrationtest import IntegrationTest
 
-class DynamicCollection(unittest.TestCase, IntegrationTest):
+class DynamicCollectionBigEndian(unittest.TestCase, IntegrationTest):
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
         IntegrationTest.__init__(self)
         self.write_bipage_file('''
+        @bigendian;
+         
         MyEnum : u16
         {
             red = 0,
@@ -26,7 +28,7 @@ class DynamicCollection(unittest.TestCase, IntegrationTest):
         ''')
         self.write_cmake_file()
         self.write_test_cpp_file('''
-#include "dynamic_collection_integrationtest_generated.h"
+#include "dynamic_collection_big_endian_integrationtest_generated.h"
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -36,7 +38,7 @@ void test_foo_view()
 {            
     std::uint8_t buffer[1024];
     auto p = buffer;
-    p = serialize(p, static_cast<std::int32_t>(8));
+    p = serialize(p, naive_swap(static_cast<std::int32_t>(8)));
     p += sizeof(float);
     
     std::vector<MyEnum> field2_values 
@@ -52,9 +54,9 @@ void test_foo_view()
     };
         
     for(size_t i=0 ; i<field2_values.size() ; ++i)
-        p = serialize(p, static_cast<std::uint16_t>(field2_values[i]));
+        p = serialize(p, naive_swap(static_cast<std::uint16_t>(field2_values[i])));
         
-    p = serialize(p, static_cast<std::uint16_t>(5));
+    p = serialize(p, naive_swap(static_cast<std::uint16_t>(5)));
      
     std::vector<std::uint8_t> field4_values {
         0,
@@ -67,7 +69,7 @@ void test_foo_view()
     for(size_t i=0 ; i<field4_values.size() ; ++i)
         p = serialize(p, field4_values[i]);
     
-    p = serialize(p, 1.234);
+    p = serialize(p, naive_swap(1.234));
 
     Foo_view parsed(buffer);
 
@@ -120,14 +122,14 @@ void test_foo_builder()
     
     std::vector<uint8_t> expected(43);
     auto p = expected.data();
-    p = serialize(p, static_cast<std::int32_t>(12));
+    p = serialize(p, naive_swap(static_cast<std::int32_t>(12)));
     p += sizeof(float);
     for(size_t i=0 ; i<field2.size() ; ++i)
-        p = serialize(p, field2[i]);
-    p = serialize(p, static_cast<std::uint16_t>(5));        
+        p = serialize(p, naive_swap(field2[i]));
+    p = serialize(p, naive_swap(static_cast<std::uint16_t>(5)));        
     for(size_t i=0 ; i<field4.size() ; ++i)
         p = serialize(p, field4[i]);
-    p = serialize(p, 1.234);
+    p = serialize(p, naive_swap(1.234));
 
     auto result = builder.build();
     check_equal(result, expected);

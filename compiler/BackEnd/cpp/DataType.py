@@ -154,11 +154,11 @@ private:
 
 
     def _builder_size(self):
-        size = str(math.ceil(self._datatype.static_size_in_bits() / 8))
+        size = None
         if self._datatype.size_in_bits() is not None: # static size
-            #size = str(size)
-            pass
+            size = str(math.ceil(self._datatype.size_in_bits() / 8))
         else:
+            size = str(math.ceil(self._datatype.static_size_in_bits() / 8))
             dynamic_fields = {field.dynamic_capture_offset() for field in self._datatype.fields if field.dynamic_capture_offset() is not None}
             dynamic_fields = [f'{field.name}_.size() * sizeof(decltype ({field.name}_)::value_type)' for field in dynamic_fields]
             size = size + '+ ' + ' + '.join(dynamic_fields)

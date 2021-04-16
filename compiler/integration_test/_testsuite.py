@@ -16,6 +16,8 @@ from integration_test.enum_import_namespace_integrationtest import *
 from integration_test.collection_integrationtest import *
 from integration_test.collection_big_endian_integrationtest import *
 from integration_test.collection_enum_integrationtest import *
+from integration_test.dynamic_collection_integrationtest import *
+from integration_test.dynamic_collection_big_endian_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -36,7 +38,8 @@ def suite():
     test_suite.addTest(unittest.makeSuite(Collection))
     test_suite.addTest(unittest.makeSuite(CollectionBigEndian))
     test_suite.addTest(unittest.makeSuite(CollectionEnum))
-
+    test_suite.addTest(unittest.makeSuite(DynamicCollection))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionBigEndian))
     return test_suite
 
 mySuit=suite()

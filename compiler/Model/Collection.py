@@ -13,7 +13,10 @@ class Collection(Node):
         if self._size.evaluate() is None:
             return None
         else:
-            return self._type.size_in_bits() * self._size.evaluate()
+            return self.element_size_in_bits() * self._size.evaluate()
+
+    def element_size_in_bits(self):
+        return self.type().size_in_bits()
 
     def collection_size(self):
         return self._size
