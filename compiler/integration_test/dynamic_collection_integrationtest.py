@@ -7,10 +7,17 @@ class Collection(unittest.TestCase, IntegrationTest):
         unittest.TestCase.__init__(self, *args, **kwargs)
         IntegrationTest.__init__(self)
         self.write_bipage_file('''
+        MyEnum : u16
+        {
+            red = 0,
+            green = 1,
+            blue = 2
+        }
+        
         Foo
         {
             field1: s32;
-            field2: s16[field1];
+            field2: MyEnum[field1];
             field3: u16;
             field4: u8[field3];
             field5: f64;
@@ -30,19 +37,20 @@ void test_foo_view()
     auto p = buffer;
     p = serialize(p, static_cast<std::int32_t>(8));
     
-    std::vector<std::int16_t> field2_values {
-        6886,
-        32559,
-        -26790,
-        9919,
-        3793,
-        -9843,
-        -3452,
-        26278
+    std::vector<MyEnum> field2_values 
+    {
+        MyEnum::red,
+        MyEnum::green,
+        MyEnum::blue,
+        MyEnum::blue,
+        MyEnum::red,
+        MyEnum::green,
+        MyEnum::red,
+        MyEnum::green
     };
         
     for(size_t i=0 ; i<field2_values.size() ; ++i)
-        p = serialize(p, field2_values[i]);
+        p = serialize(p, static_cast<std::uint16_t>(field2_values[i]));
         
     p = serialize(p, static_cast<std::uint16_t>(5));
      
@@ -82,19 +90,20 @@ void test_foo_view()
 void test_foo_builder()
 {
     int32_t field1 = 12;
-    std::vector<std::int16_t> field2 {
-        6886,
-        32559,
-        -26790,
-        9919,
-        3793,
-        -9843,
-        -3452,
-        26278,
-        -30189,
-        -24717,
-        -534,
-        -30559 
+    std::vector<MyEnum> field2
+    {
+        MyEnum::red,
+        MyEnum::green,
+        MyEnum::blue,
+        MyEnum::blue,
+        MyEnum::red,
+        MyEnum::green,
+        MyEnum::red,
+        MyEnum::green,
+        MyEnum::blue,
+        MyEnum::red,
+        MyEnum::green,
+        MyEnum::red
     };
     std::uint16_t field3 = 5;
     std::vector<std::uint8_t> field4 {
