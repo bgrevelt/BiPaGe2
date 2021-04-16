@@ -435,6 +435,83 @@ SomeDataType
         self.checkErrors(errors, [
             (7, 16, 'Collections inside a capture scope are not supported')])
 
+    def test_collection_size_with_enum(self):
+        warnings, errors, _ = build_model_from_text('''
+        MyEnum : u8
+        {
+            a = 1,
+            b = 2,
+            c = 3
+        }
+        
+        Foo
+        {
+            field1 : uint8[MyEnum];
+        }''', "")
+        self.checkErrors(errors, [
+            (11, 12, 'Reference to Enumeration is not a valid for collection size')])
+
+    def test_type_reference_is_field(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : u32;
+            field2 : field1;
+        }''', '')
+        self.checkErrors(errors, [
+            (5, 12, "Reference to Field is not a valid field type")])
+
+    def test_collection_sized_by_non_existent_field(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : u32;
+            field2 : u16[field3];
+        }''', '')
+        self.checkErrors(errors, [
+            (5, 25, 'Reference "field3" cannot be resolved')])
+
+    def test_collection_sized_by_non_int_field(self):
+        warnings, errors, _ = build_model_from_text('''
+        MyEnum : u7
+        {
+           a = 1,
+           b = 2
+        }
+        Foo
+        {
+            field1 : f32;
+            field2 : f64;
+            {
+                field3: MyEnum;
+                field4: flag;
+            }
+            field5 : u8[4];
+            
+            collection1 : u8[field1]; // Collection sized by float32
+            collection2 : u8[field2]; // Collection sized by float64
+            collection3 : u8[field3]; // Collection sized by enumeration
+            collection4 : u8[field4]; // Collection sized by Flag
+            collection5 : u8[field5]; // Collection sized by other collection
+        }''', '')
+        self.checkErrors(errors, [
+            (17, 12, "Only integer fields can be used to size a collection. Not Float."),
+            (18, 12, "Only integer fields can be used to size a collection. Not Float."),
+            (19, 12, "Only integer fields can be used to size a collection. Not Reference."),
+            (20, 12, "Only integer fields can be used to size a collection. Not Flag."),
+            (21, 12, "Only integer fields can be used to size a collection. Not Collection.")
+        ])
+
+    def test_collection_sized_by_signed_integer(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            field1 : s32;
+            field2 : u16[field1];
+        }''', '')
+        self.checkErrors(warnings, [
+            (5, 12, 'Collection sized by signed integer')])
+
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
         matched_expected = []

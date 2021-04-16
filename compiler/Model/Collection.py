@@ -2,6 +2,7 @@ from Model.Node import Node
 from Model.BuildMessage import BuildMessage
 from Model.Expressions.NumberLiteral import NumberLiteral
 from Model.Types.Reference import Reference
+from Model.Types.Integer import Integer
 
 class Collection(Node):
     def __init__(self, type, size, token):
@@ -28,7 +29,27 @@ class Collection(Node):
         if type(self._size) is NumberLiteral:
             self.check_semantics_number_literal(warnings, errors)
         elif type(self._size) is Reference:
-            pass #TODO
+            local_errors = []
+            self._size.check_semantics(warnings, local_errors)
+            errors.extend(local_errors)
+            if len(local_errors) > 0:
+                return
+
+            line, column = self.location()
+            # TODO ugly import to prevent cicular import between Field and Collection
+            from Model.Field import Field
+            if not type(self._size.referenced_type()) is Field:
+                errors.append(BuildMessage(line, column,
+                                           f'Reference to {type(self._size.referenced_type()).__name__} is not a valid for collection size. Only reference integer field in the datatype is valid.'))
+            else:
+                if not type(self._size.referenced_type().type()) is Integer:
+                    errors.append(BuildMessage(line, column,
+                                               f'Only integer fields can be used to size a collection. Not {type(self._size.referenced_type().type()).__name__}.'))
+                elif self._size.referenced_type().type().signed():
+                    warnings.append(BuildMessage(line, column,
+                                               f'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.'))
+
+
         else:
             assert False, "Unsupported size type"
 

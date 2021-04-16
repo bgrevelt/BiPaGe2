@@ -174,6 +174,10 @@ class Builder(BiPaGeListener):
             ref = self._enumerations_by_name[name]
         elif name in self._imported_enumerations_by_name:
             ref = self._imported_enumerations_by_name[name]
+        else:
+            for field in self._current_datatype_fields:
+                if field.name == name:
+                    ref = field
         self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
