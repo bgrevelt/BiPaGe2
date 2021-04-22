@@ -1,6 +1,7 @@
 from .Fields import factory as field_factory
 from .Beautifier import *
 import math
+from BackEnd.cpp.CaptureScope import CaptureScope
 
 
 class DataType:
@@ -9,6 +10,7 @@ class DataType:
         self._settings = settings
         self._fields = [field_factory.create(datatype.identifier, field, endianness, settings) for field in datatype.fields]
         self._datatype = datatype
+        self._capture_scopes = [CaptureScope(capture_scope, i, [field_factory.create(datatype.identifier, field, endianness, settings) for field in capture_scope.fields()]) for i, capture_scope in enumerate(self._datatype.capture_scopes)]
         self._identifier = datatype.identifier
         self._beautifier = Beautifier()
         self._builder_template = \
@@ -116,12 +118,8 @@ private:
         if self._endianness == 'big':
             r += '''
             // Byte swap all capture scopes.\n'''
-            for i, capture_scope in enumerate(self._datatype.capture_scopes):
-                # TODO: code duplication. We should really add the capture scope to the backend model
-                # to prevent this instead of using hacky solutions like this.
-                offset_name = f'{self._identifier.upper()}_{capture_scope.fields()[0].name.upper()}_CAPTURE_OFFSET'
-                r += f'auto capture_scope_{i+1} = reinterpret_cast<std::uint{capture_scope.size()}_t*>(sink + {offset_name});\n'
-                r += f'*capture_scope_{i+1} = BiPaGe::swap_bytes(*capture_scope_{i+1});\n'
+            for i, capture_scope in enumerate(self._capture_scopes):
+                r += capture_scope.byteswap_code()
 
         r += '}'
         return r
@@ -133,7 +131,7 @@ private:
         if not self._settings.cpp_to_string:
             return ""
 
-        longest_field_name = max(len(field.name) for field in self._datatype.fields)
+        longest_field_name = max(len(field.name()) for field in self._fields)
 
         r = f'''std::string to_string() const
     {{  
