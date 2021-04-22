@@ -79,9 +79,9 @@ class Field(ABC):
 
     # Return key value pairs. They will be tured into #define {key} {value}
     def defines(self):
-        return [(self._offset_name(), (self._field.static_capture_offset() // 8))]
+        return [(self.offset_name(), (self._field.static_capture_offset() // 8))]
 
-    def _offset_name(self):
+    def offset_name(self):
         typename = self._type_name.upper()
         name = self._field.name.upper()
         return f"{typename}_{name}_CAPTURE_OFFSET"
@@ -91,3 +91,11 @@ class Field(ABC):
 
     def includes(self):
         return []
+
+    def dynamic_capture_offset(self):
+        from BackEnd.cpp.Fields.factory import create # ugly hack to get around circular dependency
+        offset = self._field.dynamic_capture_offset()
+        if offset is None:
+            return None
+        else:
+            return create(self._type_name, offset, self._endianness, None)

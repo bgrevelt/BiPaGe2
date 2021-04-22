@@ -5,7 +5,7 @@ from Model.Expressions.NumberLiteral import NumberLiteral as ModelNumber
 from Model.Collection import Collection as ModelCollection
 
 class Collection(Field):
-    def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str, settings):
+    def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str):
         self._collection_type = cpp_type
         self._is_enum_collection = type(field.type().type()) is ModelRef
         super().__init__(type_name, field, endianness)
@@ -17,7 +17,7 @@ class Collection(Field):
             self._collection_size = f'static_cast<size_t>({self._collection_size.name()}())'
 
     def getter_body(self):
-        return f'return {self.cpp_type()}(data_ + {self._dynamic_offset} {self._offset_name()}, {self._collection_size});'
+        return f'return {self.cpp_type()}(data_ + {self._dynamic_offset} {self.offset_name()}, {self._collection_size});'
 
     def cpp_type(self):
         if self._is_big_endian():
@@ -62,11 +62,11 @@ class Collection(Field):
     def builder_serialize_body(self, ):
         if not self._is_big_endian():
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
-                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) + i) = {self._field.name}_[i];
+                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self.offset_name()}) + i) = {self._field.name}_[i];
                 '''
         else:
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
-                            *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self._offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
+                            *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self.offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
 
     def _is_big_endian(self):
         collection = self._field.type()

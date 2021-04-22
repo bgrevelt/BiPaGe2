@@ -34,6 +34,6 @@ def create(type_name, field, endianness, settings):
         # The only reason we do that is so we can translate it to a cpp field so we can query it for it's cpp type
         fakeField = ModelField("", field.type().type(), 0, None, None)
         fakeField = create("", fakeField, endianness, settings)
-        return Collection(type_name, field, fakeField.cpp_type(), endianness, settings)
+        return Collection(type_name, field, fakeField.cpp_type(), endianness)
     else:
         assert False, "Unknown type {} and length {}".format(field.type(), field.size_in_bits())

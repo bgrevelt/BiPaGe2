@@ -169,46 +169,48 @@ private:
                 return {size};
             }}'''
 
+    def _get_dynamic_offsets(self):
+        offset_names = {field.dynamic_capture_offset().name() for field in self._fields if
+                        field.dynamic_capture_offset() is not None}
+        return [field for field in self._fields if field.name() in offset_names]
+
     def _view_dynamic_offsets(self):
-        offsets = {field.dynamic_capture_offset() for field in self._datatype.fields if field.dynamic_capture_offset() is not None}
         getters = []
         indexes = []
 
-        for offset in offsets:
-            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name}() +' if offset.dynamic_capture_offset() is not None else ""
-            offset_static_offset = f'{self._identifier.upper()}_{offset.name.upper()}_CAPTURE_OFFSET' # TODO: tripple duplication of code to make #define name
-            getters.append(f'''size_t GetEndOf{offset.name}() const
+        for offset in self._get_dynamic_offsets():
+            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name()}() +' if offset.dynamic_capture_offset() is not None else ""
+            offset_static_offset = offset.offset_name()
+            getters.append(f'''size_t GetEndOf{offset.name()}() const
             {{
-                if(end_of_{offset.name}_ == 0)
-                    end_of_{offset.name}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name}().size_in_bytes();
+                if(end_of_{offset.name()}_ == 0)
+                    end_of_{offset.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name()}().size_in_bytes();
         
-                return end_of_{offset.name}_;
+                return end_of_{offset.name()}_;
             }}''')
 
-            indexes.append(f'mutable size_t end_of_{offset.name}_ = 0;')
+            indexes.append(f'mutable size_t end_of_{offset.name()}_ = 0;')
 
         getters = '\n'.join(getters)
         indexes = '\n'.join(indexes)
         return getters + '\n' + indexes
 
     def _builder_dynamic_offsets(self):
-        offsets = {field.dynamic_capture_offset() for field in self._datatype.fields if
-                   field.dynamic_capture_offset() is not None}
         getters = []
         indexes = []
 
-        for offset in offsets:
-            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name}() +' if offset.dynamic_capture_offset() is not None else ""
-            offset_static_offset = f'{self._identifier.upper()}_{offset.name.upper()}_CAPTURE_OFFSET'  # TODO: tripple duplication of code to make #define name
-            getters.append(f'''size_t GetEndOf{offset.name}() const
+        for offset in self._get_dynamic_offsets():
+            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name()}() +' if offset.dynamic_capture_offset() is not None else ""
+            offset_static_offset = offset.offset_name()
+            getters.append(f'''size_t GetEndOf{offset.name()}() const
             {{
-                if(end_of_{offset.name}_ == 0)
-                    end_of_{offset.name}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name}_.size() * sizeof(decltype ({offset.name}_)::value_type);
+                if(end_of_{offset.name()}_ == 0)
+                    end_of_{offset.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name()}_.size() * sizeof(decltype ({offset.name()}_)::value_type);
 
-                return end_of_{offset.name}_;
+                return end_of_{offset.name()}_;
             }}''')
 
-            indexes.append(f'mutable size_t end_of_{offset.name}_ = 0;')
+            indexes.append(f'mutable size_t end_of_{offset.name()}_ = 0;')
 
         getters = '\n'.join(getters)
         indexes = '\n'.join(indexes)
