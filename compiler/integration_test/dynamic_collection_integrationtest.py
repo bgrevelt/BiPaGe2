@@ -118,7 +118,7 @@ void test_foo_builder()
     double field5 = 1.234;
     Foo_builder builder(field1, field2, field3, field4, field5);
     
-    std::vector<uint8_t> expected(43);
+    std::vector<uint8_t> expected(47);
     auto p = expected.data();
     p = serialize(p, static_cast<std::int32_t>(12));
     p += sizeof(float);
