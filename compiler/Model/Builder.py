@@ -103,10 +103,10 @@ class Builder(BiPaGeListener):
         id = str(ctx.Identifier()) if ctx.Identifier() is not None else None
         field_type = self.noderesult[ctx.field_type()]
 
-        if id is not None and type(field_type) is Enumeration and field_type.name() == "":
+        if type(field_type) is Enumeration and field_type.name() == "":
             # This is an inline enumeration. By definition it doesn't have a name. We use the name of the field to name
             # the enumeration
-            name = f'{id}_ENUM'
+            name = f'{id}_ENUM' if id is not None else None
             enum = field_type
             enum.setname(name)
             self._enumerations_by_name[name] = enum
@@ -134,8 +134,7 @@ class Builder(BiPaGeListener):
             self._static_offset += field.size_in_bits()
 
         self.noderesult[ctx] = field
-        if id is not None:
-            self._current_datatype_fields.append(field)
+        self._current_datatype_fields.append(field)
 
     def enterCapture_scope(self, ctx:BiPaGeParser.Capture_scopeContext):
         # store the current offset as that is the offset of the capture scope

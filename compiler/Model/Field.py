@@ -89,3 +89,6 @@ class Field(Node):
 
     def type(self):
         return self._type
+
+    def is_padding_field(self):
+        return self.name is None

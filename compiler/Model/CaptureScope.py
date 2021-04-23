@@ -16,8 +16,8 @@ class CaptureScope(Node):
     def offset(self):
         return self._offset
 
-    def fields(self):
-        return self._fields
+    def fields(self, include_padding_fields = False):
+        return [field for field in self._fields if include_padding_fields or (not field.is_padding_field())]
 
     def check_semantics(self, warnings, errors):
         line, column = self.location()

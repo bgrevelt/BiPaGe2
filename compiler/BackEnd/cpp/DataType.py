@@ -8,7 +8,7 @@ class DataType:
     def __init__(self, datatype, endianness, settings):
         self._endianness = endianness
         self._settings = settings
-        self._fields = [field_factory.create(datatype.identifier, field, endianness, settings) for field in datatype.fields]
+        self._fields = [field_factory.create(datatype.identifier, field, endianness, settings) for field in datatype.fields()]
         self._datatype = datatype
         self._capture_scopes = [CaptureScope(capture_scope, i, [field_factory.create(datatype.identifier, field, endianness, settings) for field in capture_scope.fields()]) for i, capture_scope in enumerate(self._datatype.capture_scopes)]
         self._identifier = datatype.identifier
@@ -157,7 +157,7 @@ private:
             size = str(math.ceil(self._datatype.size_in_bits() / 8))
         else:
             size = str(math.ceil(self._datatype.static_size_in_bits() / 8))
-            dynamic_fields = {field.dynamic_capture_offset() for field in self._datatype.fields if field.dynamic_capture_offset() is not None}
+            dynamic_fields = {field.dynamic_capture_offset() for field in self._datatype.fields() if field.dynamic_capture_offset() is not None}
             dynamic_fields = [f'{field.name}_.size() * sizeof(decltype ({field.name}_)::value_type)' for field in dynamic_fields]
             size = size + '+ ' + ' + '.join(dynamic_fields)
 
