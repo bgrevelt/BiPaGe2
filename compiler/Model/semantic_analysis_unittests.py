@@ -512,6 +512,34 @@ SomeDataType
         self.checkErrors(warnings, [
             (5, 12, 'Collection sized by signed integer')])
 
+    def test_padding_enum(self):
+        warnings, errors, _ = build_model_from_text('''
+        Foo
+        {
+            f1: u8;
+            u8 {foo = 1, bar = 2};
+            f2: f64;
+        }''', '')
+        self.checkErrors(warnings, [
+            (5, 12, 'Using enumeration as padding. Is this really what you want?')])
+
+        warnings, errors, _ = build_model_from_text('''
+        MyEnum : u32
+        {
+            one = 1,
+            two = 2,
+            three = 3
+        }
+        
+        Foo
+        {
+            f1: u8;
+            MyEnum;
+            f2: f64;
+        }''', '')
+        self.checkErrors(warnings, [
+            (12, 12, 'Using enumeration as padding. Is this really what you want?')])
+
     def checkErrors(self, errors, expected, allow_extra_errors = False):
         matched_errors = []
         matched_expected = []

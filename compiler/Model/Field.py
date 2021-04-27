@@ -56,13 +56,15 @@ class Field(Node):
     def check_semantics(self, warnings, errors):
         self._type.check_semantics(warnings, errors)
 
+        line, column = self.location()
+
         if type(self._type) is Reference:
-            line, column = self.location()
             if not any(type(self._type.referenced_type()) is t for t in [Enumeration, type(None)]):
                 errors.append(BuildMessage(line, column,
                                            f'Reference to {type(self._type.referenced_type()).__name__} is not a valid field type. Only reference to enumeration is allowed.'))
+            if type(self._type.referenced_type()) is Enumeration and self.is_padding_field():
+                warnings.append(BuildMessage(line, column, 'Using enumeration as padding. Is this really what you want?'))
 
-        line, column = self.location()
         if not type(self._type) is Collection and not self.scoped() and not self.is_standard_size():
             errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
 
