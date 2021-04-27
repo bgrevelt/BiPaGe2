@@ -58,7 +58,7 @@ class Field(Node):
 
         if type(self._type) is Reference:
             line, column = self.location()
-            if not any(type(self._type.referenced_type()) is t for t in [Enumeration]):
+            if not any(type(self._type.referenced_type()) is t for t in [Enumeration, type(None)]):
                 errors.append(BuildMessage(line, column,
                                            f'Reference to {type(self._type.referenced_type()).__name__} is not a valid field type. Only reference to enumeration is allowed.'))
 

@@ -18,11 +18,8 @@ class DataType(Node):
         # If any of the fields has a dynamic size, we don't have an 'a-priori' size for this data type
         if any(field.size_in_bits() is None for field in self._fields):
             return None
-        elif len(self._fields) == 0:
-            return 0
-        else:
-            last_field = self.fields()[-1]
-            return last_field.offset() + last_field.size_in_bits()
+
+        return sum(field.size_in_bits() for field in self._fields)
 
     def static_size_in_bits(self):
         return sum(field.size_in_bits() for field in self._fields if field.size_in_bits() is not None)
@@ -35,7 +32,7 @@ class DataType(Node):
         self.check_size(warnings, errors)
 
     def check_empty(self, warnings, errors):
-        if len(self._fields) == 0:
+        if len(self.fields(include_padding_fields=False)) == 0:
             line, column = self.location()
             warnings.append(BuildMessage(line, column, f'Datatype {self.identifier} has no non-padding fields'))
 
