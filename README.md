@@ -225,7 +225,6 @@ MyDataStructureWithACollection
 ``` 
 
 Based on another field
-> :warning: Not implemented yet!
 ```
 MyDataStructureWithACollection
 {
