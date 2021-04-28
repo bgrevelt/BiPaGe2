@@ -11,7 +11,7 @@ class Field(ABC):
         {{
             {body}
         }}'''
-        self._dynamic_offset = f'GetEndOf{self._field.dynamic_capture_offset().name}() +' if self._field.dynamic_capture_offset() is not None else ""
+        self._dynamic_offset = f'GetEndOf{self._field.dynamic_capture_offset().name}() + ' if self._field.dynamic_capture_offset() is not None else ""
 
     @abstractmethod
     def getter_body(self):

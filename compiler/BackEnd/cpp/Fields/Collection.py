@@ -17,7 +17,7 @@ class Collection(Field):
             self._collection_size = f'static_cast<size_t>({self._collection_size.name()}())'
 
     def getter_body(self):
-        return f'return {self.cpp_type()}(data_ + {self._dynamic_offset} {self.offset_name()}, {self._collection_size});'
+        return f'return {self.cpp_type()}(data_ + {self._dynamic_offset}{self.offset_name()}, {self._collection_size});'
 
     def cpp_type(self):
         if self._is_big_endian():
@@ -56,17 +56,23 @@ class Collection(Field):
         return f'''auto {self._field.name}_iterator = {self._field.name}();
             {string_stream_var_name} << "[ ";
             for(auto current = {self._field.name}_iterator.begin() ; current < {self._field.name}_iterator.end() ; ++current)
+            {{
                 {string_stream_var_name} << {"enum_to_string(*current)" if self._is_enum_collection else "*current"} << (current < ({self._field.name}_iterator.end()-1) ? ", " : "");
+            }}
             {string_stream_var_name} << " ]";'''
 
     def builder_serialize_body(self, ):
         if not self._is_big_endian():
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
-                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self.offset_name()}) + i) = {self._field.name}_[i];
-                '''
+            {{
+                    *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset}{self.offset_name()}) + i) = {self._field.name}_[i];
+            }}
+            '''
         else:
             return f'''for(size_t i = 0 ; i < {self._collection_size} ; ++i)
-                            *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset} {self.offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);'''
+            {{
+                *(reinterpret_cast<{self._collection_type}*>(sink + {self._dynamic_offset}{self.offset_name()}) + i) = BiPaGe::swap_bytes({self._field.name}_[i]);
+            }}'''
 
     def _is_big_endian(self):
         collection = self._field.type()

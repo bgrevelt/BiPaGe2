@@ -124,9 +124,6 @@ private:
         r += '}'
         return r
 
-    def to_string_prep(self):
-        return "\n".join(field.to_string_prep() for field in self._fields if field.to_string_prep() is not None)
-
     def to_string_code(self):
         if not self._settings.cpp_to_string:
             return ""
@@ -140,9 +137,9 @@ private:
         '''
 
         for field in self._fields:
-            r += f'ss << std::setw({longest_field_name + 2}) << "{field.name()}: ";'
-            r += field.to_string_code('ss')
-            r += 'ss << std::endl;\n'
+            r += f'ss << std::setw({longest_field_name + 2}) << "{field.name()}: ";\n'
+            r += field.to_string_code('ss') + '\n'
+            r += 'ss << std::endl;\n\n'
 
         r+= '''
         return ss.str();
