@@ -172,8 +172,8 @@ SomeDataType
 
     def verify_datatype(self, datatype, expected_name, expected_fields):
         self.assertEqual(datatype.identifier, expected_name)
-        self.assertEqual(len(datatype.fields), len(expected_fields))
-        for field, expected in zip(datatype.fields, expected_fields):
+        self.assertEqual(len(datatype.fields()), len(expected_fields))
+        for field, expected in zip(datatype.fields(), expected_fields):
             expected = expected + tuple([None] * (6-len(expected)))
             name, type, offset, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask = expected
             self.verify_field(field, name, type, offset, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask)
