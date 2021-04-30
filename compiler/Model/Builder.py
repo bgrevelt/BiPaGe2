@@ -209,11 +209,11 @@ class Builder(BiPaGeListener):
         assert ctx.expression()
         self.noderesult[ctx] = self.noderesult[ctx.expression()]
 
-    def exitExpression(self, ctx:BiPaGeParser.ExpressionContext):
-        if ctx.NumberLiteral():
-            self.noderesult[ctx] = NumberLiteral(int(str(ctx.NumberLiteral())), ctx.start)
-        elif ctx.reference():
-            self.noderesult[ctx] = self.noderesult[ctx.reference()]
+    def exitRef(self, ctx:BiPaGeParser.RefContext):
+        self.noderesult[ctx] = self.noderesult[ctx.reference()]
+
+    def exitNumber(self, ctx:BiPaGeParser.NumberContext):
+        self.noderesult[ctx] = NumberLiteral(int(str(ctx.NumberLiteral())), ctx.start)
 
     def model(self):
         return self._definition
