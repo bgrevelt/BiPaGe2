@@ -8,3 +8,9 @@ class NumberLiteral(Expression):
 
     def evaluate(self):
         return self._number
+
+    def Equals(self, other):
+        return type(other) is NumberLiteral and other._number == self._number
+
+    def __str__(self):
+        return str(self._number)

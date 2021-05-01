@@ -6,3 +6,6 @@ class BuildMessage:
 
     def __str__(self):
         return f'l: {self.line}, c:{self.column}, m:{self.message}'
+
+    def __repr__(self):
+        return self.__str__()

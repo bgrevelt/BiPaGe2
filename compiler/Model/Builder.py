@@ -9,7 +9,20 @@ from .CaptureScope import CaptureScope
 from Model.Types import Integer,Float,Reference,Flag
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
+
 from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.Expressions.AddOperator import AddOperator
+from Model.Expressions.DivisionOperator import DivisionOperator
+from Model.Expressions.EqualsOperator import EqualsOperator
+from Model.Expressions.GreaterThanEqualOperator import GreaterThanEqualOperator
+from Model.Expressions.GreaterThanOperator import GreaterThanOperator
+from Model.Expressions.LessThanEqualOperator import LessThanEqualOperator
+from Model.Expressions.LessThanOperator import LessThanOperator
+from Model.Expressions.MultiplyOperator import MultiplyOperator
+from Model.Expressions.NotEqualsOperator import NotEqualsOperator
+from Model.Expressions.PowerOperator import PowerOperator
+from Model.Expressions.SubstractOperator import SubtractOperator
+
 
 import os
 import re
@@ -215,6 +228,34 @@ class Builder(BiPaGeListener):
     def exitNumber(self, ctx:BiPaGeParser.NumberContext):
         self.noderesult[ctx] = NumberLiteral(int(str(ctx.NumberLiteral())), ctx.start)
 
+    def exitAddSub(self, ctx:BiPaGeParser.AddSubContext):
+        self._handle_binary_operator(ctx, {'+':AddOperator, '-':SubtractOperator})
+
+    def exitMultDiv(self, ctx:BiPaGeParser.MultDivContext):
+        self._handle_binary_operator(ctx, {'*': MultiplyOperator, '/': DivisionOperator})
+
+    def exitPower(self, ctx:BiPaGeParser.PowerContext):
+        left = self.noderesult[ctx.expression(0)]
+        right = self.noderesult[ctx.expression(1)]
+        self.noderesult[ctx] = PowerOperator(left, right)
+
+    def exitEquality(self, ctx:BiPaGeParser.EqualityContext):
+        self._handle_binary_operator(ctx, {'==': EqualsOperator, '!=': NotEqualsOperator})
+
+    def exitRelational(self, ctx:BiPaGeParser.RelationalContext):
+        self._handle_binary_operator(ctx,
+                                     {'<': LessThanOperator,
+                                      '<=': LessThanEqualOperator,
+                                      '>': GreaterThanOperator,
+                                      '>=': GreaterThanEqualOperator})
+
     def model(self):
         return self._definition
+
+
+    def _handle_binary_operator(self, ctx, options:dict):
+        assert ctx.op.text in options.keys() , f'Unexpected operator token {ctx.op.text}'
+        left = self.noderesult[ctx.expression(0)]
+        right = self.noderesult[ctx.expression(1)]
+        self.noderesult[ctx] = options[ctx.op.text](left, right)
 

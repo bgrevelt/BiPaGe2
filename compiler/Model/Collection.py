@@ -50,8 +50,8 @@ class Collection(Node):
                                                f'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.'))
 
 
-        else:
-            assert False, "Unsupported size type"
+        #else:
+        #    assert False, "Unsupported size type"
 
     def check_semantics_number_literal(self, warnings, errors):
         assert type(self._size) is NumberLiteral

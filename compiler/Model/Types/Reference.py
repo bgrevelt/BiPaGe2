@@ -34,3 +34,10 @@ class Reference(Expression):
 
     def evaluate(self):
         return None
+
+    def Equals(self, other):
+        if type(other) is not Reference:
+            return False
+
+        #TODO: this will lead to a runtime error as Enumeration does not have an Equals method
+        return self._referenced_type.Equals(other.referenced_type())

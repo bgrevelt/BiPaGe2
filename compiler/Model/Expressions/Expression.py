@@ -8,3 +8,8 @@ class Expression(Node, ABC):
     @abstractmethod
     def evaluate(self):
         pass
+
+    # Used for testing. Test if the expression matches other
+    @abstractmethod
+    def Equals(self, other):
+        pass
