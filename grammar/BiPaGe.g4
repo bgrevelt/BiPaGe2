@@ -36,7 +36,6 @@ inline_enumeration: IntegerType '{' (enumerand ',')* enumerand '}';
 capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;
 expression: '(' expression ')'                          # Parens
-          | '!' expression                              # Not
           | <assoc=right> expression '^' expression      # Power
           | expression op=('*'|'/') expression            # MultDiv
           | expression op=('+'|'-') expression            # AddSub
