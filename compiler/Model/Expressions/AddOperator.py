@@ -8,7 +8,7 @@ class AddOperator(BinaryOperator):
         self._binary_evaluate(lambda l,r: l+r)
 
     def Equals(self, other):
-        return type(other) is AddOperator and super.Equals(other)
+        return type(other) is AddOperator and super().Equals(other)
 
     def __str__(self):
         return f'({str(self._left)} + {str(self._right)})'
