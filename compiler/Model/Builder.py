@@ -22,7 +22,7 @@ from Model.Expressions.MultiplyOperator import MultiplyOperator
 from Model.Expressions.NotEqualsOperator import NotEqualsOperator
 from Model.Expressions.PowerOperator import PowerOperator
 from Model.Expressions.SubstractOperator import SubtractOperator
-
+from Model.Expressions.TernaryOperator import TernaryOperator
 
 import os
 import re
@@ -253,6 +253,12 @@ class Builder(BiPaGeListener):
         # precedence set by parentheses is handled by the parser, so we can omit it from the model
         # simply store the expression within the parentheses
         self.noderesult[ctx] = self.noderesult[ctx.expression()]
+
+    def exitTernary(self, ctx:BiPaGeParser.TernaryContext):
+        condition = self.noderesult[ctx.expression(0)]
+        true = self.noderesult[ctx.expression(1)]
+        false = self.noderesult[ctx.expression(2)]
+        self.noderesult[ctx] = TernaryOperator(condition, true, false)
 
     def model(self):
         return self._definition

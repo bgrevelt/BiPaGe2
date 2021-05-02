@@ -35,13 +35,13 @@ field_type:
 inline_enumeration: IntegerType '{' (enumerand ',')* enumerand '}';
 capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;
-expression: '(' expression ')'                          # Parens
-          | <assoc=right> expression '^' expression      # Power
+expression: '(' expression ')'                            # Parens
+          | <assoc=right> expression '^' expression       # Power
           | expression op=('*'|'/') expression            # MultDiv
           | expression op=('+'|'-') expression            # AddSub
           | expression op=('<'|'<='|'>'|'>=') expression  # Relational
           | expression op=('=='|'!=') expression          # Equality
-          | expression '?' expression                   # Ternary
-          | NumberLiteral                               # Number
-          | reference                                   # Ref
+          | expression '?' expression ':' expression      # Ternary
+          | NumberLiteral                                 # Number
+          | reference                                     # Ref
           ;

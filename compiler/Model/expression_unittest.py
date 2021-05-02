@@ -14,6 +14,7 @@ from Model.Expressions.MultiplyOperator import MultiplyOperator
 from Model.Expressions.NotEqualsOperator import NotEqualsOperator
 from Model.Expressions.PowerOperator import PowerOperator
 from Model.Expressions.SubstractOperator import SubtractOperator
+from Model.Expressions.TernaryOperator import TernaryOperator
 
 class ExpressionUnittests(unittest.TestCase):
     def test_simple_add(self):
@@ -76,6 +77,15 @@ class ExpressionUnittests(unittest.TestCase):
     def test_simple_not_equals(self):
         expression = self._build_expression('512!=256')
         expected = NotEqualsOperator(NumberLiteral(512), NumberLiteral(256))
+        self.assertTrue(expression.Equals(expected))
+
+    def test_simple_ternary_operator(self):
+        expression = self._build_expression('5<3?25:100')
+        expected = TernaryOperator(
+            LessThanOperator(NumberLiteral(5),NumberLiteral(3)),
+            NumberLiteral(25),
+            NumberLiteral(100)
+        )
         self.assertTrue(expression.Equals(expected))
 
     '''
