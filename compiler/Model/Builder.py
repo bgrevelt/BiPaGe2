@@ -249,6 +249,11 @@ class Builder(BiPaGeListener):
                                       '>': GreaterThanOperator,
                                       '>=': GreaterThanEqualOperator})
 
+    def exitParens(self, ctx:BiPaGeParser.ParensContext):
+        # precedence set by parentheses is handled by the parser, so we can omit it from the model
+        # simply store the expression within the parentheses
+        self.noderesult[ctx] = self.noderesult[ctx.expression()]
+
     def model(self):
         return self._definition
 
