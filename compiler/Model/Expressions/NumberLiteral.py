@@ -2,7 +2,7 @@ from Model.Expressions.Expression import Expression
 from Model.Node import Node
 
 class NumberLiteral(Expression):
-    def __init__(self, number, token):
+    def __init__(self, number, token=None):
         super().__init__(token)
         self._number = number
 
