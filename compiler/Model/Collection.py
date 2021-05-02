@@ -11,10 +11,11 @@ class Collection(Node):
         super().__init__(token)
 
     def size_in_bits(self):
-        if self._size.evaluate() is None:
-            return None
+        size = self._size.evaluate()
+        if type(size) is NumberLiteral:
+            return self.element_size_in_bits() * size.value()
         else:
-            return self.element_size_in_bits() * self._size.evaluate()
+            return None
 
     def element_size_in_bits(self):
         return self.type().size_in_bits()

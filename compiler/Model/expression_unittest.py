@@ -33,21 +33,29 @@ class ExpressionUnittests(unittest.TestCase):
     #     expression = self._build_expression('15-12')
     #     expected = SubtractOperator(NumberLiteral(15), NumberLiteral(12))
     #     self.assertTrue(expression.Equals(expected))
+    #     self._test_evaluate('15-12', 3)
 
     def test_simple_multiply(self):
         expression = self._build_expression('7*33')
         expected = MultiplyOperator(NumberLiteral(7), NumberLiteral(33))
         self.assertTrue(expression.Equals(expected))
 
+        self._test_evaluate('7*33', 7*33)
+
+
     def test_simple_division(self):
         expression = self._build_expression('28/7')
         expected = DivisionOperator(NumberLiteral(28), NumberLiteral(7))
         self.assertTrue(expression.Equals(expected))
 
+        self._test_evaluate('28/7', 28/7)
+
     def test_simple_power(self):
         expression = self._build_expression('2^8')
         expected = PowerOperator(NumberLiteral(2), NumberLiteral(8))
         self.assertTrue(expression.Equals(expected))
+
+        self._test_evaluate('2^8', 2**8)
 
     def test_simple_GT(self):
         expression = self._build_expression('2>8')
@@ -95,6 +103,9 @@ class ExpressionUnittests(unittest.TestCase):
         expression = self._build_expression('2^3^4')
         expected = PowerOperator(NumberLiteral(2), PowerOperator(NumberLiteral(3), NumberLiteral(4)))
         self.assertTrue(expression.Equals(expected))
+
+        self._test_evaluate('2^3^4', 2**3**4)
+
     '''
     Division (and all other binary operators) is left associative
     e.g. 2/3/4 == (2/3)/4
@@ -134,7 +145,14 @@ class ExpressionUnittests(unittest.TestCase):
         )
         self.assertTrue(expression.Equals(expected))
 
+    def test_evaluate(self):
+        self._test_evaluate('1+2', 3)
 
+    def _test_evaluate(self, expression, value):
+        expression = self._build_expression(expression)
+        evaluated = expression.evaluate()
+        self.assertIs(type(evaluated), NumberLiteral)
+        self.assertEqual(value, evaluated.value())
 
     def _build_expression(self, expression_text):
         # Create a fake datatype to hold the expression. That way we can use the default entry point to build a complete

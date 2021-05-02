@@ -7,6 +7,10 @@ class NumberLiteral(Expression):
         self._number = number
 
     def evaluate(self):
+        # nothing to evaluate, we're just a number literal
+        return self
+
+    def value(self):
         return self._number
 
     def Equals(self, other):
