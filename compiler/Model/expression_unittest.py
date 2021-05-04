@@ -111,8 +111,8 @@ class ExpressionUnittests(unittest.TestCase):
     e.g. 2/3/4 == (2/3)/4
     '''
     def test_sub_left_assoc(self):
-        expression = self._build_expression('2/3/4')
-        expected = DivisionOperator(DivisionOperator(NumberLiteral(2), NumberLiteral(3)), NumberLiteral(4))
+        expression = self._build_expression('16/4/2')
+        expected = DivisionOperator(DivisionOperator(NumberLiteral(16), NumberLiteral(4)), NumberLiteral(2))
         self.assertTrue(expression.Equals(expected))
 
     '''

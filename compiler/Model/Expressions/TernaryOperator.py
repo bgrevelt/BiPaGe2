@@ -11,9 +11,6 @@ class TernaryOperator(Expression):
         evaluated_true = self._true.evaluate()
         evaluated_false = self._false.evaluate()
 
-        if any(e is None for e in [evaluated_condition, evaluated_true, evaluated_false]):
-            return None
-
         assert type(evaluated_condition) is bool, f"Condition operand must resolve to boolean type, not {type(evaluated_condition)}"
 
         return evaluated_true if evaluated_condition else evaluated_false

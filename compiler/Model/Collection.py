@@ -56,12 +56,12 @@ class Collection(Node):
 
     def check_semantics_number_literal(self, warnings, errors):
         assert type(self._size) is NumberLiteral
-        size = self._size.evaluate()
+        size = self._size.value()
         line, column = self.location()
         if size == 0:
             warnings.append(BuildMessage(line, column,
                                        'Collection with zero elements. This line will have no effect on the generated code.'))
-        elif self._size.evaluate() < 0:
+        elif self._size.value() < 0:
             errors.append(BuildMessage(line, column,
                                        'Negative number of elements in collection.'))
         if self._type.size_in_bits() not in [8,16,32,64]:
