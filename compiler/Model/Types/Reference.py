@@ -33,11 +33,17 @@ class Reference(Expression):
                                        f'Reference "{self._name}" cannot be resolved'))
 
     def evaluate(self):
-        return None
+        return self
 
     def Equals(self, other):
         if type(other) is not Reference:
             return False
 
-        #TODO: this will lead to a runtime error as Enumeration does not have an Equals method
-        return self._referenced_type.Equals(other.referenced_type())
+        if self.name() != other.name():
+            return False
+
+        if self._referenced_type == None:
+            return other.referenced_type() == None
+        else:
+            #TODO: this will lead to a runtime error as Enumeration does not have an Equals method
+            return self._referenced_type.Equals(other.referenced_type())

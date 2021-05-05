@@ -2,6 +2,7 @@ import unittest
 from build_model import build_model_from_text
 from Model.Collection import Collection
 
+from Model.Expressions.Expression import Expression
 from Model.Expressions.NumberLiteral import NumberLiteral
 from Model.Expressions.AddOperator import AddOperator
 from Model.Expressions.DivisionOperator import DivisionOperator
@@ -15,6 +16,7 @@ from Model.Expressions.NotEqualsOperator import NotEqualsOperator
 from Model.Expressions.PowerOperator import PowerOperator
 from Model.Expressions.SubstractOperator import SubtractOperator
 from Model.Expressions.TernaryOperator import TernaryOperator
+from Model.Types.Reference import Reference
 
 class ExpressionUnittests(unittest.TestCase):
     def test_simple_add(self):
@@ -145,14 +147,70 @@ class ExpressionUnittests(unittest.TestCase):
         )
         self.assertTrue(expression.Equals(expected))
 
-    def test_evaluate(self):
+    def test_evaluate_simple_add(self):
         self._test_evaluate('1+2', 3)
+
+    # def test_evaluate_simple_minus(self):
+    #     self._test_evaluate('35-18', 7)
+
+    def test_evaluate_simple_mult(self):
+        self._test_evaluate('12*6', 72)
+
+    def test_evaluate_simple_div(self):
+        self._test_evaluate('45/9', 5)
+
+    def test_evaluate_simple_power(self):
+        self._test_evaluate('4^3', 64)
+
+    def test_evaluate_simple_eq(self):
+        self._test_evaluate('12==12', True)
+        self._test_evaluate('35==25', False)
+
+    def test_evaluate_simple_neq(self):
+        self._test_evaluate('17!=12', True)
+        self._test_evaluate('12!=12', False)
+
+    def test_evaluate_simple_lt(self):
+        self._test_evaluate('5<5', False)
+        self._test_evaluate('5<6', True)
+
+    def test_evaluate_simple_lte(self):
+        self._test_evaluate('5<=6', True)
+        self._test_evaluate('5<=5', True)
+        self._test_evaluate('5<=4', False)
+
+    def test_evaluate_simple_gt(self):
+        self._test_evaluate('5>4', True)
+        self._test_evaluate('5>5', False)
+
+    def test_evaluate_simple_gte(self):
+        self._test_evaluate('5>=4', True)
+        self._test_evaluate('5>=5', True)
+        self._test_evaluate('5>6', False)
+
+    def test_evaluate_complex1(self):
+        self._test_evaluate('5 >= 1 ? 12 + 9 /3 : 10^2 + 5 * 5', 15)
+        self._test_evaluate('5 >= 6 ? 12 + 9 /3 : 10^2 + 5 * 5', 125)
+
+    def test_evaluate_complex2(self):
+        ex = '5 == 6 ? 12 + 9 /3 : 10^some_field + 5 * 5'
+        r = AddOperator(PowerOperator(NumberLiteral(10), Reference('some_field', None, None)), NumberLiteral(25))
+        self._test_evaluate(ex, r)
 
     def _test_evaluate(self, expression, value):
         expression = self._build_expression(expression)
         evaluated = expression.evaluate()
-        self.assertIs(type(evaluated), NumberLiteral)
-        self.assertEqual(value, evaluated.value())
+        if type(value) is int or type(value) is float:
+            self.assertIs(type(evaluated), NumberLiteral)
+            self.assertEqual(value, evaluated.value())
+        elif type(value) is bool:
+            self.assertIs(type(evaluated), bool)
+            self.assertEqual(value, evaluated)
+        elif isinstance(value, Expression):
+            self.assertTrue(evaluated.Equals(value))
+        else:
+            assert False, "Expression evaluated to unexpected type"
+
 
     def _build_expression(self, expression_text):
         # Create a fake datatype to hold the expression. That way we can use the default entry point to build a complete
