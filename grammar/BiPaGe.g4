@@ -8,7 +8,7 @@ SingleLineComment: '//' ~('\r' | '\n')* -> skip;
 IntegerType: ('int' | 'uint' | 's' | 'u' ) NumberLiteral;
 FloatingPointType: ('float' | 'f' ) ('32' | '64' );
 FlagType: 'flag';
-NumberLiteral: '-'?[0-9]+;
+NumberLiteral: [0-9]+;
 
 NameSpace: 'namespace';
 Identifier: ('a'..'z'|'A'..'Z'|'_')('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
@@ -23,7 +23,7 @@ endianness: EndiannessDecorator SemiColon;
 import_rule: 'import' FilePath SemiColon;
 datatype: Identifier '{' (field | capture_scope)+ '}';
 enumeration: Identifier ':' IntegerType '{' (enumerand ',')* enumerand '}';
-enumerand: Identifier '=' NumberLiteral;
+enumerand: Identifier '=' expression;
 field: (Identifier ':')? field_type multiplier? ';';
 multiplier: ('[' expression ']');
 field_type:
@@ -36,6 +36,7 @@ inline_enumeration: IntegerType '{' (enumerand ',')* enumerand '}';
 capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;
 expression: '(' expression ')'                            # Parens
+          | '-' expression                                # Minus
           | <assoc=right> expression '^' expression       # Power
           | expression op=('*'|'/') expression            # MultDiv
           | expression op=('+'|'-') expression            # AddSub

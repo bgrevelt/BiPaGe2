@@ -193,7 +193,10 @@ class Builder(BiPaGeListener):
         self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
-        self.noderesult[ctx] = (str(ctx.Identifier()), int(str(ctx.NumberLiteral())))
+        name = str(ctx.Identifier())
+        expression = self.noderesult[ctx.expression()]
+
+        self.noderesult[ctx] = (name, expression)
 
     def exitEnumeration(self, ctx:BiPaGeParser.EnumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
@@ -259,6 +262,13 @@ class Builder(BiPaGeListener):
         true = self.noderesult[ctx.expression(1)]
         false = self.noderesult[ctx.expression(2)]
         self.noderesult[ctx] = TernaryOperator(condition, true, false)
+
+    def exitMinus(self, ctx:BiPaGeParser.MinusContext):
+        n = self.noderesult[ctx.expression()]
+        assert type(n) is NumberLiteral, f'Minus operator on something other than a number literal: {type(n)}'
+        n = n.value()
+        self.noderesult[ctx] = NumberLiteral(-1*n, ctx.start)
+
 
     def model(self):
         return self._definition

@@ -28,14 +28,11 @@ class ExpressionUnittests(unittest.TestCase):
     Let's start with a bunch of simple tests to validate the operators get created right
     Just the operator with number literals as operands
     '''
-
-    # TODO: This will fail because the grammar will interpret 1-1 as two number literals: '1' and '-1'
-    # Simplest solution would probably to add a unary minus operator.
-    # def test_simple_subtract(self):
-    #     expression = self._build_expression('15-12')
-    #     expected = SubtractOperator(NumberLiteral(15), NumberLiteral(12))
-    #     self.assertTrue(expression.Equals(expected))
-    #     self._test_evaluate('15-12', 3)
+    def test_simple_subtract(self):
+        expression = self._build_expression('15-12')
+        expected = SubtractOperator(NumberLiteral(15), NumberLiteral(12))
+        self.assertTrue(expression.Equals(expected))
+        self._test_evaluate('15-12', 3)
 
     def test_simple_multiply(self):
         expression = self._build_expression('7*33')
@@ -150,8 +147,8 @@ class ExpressionUnittests(unittest.TestCase):
     def test_evaluate_simple_add(self):
         self._test_evaluate('1+2', 3)
 
-    # def test_evaluate_simple_minus(self):
-    #     self._test_evaluate('35-18', 7)
+    def test_evaluate_simple_minus(self):
+        self._test_evaluate('35-18', 17)
 
     def test_evaluate_simple_mult(self):
         self._test_evaluate('12*6', 72)

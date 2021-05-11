@@ -45,10 +45,11 @@ class Enumeration(Node):
         line, column = self.location()
         min, max = self._base_type.range()
         for name, value in self._enumerators:
+            value = value.value()
             if value < min or value > max:
                 errors.append(BuildMessage(line, column, f'Enumerand {name} in enumeration {self._name} has a value that is outside of the supported range of the underlying type ({min},{max})'))
 
-            enumerators_with_value = [e for e in self._enumerators if e[1] == value]
+            enumerators_with_value = [e for e in self._enumerators if e[1].value() == value]
             if len(enumerators_with_value) > 1:
                 msg = f'Same value ({value}) used by mulitple enumerands in enumeration {self._name}:\n'
                 msg += "\n".join(f'\t{n}' for n,v in enumerators_with_value)

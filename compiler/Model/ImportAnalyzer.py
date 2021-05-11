@@ -5,6 +5,7 @@ from Model.Enumeration import Enumeration
 import re
 from Model.ImportedFile import ImportedFile
 import os
+from Model.Expressions.NumberLiteral import NumberLiteral
 
 #TODO: duplicated code
 def split_sized_type(type):
@@ -49,7 +50,11 @@ class ImportAnalyzer(BiPaGeListener):
             self.imports.append(os.path.abspath(os.path.join(self._cwd, path)))
 
     def exitEnumerand(self, ctx: BiPaGeParser.EnumerandContext):
-        self.noderesult[ctx] = (str(ctx.Identifier()), int(str(ctx.NumberLiteral())))
+        #self.noderesult[ctx] = (str(ctx.Identifier()), int(str(ctx.NumberLiteral())))
+        name = str(ctx.Identifier())
+        value = ctx.value() if type(ctx.expression()) is NumberLiteral else None
+
+        self.noderesult[ctx] = (name, value)
 
     def exitEnumeration(self, ctx: BiPaGeParser.EnumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))

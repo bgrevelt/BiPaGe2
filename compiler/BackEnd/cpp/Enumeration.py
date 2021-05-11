@@ -35,8 +35,8 @@ class Enumeration:
         return [f'#include {include}' for include in incs]
 
     def _enumerator_cases(self):
-        return "\n".join(f'case {self._model.name()}::{n}: return "{self._model.name()}::{n} ({v})";' for n, v in self._model.enumerators())
+        return "\n".join(f'case {self._model.name()}::{n}: return "{self._model.name()}::{n} ({v.value()})";' for n, v in self._model.enumerators())
 
     def _enumerators(self):
-        r = "\n".join(f'{n} = {v},' for n,v in self._model.enumerators())
+        r = "\n".join(f'{n} = {v.value()},' for n,v in self._model.enumerators())
         return r[:-1]

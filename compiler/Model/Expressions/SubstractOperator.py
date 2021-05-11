@@ -6,10 +6,10 @@ class SubtractOperator(ArithmeticOperator):
         super().__init__(left, right)
 
     def Equals(self, other):
-        return type(other) is SubtractOperator and super.Equals(other)
+        return type(other) is SubtractOperator and super().Equals(other)
 
     def compute(self, left:NumberLiteral, right:NumberLiteral):
-        left.value() - right.value()
+        return left.value() - right.value()
 
     def __str__(self):
         return f'({str(self._left)} - {str(self._right)})'
