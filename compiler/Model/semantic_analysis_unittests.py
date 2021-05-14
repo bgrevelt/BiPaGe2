@@ -229,7 +229,7 @@ SomeDataType
         val2 = 255,
         val3 = 256
     }''', "")
-        self.checkErrors(errors, [(2, 4, 'val3 in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
+        self.checkErrors(errors, [(6, 15, 'val3 in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
 
         warnings, errors, _ = build_model_from_text('''
     SomeEnum : int16
@@ -238,7 +238,7 @@ SomeDataType
         noot = 32767,
         mies = 32768
     }''', "")
-        self.checkErrors(errors, [(2, 4,
+        self.checkErrors(errors, [(6, 15,
                                    'mies in enumeration SomeEnum has a value that is outside of the supported range of the underlying type')])
 
     def test_duplicated_enumerand_value(self):
@@ -249,7 +249,7 @@ SomeDataType
         val2 = 35,
         val3 = 35
     }''', "")
-        self.checkErrors(errors, [(2, 4, 'Same value (35) used by mulitple enumerands in enumeration SomeEnum')],allow_extra_errors=True)
+        self.checkErrors(errors, [(5, 15, 'Same value (35) used by mulitple enumerands in enumeration SomeEnum')],allow_extra_errors=True)
 
     def test_duplicated_enumerand_name(self):
         warnings, errors, _ = build_model_from_text('''
@@ -317,6 +317,37 @@ SomeDataType
         # enough for nows
         self.checkErrors(errors, [
             (9, 12, 'Mutiple defintions found for Foo')])
+
+    def test_enumerator_value_type(self):
+        warnings, errors, _ = build_model_from_text('''
+    SomeEnum : uint8
+    {
+        val1 = 0,
+        val2 = 3+5,
+        val3 = 3-5,
+        val4 = 3*5,
+        val5 = 3/5,
+        val6 = (3),
+        val7 = 3^5,
+        val8 = 3<5,
+        val9 = 3<=5,
+        val10 = 3>5,
+        val11 = 3>=5,
+        val12 = 3==5,
+        valx = 35
+    }''', "")
+        self.checkErrors(errors, [
+            (5, 15, 'Only number literals are allowed for enumerator values. Not AddOperator'),
+            (6, 15, 'Only number literals are allowed for enumerator values. Not SubtractOperator'),
+            (7, 15, 'Only number literals are allowed for enumerator values. Not MultiplyOperator'),
+            (8, 15, 'Only number literals are allowed for enumerator values. Not DivisionOperator'),
+            (10,15, 'Only number literals are allowed for enumerator values. Not PowerOperator'),
+            (11,15, 'Only number literals are allowed for enumerator values. Not LessThanOperator'),
+            (12,15, 'Only number literals are allowed for enumerator values. Not LessThanEqualOperator'),
+            (13,16, 'Only number literals are allowed for enumerator values. Not GreaterThanOperator'),
+            (14,16, 'Only number literals are allowed for enumerator values. Not GreaterThanEqualOperator'),
+            (15,16, 'Only number literals are allowed for enumerator values. Not EqualsOperator')
+        ])
 
     def test_valid_collection(self):
         warnings, errors, _ = build_model_from_text('''

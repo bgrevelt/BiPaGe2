@@ -2,6 +2,7 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 from typing import List, Tuple
 import math
+from Model.Expressions.NumberLiteral import NumberLiteral
 
 class Enumeration(Node):
     def __init__(self, name:str, base_type, enumerators:List[Tuple[str,int]], token):
@@ -42,14 +43,19 @@ class Enumeration(Node):
                 errors.append(BuildMessage(line, column, f'Duplicated enumerand {name} in {self._name}'))
 
     def _check_enumerand_value(self, warnings, errors):
-        line, column = self.location()
         min, max = self._base_type.range()
         for name, value in self._enumerators:
+            line, column = value.location()
+
+            if type(value) is not NumberLiteral:
+                errors.append(BuildMessage(line, column, f'Only number literals are allowed for enumerator values. Not {type(value).__name__}'))
+                continue
+
             value = value.value()
             if value < min or value > max:
                 errors.append(BuildMessage(line, column, f'Enumerand {name} in enumeration {self._name} has a value that is outside of the supported range of the underlying type ({min},{max})'))
 
-            enumerators_with_value = [e for e in self._enumerators if e[1].value() == value]
+            enumerators_with_value = [e for e in self._enumerators if type(e) is NumberLiteral and e[1].value() == value]
             if len(enumerators_with_value) > 1:
                 msg = f'Same value ({value}) used by mulitple enumerands in enumeration {self._name}:\n'
                 msg += "\n".join(f'\t{n}' for n,v in enumerators_with_value)
