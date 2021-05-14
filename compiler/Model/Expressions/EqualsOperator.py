@@ -2,8 +2,8 @@ from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
 
 class EqualsOperator(BinaryOperator):
-    def __init__(self, left, right):
-        super().__init__(left, right)
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
 
     def evaluate(self):
         if type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral:

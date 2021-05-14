@@ -1,7 +1,8 @@
 from Model.Expressions.Expression import Expression
 
 class BinaryOperator(Expression):
-    def __init__(self, left:Expression, right:Expression):
+    def __init__(self, left:Expression, right:Expression, token):
+        super().__init__(token)
         self._left = left
         self._right = right
         self._evaluated_left = self._left.evaluate()

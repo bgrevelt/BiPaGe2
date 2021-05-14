@@ -2,8 +2,8 @@ from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
 
 class NotEqualsOperator(BinaryOperator):
-    def __init__(self, left, right):
-        super().__init__(left, right)
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
 
     #todo: This is more or less a duplicate of the EqualsOperator
     def evaluate(self):

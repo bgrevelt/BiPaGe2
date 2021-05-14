@@ -4,8 +4,8 @@ from Model.Expressions.Expression import Expression
 from Model.Expressions.NumberLiteral import NumberLiteral
 
 class ArithmeticOperator(BinaryOperator, ABC):
-    def __init__(self, left:Expression, right:Expression):
-        super().__init__(left, right)
+    def __init__(self, left:Expression, right:Expression, token):
+        super().__init__(left, right, token)
 
     def evaluate(self):
         if type(self._evaluated_left) is not NumberLiteral or type(self._evaluated_right) is not NumberLiteral:
@@ -16,7 +16,7 @@ class ArithmeticOperator(BinaryOperator, ABC):
             self._right = self._evaluated_right
             return self
         else:
-            return NumberLiteral(self.compute(self._evaluated_left, self._evaluated_right))
+            return NumberLiteral(self.compute(self._evaluated_left, self._evaluated_right), self._token)
 
     @abstractmethod
     def compute(self, left:NumberLiteral, right:NumberLiteral):

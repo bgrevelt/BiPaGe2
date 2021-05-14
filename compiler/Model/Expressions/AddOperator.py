@@ -2,8 +2,8 @@ from Model.Expressions.ArithmeticOperator import ArithmeticOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
 
 class AddOperator(ArithmeticOperator):
-    def __init__(self, left, right):
-        super().__init__(left, right)
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
 
     def Equals(self, other):
         return type(other) is AddOperator and super().Equals(other)

@@ -1,7 +1,8 @@
 from Model.Expressions.Expression import Expression
 
 class TernaryOperator(Expression):
-    def __init__(self, condition, true, false):
+    def __init__(self, condition, true, false, token=None):
+        super().__init__(token)
         self._condition = condition
         self._true = true
         self._false = false

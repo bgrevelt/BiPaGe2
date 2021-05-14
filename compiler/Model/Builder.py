@@ -240,7 +240,7 @@ class Builder(BiPaGeListener):
     def exitPower(self, ctx:BiPaGeParser.PowerContext):
         left = self.noderesult[ctx.expression(0)]
         right = self.noderesult[ctx.expression(1)]
-        self.noderesult[ctx] = PowerOperator(left, right)
+        self.noderesult[ctx] = PowerOperator(left, right, ctx.start)
 
     def exitEquality(self, ctx:BiPaGeParser.EqualityContext):
         self._handle_binary_operator(ctx, {'==': EqualsOperator, '!=': NotEqualsOperator})
@@ -261,12 +261,10 @@ class Builder(BiPaGeListener):
         condition = self.noderesult[ctx.expression(0)]
         true = self.noderesult[ctx.expression(1)]
         false = self.noderesult[ctx.expression(2)]
-        self.noderesult[ctx] = TernaryOperator(condition, true, false)
+        self.noderesult[ctx] = TernaryOperator(condition, true, false, ctx.start)
 
     def exitMinus(self, ctx:BiPaGeParser.MinusContext):
-        n = self.noderesult[ctx.expression()]
-        assert type(n) is NumberLiteral, f'Minus operator on something other than a number literal: {type(n)}'
-        n = n.value()
+        n = int(str(ctx.NumberLiteral()))
         self.noderesult[ctx] = NumberLiteral(-1*n, ctx.start)
 
 
@@ -278,5 +276,5 @@ class Builder(BiPaGeListener):
         assert ctx.op.text in options.keys() , f'Unexpected operator token {ctx.op.text}'
         left = self.noderesult[ctx.expression(0)]
         right = self.noderesult[ctx.expression(1)]
-        self.noderesult[ctx] = options[ctx.op.text](left, right)
+        self.noderesult[ctx] = options[ctx.op.text](left, right, ctx.start)
 

@@ -2,8 +2,8 @@ from Model.Expressions.RelationalOperator import RelationalOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
 
 class LessThanEqualOperator(RelationalOperator):
-    def __init__(self, left, right):
-        super().__init__(left, right)
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
 
     def Equals(self, other):
         return type(other) is LessThanEqualOperator and super().Equals(other)

@@ -4,8 +4,8 @@ from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
 
 class RelationalOperator(BinaryOperator, ABC):
-    def __init__(self, left:Expression, right:Expression):
-        super().__init__(left, right)
+    def __init__(self, left:Expression, right:Expression, token=None):
+        super().__init__(left, right, token)
 
     def evaluate(self):
         evaluated_left = self._left.evaluate()
