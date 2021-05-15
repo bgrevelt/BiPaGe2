@@ -1,6 +1,6 @@
 @bigendian;
 
-Bla : u8
+Bla : s8
 {
   aap = 1
 }
@@ -8,6 +8,6 @@ Bla : u8
 Foo
 {
     f1: s32;
-    f2: Bla[f1];
+    f2: Bla[-2^2];
     f3 : s32;
 }

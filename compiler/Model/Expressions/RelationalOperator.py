@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from Model.Expressions.Expression import Expression
 from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.Types.Integer import Integer
 
 class RelationalOperator(BinaryOperator, ABC):
     def __init__(self, left:Expression, right:Expression, token=None):
@@ -31,12 +32,12 @@ class RelationalOperator(BinaryOperator, ABC):
         if len(errors) > previous_error_count:
             return
         else:
-            if self._left.return_type() != 'integer':
+            if self._left.return_type() != Integer:
                 self.add_message(f'Left hand operand {str(self._left)} does not resolve to integer', errors)
-            if self._right.return_type() != 'integer':
+            if self._right.return_type() != Integer:
                 self.add_message(f'Right hand operand {str(self._left)} does not resolve to integer', errors)
 
 
     def return_type(self):
         # Relational operators always return booleans
-        return 'boolean'
+        return bool

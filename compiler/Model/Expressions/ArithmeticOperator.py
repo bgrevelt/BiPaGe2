@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.Expression import Expression
 from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.Types.Integer import Integer
 
 class ArithmeticOperator(BinaryOperator, ABC):
     def __init__(self, left:Expression, right:Expression, token):
@@ -24,7 +25,7 @@ class ArithmeticOperator(BinaryOperator, ABC):
 
     def return_type(self):
         # Arithmatic operations only support integer type operands, so the return type is always integer
-        return 'integer'
+        return Integer
 
     @abstractmethod
     def compute(self, left:NumberLiteral, right:NumberLiteral):

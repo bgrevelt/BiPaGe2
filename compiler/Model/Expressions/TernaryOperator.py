@@ -12,9 +12,15 @@ class TernaryOperator(Expression):
         evaluated_true = self._true.evaluate()
         evaluated_false = self._false.evaluate()
 
-        assert type(evaluated_condition) is bool, f"Condition operand must resolve to boolean type, not {type(evaluated_condition)}"
-
-        return evaluated_true if evaluated_condition else evaluated_false
+        if type(evaluated_condition) is bool:
+            # if the condition can be 'compile time' evaluated to a boolean, we can evaluate the operator to just the
+            # evaluated true or false clause
+            return evaluated_true if evaluated_condition else evaluated_false
+        else:
+            # if not, we can't 'evaluate away' the ternary operator itself, but maybe we can simplify the clauses
+            self._true = evaluated_true
+            self._false = evaluated_false
+            return self
 
     def Equals(self, other):
         return type(other) is TernaryOperator and \
