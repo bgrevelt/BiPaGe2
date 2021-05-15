@@ -16,5 +16,13 @@ class NumberLiteral(Expression):
     def Equals(self, other):
         return type(other) is NumberLiteral and other._number == self._number
 
+    def check_semantics(self, warnings, errors):
+        #Nothing to check for a number literal
+        pass
+
+    def return_type(self):
+        return 'integer'
+
     def __str__(self):
         return str(self._number)
+

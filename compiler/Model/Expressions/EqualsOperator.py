@@ -22,5 +22,12 @@ class EqualsOperator(BinaryOperator):
     def Equals(self, other):
         return type(other) is EqualsOperator and super().Equals(other)
 
+    def check_semantics(self, warnings, errors):
+        #todo
+       pass
+
+    def return_type(self):
+        return 'boolean'
+
     def __str__(self):
         return f'({str(self._left)} == {str(self._right)})'

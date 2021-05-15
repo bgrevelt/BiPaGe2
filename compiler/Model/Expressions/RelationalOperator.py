@@ -21,3 +21,22 @@ class RelationalOperator(BinaryOperator, ABC):
     @abstractmethod
     def compute(self, left:NumberLiteral, right:NumberLiteral) -> bool:
         pass
+
+    def check_semantics(self, warnings, errors):
+        # both operands should resolve to boolean values
+        # we can only check that if both operands are semantically valid
+        previous_error_count = len(errors)
+        self._left.check_semantics(warnings, errors)
+        self._right.check_semantics(warnings, errors)
+        if len(errors) > previous_error_count:
+            return
+        else:
+            if self._left.return_type() != 'integer':
+                self.add_message(f'Left hand operand {str(self._left)} does not resolve to integer', errors)
+            if self._right.return_type() != 'integer':
+                self.add_message(f'Right hand operand {str(self._left)} does not resolve to integer', errors)
+
+
+    def return_type(self):
+        # Relational operators always return booleans
+        return 'boolean'

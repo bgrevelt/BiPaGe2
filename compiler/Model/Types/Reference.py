@@ -47,3 +47,7 @@ class Reference(Expression):
         else:
             #TODO: this will lead to a runtime error as Enumeration does not have an Equals method
             return self._referenced_type.Equals(other.referenced_type())
+
+    def return_type(self):
+        #todo: right now we only support references to enumeration types, but once we add support for referencing fields, we'll have to return the type of the field
+        return 'enumeration'

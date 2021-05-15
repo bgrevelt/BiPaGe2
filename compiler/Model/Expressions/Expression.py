@@ -6,6 +6,14 @@ class Expression(Node, ABC):
         super().__init__(token)
 
     @abstractmethod
+    def check_semantics(self, warnings, errors):
+       pass
+
+    @abstractmethod
+    def return_type(self):
+        pass
+
+    @abstractmethod
     def evaluate(self):
         pass
 

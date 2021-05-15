@@ -22,6 +22,16 @@ class TernaryOperator(Expression):
             self._true.Equals(other._true) and \
             self._false.Equals(other._false)
 
+    def check_semantics(self, warnings, errors):
+        #TODO
+       pass
+
+    def return_type(self):
+        return_type_true = self._true.return_type()
+        return_type_false = self._false.return_type()
+        assert return_type_true == return_type_false, f'True and false clause have different return types ({return_type_true} and {return_type_false})'
+        return return_type_true
+
     def __str__(self):
         return f'{str(self._condition)} ? {str(self._true)} : {str(self._false)}'
 

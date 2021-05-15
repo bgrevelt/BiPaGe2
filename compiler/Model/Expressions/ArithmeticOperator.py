@@ -18,6 +18,14 @@ class ArithmeticOperator(BinaryOperator, ABC):
         else:
             return NumberLiteral(self.compute(self._evaluated_left, self._evaluated_right), self._token)
 
+    def check_semantics(self, warnings, errors):
+       #TODO
+        pass
+
+    def return_type(self):
+        # Arithmatic operations only support integer type operands, so the return type is always integer
+        return 'integer'
+
     @abstractmethod
     def compute(self, left:NumberLiteral, right:NumberLiteral):
         pass

@@ -1,3 +1,6 @@
+from typing import List
+from Model.BuildMessage import BuildMessage
+
 class Node:
     def __init__(self, token):
         self._token = token
@@ -10,3 +13,7 @@ class Node:
             return self._token.line, self._token.column
         else: # We often leave the token empty in unit tests
             return 0,0
+
+    def add_message(self, message:str, messages:List[BuildMessage]):
+        line, column = self.location()
+        messages.append(BuildMessage(line, column, message))
