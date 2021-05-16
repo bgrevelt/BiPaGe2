@@ -1,6 +1,9 @@
 from compiler.Model.Expressions.Expression import Expression
 from ..BuildMessage import BuildMessage
 
+#TODO: I think we should split this up into a TypeReference and FieldReference class
+# That will safe us a lot of hacks all over the place where we figure out if the referenced type is a field or
+# a type (e.g. Enumeration)
 
 class Reference(Expression):
     def __init__(self, name, referenced_type, token):
@@ -49,5 +52,11 @@ class Reference(Expression):
             return self._referenced_type.Equals(other.referenced_type())
 
     def return_type(self):
-        #todo: right now we only support references to enumeration types, but once we add support for referencing fields, we'll have to return the type of the field
-        return 'enumeration'
+        from Model.Field import Field
+        if type(self.referenced_type()) is Field:
+            return type(self.referenced_type().type())
+        else:
+            return type(self.referenced_type())
+
+    def __str__(self):
+        return self._name

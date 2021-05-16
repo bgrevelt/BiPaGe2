@@ -480,7 +480,8 @@ SomeDataType
             field1 : uint8[MyEnum];
         }''', "")
         self.checkErrors(errors, [
-            (11, 12, 'Reference to Enumeration is not a valid for collection size')])
+            (11,12, 'Only integer fields can be used to size a collection. Not Enumeration')
+        ])
 
     def test_type_reference_is_field(self):
         warnings, errors, _ = build_model_from_text('''

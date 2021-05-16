@@ -27,32 +27,21 @@ class Collection(Node):
         return self._type
 
     def check_semantics(self, warnings, errors):
+        initial_error_count = len(errors)
+        self._size.check_semantics(warnings, errors)
+        if initial_error_count < len(errors):
+            return
+
+        # Size expression should resolve to integer
+        if self._size.return_type() is not Integer:
+            self.add_message(
+                f'Only integer fields can be used to size a collection. Not {self._size.return_type().__name__}.',
+                errors)
+
         if type(self._size) is NumberLiteral:
             self.check_semantics_number_literal(warnings, errors)
         elif type(self._size) is Reference:
-            local_errors = []
-            self._size.check_semantics(warnings, local_errors)
-            errors.extend(local_errors)
-            if len(local_errors) > 0:
-                return
-
-            line, column = self.location()
-            # TODO ugly import to prevent cicular import between Field and Collection
-            from Model.Field import Field
-            if not type(self._size.referenced_type()) is Field:
-                errors.append(BuildMessage(line, column,
-                                           f'Reference to {type(self._size.referenced_type()).__name__} is not a valid for collection size. Only reference integer field in the datatype is valid.'))
-            else:
-                if not type(self._size.referenced_type().type()) is Integer:
-                    errors.append(BuildMessage(line, column,
-                                               f'Only integer fields can be used to size a collection. Not {type(self._size.referenced_type().type()).__name__}.'))
-                elif self._size.referenced_type().type().signed():
-                    warnings.append(BuildMessage(line, column,
-                                               f'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.'))
-
-
-        #else:
-        #    assert False, "Unsupported size type"
+            self.check_semantics_reference(warnings, errors)
 
     def check_semantics_number_literal(self, warnings, errors):
         assert type(self._size) is NumberLiteral
@@ -67,3 +56,14 @@ class Collection(Node):
         if self._type.size_in_bits() not in [8,16,32,64]:
             errors.append(BuildMessage(line, column,
                                        f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection'))
+
+    def check_semantics_reference(self, warnings, errors):
+        assert type(self._size) is Reference
+        line, column = self.location()
+        # TODO ugly import to prevent cicular import between Field and Collection
+        from Model.Field import Field
+        if type(self._size.referenced_type()) is Field:
+            if type(self._size.referenced_type().type()) is Integer and self._size.referenced_type().type().signed():
+                warnings.append(BuildMessage(line, column,
+                                             f'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.'))
+

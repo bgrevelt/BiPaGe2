@@ -1,5 +1,5 @@
 from Model.Expressions.Expression import Expression
-from Model.Node import Node
+from Model.Types.Integer import Integer
 
 class NumberLiteral(Expression):
     def __init__(self, number, token = None):
@@ -21,7 +21,7 @@ class NumberLiteral(Expression):
         pass
 
     def return_type(self):
-        return 'integer'
+        return Integer
 
     def __str__(self):
         return str(self._number)

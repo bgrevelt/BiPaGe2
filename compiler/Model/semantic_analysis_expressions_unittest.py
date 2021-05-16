@@ -1,8 +1,5 @@
 from Model.semantic_analysis_unittests import SemanticAnalysisUnittests
 from build_model import build_model_test
-from Model.ImportedFile import ImportedFile
-from Model.Enumeration import Enumeration
-from Model.Types.Integer import Integer
 
 
 class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
@@ -138,6 +135,63 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
+
+    # Arithmetic operations only support integer operands
+    # Arithmetic operations on floating point values may be mathematically valid, but I don't think we'll need them to
+    # size collections.
+    def test_arithmetic_non_integer(self):
+        text = '''
+        SomeEnum : u16
+        {
+          v1 = 1,
+          v2 = 2
+        }
+        
+        Foo
+        {
+            {
+                field1 : flag;
+                u7;
+            } 
+            field2 : u32;
+            field3 : f64;
+            field4 : SomeEnum;
+            
+            collection1: uint8[field1 + field2]; // Can't add a bool to an int
+            collection2: uint8[field4 * field2]; // Can't multiply an enum with an int
+            collection3: uint8[field1 / field2]; // Can't divide a bool by an int
+        }
+        '''
+        warnings, errors, _ = build_model_test(text, "")
+        self.checkErrors(errors, [
+            (18,31,"Left hand operand (field1) does not resolve to integer or float"),
+            (19,31,"Left hand operand (field4) does not resolve to integer or float"),
+            (20,31,"Left hand operand (field1) does not resolve to integer or float")
+        ])
+
+    def test_non_int_collection_size(self):
+        text = '''
+        Foo
+        {
+            field1 : uint32;
+            field2 : float64;
+            collection1 : uint8[field2]; // Can't use a float to size a collection
+            collection2 : uint8[field1 + field2]; // So you can't
+            collection3 : uint8[field2 - field1]; // use an expression
+            collection4 : uint8[field1 * field2]; // that resolves to
+            collection5 : uint8[field2 / field1]; // a float
+            collection6 : uint8[field1 ^ field2]; // either
+        }
+        '''
+        warnings, errors, _ = build_model_test(text, "")
+        self.checkErrors(errors, [
+            (6,12,"Only integer fields can be used to size a collection. Not Float"),
+            (7, 12, "Only integer fields can be used to size a collection. Not Float"),
+            (8, 12, "Only integer fields can be used to size a collection. Not Float"),
+            (9, 12, "Only integer fields can be used to size a collection. Not Float"),
+            (10, 12, "Only integer fields can be used to size a collection. Not Float"),
+            (11, 12, "Only integer fields can be used to size a collection. Not Float")
+        ])
 
     # We don't support comparing to float
     def test_comparison_on_float_expressions(self):
