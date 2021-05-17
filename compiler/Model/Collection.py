@@ -38,19 +38,22 @@ class Collection(Node):
                 f'Only integer fields can be used to size a collection. Not {self._size.return_type().__name__}.',
                 errors)
 
-        if type(self._size) is NumberLiteral:
+        evaluated = self._size.evaluate()
+
+        if type(evaluated) is NumberLiteral:
             self.check_semantics_number_literal(warnings, errors)
         elif type(self._size) is Reference:
             self.check_semantics_reference(warnings, errors)
 
     def check_semantics_number_literal(self, warnings, errors):
-        assert type(self._size) is NumberLiteral
-        size = self._size.value()
+        evaluated = self._size.evaluate()
+        assert type(evaluated) is NumberLiteral
+        size = evaluated.value()
         line, column = self.location()
         if size == 0:
             warnings.append(BuildMessage(line, column,
                                        'Collection with zero elements. This line will have no effect on the generated code.'))
-        elif self._size.value() < 0:
+        elif size < 0:
             errors.append(BuildMessage(line, column,
                                        'Negative number of elements in collection.'))
         if self._type.size_in_bits() not in [8,16,32,64]:

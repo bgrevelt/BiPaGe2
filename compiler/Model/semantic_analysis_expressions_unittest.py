@@ -37,6 +37,9 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
+        self.checkErrors(warnings, [
+            (6,27,'Division operator (field1 / field2) may have in non-integer result')
+        ])
 
     # Negative power can lead to non-integer result, we should issue a warning
     def test_signed_power_collection_size(self):
