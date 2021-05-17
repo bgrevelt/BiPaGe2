@@ -7,7 +7,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         text = '''
         Foo
         {
-            field : uint8[(2^4/4)+1-2*3];
+            field : uint8[(16/4)+1-2*3];
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
@@ -40,19 +40,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         self.checkErrors(warnings, [
             (6,27,'Division operator (field1 / field2) may have in non-integer result')
         ])
-
-    # Negative power can lead to non-integer result, we should issue a warning
-    def test_signed_power_collection_size(self):
-        text = '''
-        Foo
-        {
-            field1 : u32;
-            field2 : s8;
-            field3 : uint8[field1^field2];
-        }
-        '''
-        warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
 
     # expressions that return (can) return a signed value should lead to a warning
     def test_arithmetic_signed_collection_size(self):
@@ -182,8 +169,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             collection2 : uint8[field1 + field2]; // So you can't
             collection3 : uint8[field2 - field1]; // use an expression
             collection4 : uint8[field1 * field2]; // that resolves to
-            collection5 : uint8[field2 / field1]; // a float
-            collection6 : uint8[field1 ^ field2]; // either
+            collection5 : uint8[field2 / field1]; // a float either
         }
         '''
         warnings, errors, _ = build_model_test(text, "")

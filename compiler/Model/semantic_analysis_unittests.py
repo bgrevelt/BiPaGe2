@@ -328,12 +328,11 @@ SomeDataType
         val4 = 3*5,
         val5 = 3/5,
         val6 = (3),
-        val7 = 3^5,
-        val8 = 3<5,
-        val9 = 3<=5,
-        val10 = 3>5,
-        val11 = 3>=5,
-        val12 = 3==5,
+        val7 = 3<5,
+        val8 = 3<=5,
+        val9 = 3>5,
+        val10 = 3>=5,
+        val11 = 3==5,
         valx = 35
     }''', "")
         self.checkErrors(errors, [
@@ -341,12 +340,11 @@ SomeDataType
             (6, 15, 'Only number literals are allowed for enumerator values. Not SubtractOperator'),
             (7, 15, 'Only number literals are allowed for enumerator values. Not MultiplyOperator'),
             (8, 15, 'Only number literals are allowed for enumerator values. Not DivisionOperator'),
-            (10,15, 'Only number literals are allowed for enumerator values. Not PowerOperator'),
-            (11,15, 'Only number literals are allowed for enumerator values. Not LessThanOperator'),
-            (12,15, 'Only number literals are allowed for enumerator values. Not LessThanEqualOperator'),
-            (13,16, 'Only number literals are allowed for enumerator values. Not GreaterThanOperator'),
-            (14,16, 'Only number literals are allowed for enumerator values. Not GreaterThanEqualOperator'),
-            (15,16, 'Only number literals are allowed for enumerator values. Not EqualsOperator')
+            (10,15, 'Only number literals are allowed for enumerator values. Not LessThanOperator'),
+            (11,15, 'Only number literals are allowed for enumerator values. Not LessThanEqualOperator'),
+            (12,15, 'Only number literals are allowed for enumerator values. Not GreaterThanOperator'),
+            (13,16, 'Only number literals are allowed for enumerator values. Not GreaterThanEqualOperator'),
+            (14,16, 'Only number literals are allowed for enumerator values. Not EqualsOperator')
         ])
 
     def test_valid_collection(self):

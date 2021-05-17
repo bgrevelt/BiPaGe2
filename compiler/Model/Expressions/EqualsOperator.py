@@ -27,7 +27,7 @@ class EqualsOperator(BinaryOperator):
        pass
 
     def return_type(self):
-        return 'boolean'
+        return bool
 
     def __str__(self):
         return f'({str(self._left)} == {str(self._right)})'

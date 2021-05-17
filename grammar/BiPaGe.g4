@@ -37,7 +37,6 @@ capture_scope: '{' field+ '}';
 reference: (Identifier'.')* Identifier;
 expression: '(' expression ')'                            # Parens
           | '-' NumberLiteral                             # Minus
-          | <assoc=right> expression '^' expression       # Power
           | expression op=('*'|'/') expression            # MultDiv
           | expression op=('+'|'-') expression            # AddSub
           | expression op=('<'|'<='|'>'|'>=') expression  # Relational

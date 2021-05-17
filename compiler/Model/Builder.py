@@ -20,7 +20,6 @@ from Model.Expressions.LessThanEqualOperator import LessThanEqualOperator
 from Model.Expressions.LessThanOperator import LessThanOperator
 from Model.Expressions.MultiplyOperator import MultiplyOperator
 from Model.Expressions.NotEqualsOperator import NotEqualsOperator
-from Model.Expressions.PowerOperator import PowerOperator
 from Model.Expressions.SubstractOperator import SubtractOperator
 from Model.Expressions.TernaryOperator import TernaryOperator
 
@@ -236,11 +235,6 @@ class Builder(BiPaGeListener):
 
     def exitMultDiv(self, ctx:BiPaGeParser.MultDivContext):
         self._handle_binary_operator(ctx, {'*': MultiplyOperator, '/': DivisionOperator})
-
-    def exitPower(self, ctx:BiPaGeParser.PowerContext):
-        left = self.noderesult[ctx.expression(0)]
-        right = self.noderesult[ctx.expression(1)]
-        self.noderesult[ctx] = PowerOperator(left, right, ctx.start)
 
     def exitEquality(self, ctx:BiPaGeParser.EqualityContext):
         self._handle_binary_operator(ctx, {'==': EqualsOperator, '!=': NotEqualsOperator})
