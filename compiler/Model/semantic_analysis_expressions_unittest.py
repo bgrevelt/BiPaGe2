@@ -22,8 +22,8 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (2,8,'Datatypes should be a multiple of eight in size')
-        ])
+            (4,12,'Invalid collection size')
+        ], allow_extra_errors=True)
 
     # division can lead to non-integer results. We should always issue a warning
     def test_division_collection_size(self):
@@ -41,7 +41,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             (6,27,'Division operator (field1 / field2) may have in non-integer result')
         ])
 
-    # expressions that return (can) return a signed value should lead to a warning
+    # expressions that (can) return a signed value should lead to a warning
     def test_arithmetic_signed_collection_size(self):
         text = '''
         Foo
@@ -53,7 +53,10 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (6, 12, "Expression results in signed type."),
+            (7, 12, "Expression results in signed type.")
+        ])
 
     def test_reference_ternary_expressions(self):
         text = '''
@@ -71,31 +74,32 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
 
-    # Comparing a signed value to a negative value should raise a warning
+    # Comparing an unsigned value to a negative value should raise a warning
     # Both for literals and references
     def test_reference_ternary_expressions(self):
         text = '''
         Foo
         {
             fielda : u32;
-            fieldb : s32;
-            field1 : uint8[field0 <  -3 ? 10 : 20];
-            field2 : uint8[field0 <= -3 ? 10 : 20];
-            field3 : uint8[field0 >  -3 ? 10 : 20];
-            field4 : uint8[field0 >= -3 ? 10 : 20];
-            field5 : uint8[field0 == -3 ? 10 : 20];
-            field6 : uint8[field0 != -3 ? 10 : 20];
-            field7 : uint8[field0 <  fieldb ? 10 : 20];
-            field8 : uint8[field0 <= fieldb ? 10 : 20];
-            field9 : uint8[field0 >  fieldb ? 10 : 20];
-            field10: uint8[field0 >= fieldb ? 10 : 20];
-            field11: uint8[field0 == fieldb ? 10 : 20];
-            field12: uint8[field0 != fieldb ? 10 : 20];
+            field1 : uint8[fielda <  -3 ? 10 : 20];
+            field2 : uint8[fielda <= -3 ? 10 : 20];
+            field3 : uint8[fielda >  -3 ? 10 : 20];
+            field4 : uint8[fielda >= -3 ? 10 : 20];
+            field5 : uint8[fielda == -3 ? 10 : 20];
+            field6 : uint8[fielda != -3 ? 10 : 20];
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (6, 12, "Comparing unsigned field to negative value, this will always return false"),
+            (7, 12, "Comparing unsigned field to negative value, this will always return false"),
+            (8, 12, "Comparing unsigned field to negative value, this will always return true"),
+            (9, 12, "Comparing unsigned field to negative value, this will always return true"),
+            (10, 12, "Comparing unsigned field to negative value, this will always return false"),
+            (11, 12, "Comparing unsigned field to negative value, this will always return true")
+        ])
 
+    # Ternary expressions should return the same type for both clauses
     def test_ternary_different_types(self):
         text = '''
         Foo
@@ -108,7 +112,9 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (8,12,'Clauses have different types')
+        ])
 
     # Ternary can return signed value. This should lead to a warning just like when we directly use a signed value
     def test_ternary_potential_signed(self):
@@ -124,11 +130,10 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (9,12,'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.')
+        ])
 
-    # Arithmetic operations only support integer operands
-    # Arithmetic operations on floating point values may be mathematically valid, but I don't think we'll need them to
-    # size collections.
     def test_arithmetic_non_integer(self):
         text = '''
         SomeEnum : u16
@@ -178,33 +183,8 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             (7, 12, "Only integer fields can be used to size a collection. Not Float"),
             (8, 12, "Only integer fields can be used to size a collection. Not Float"),
             (9, 12, "Only integer fields can be used to size a collection. Not Float"),
-            (10, 12, "Only integer fields can be used to size a collection. Not Float"),
-            (11, 12, "Only integer fields can be used to size a collection. Not Float")
+            (10, 12, "Only integer fields can be used to size a collection. Not Float")
         ])
-
-    # We don't support comparing to float
-    def test_comparison_on_float_expressions(self):
-        text = '''
-        Foo
-        {
-            fielda : f32;
-            fieldb : f64;
-            field1 : uint8[fielda <  0 ? 10 : 20];
-            field2 : uint8[fielda <= 0 ? 10 : 20];
-            field3 : uint8[fielda >  0 ? 10 : 20];
-            field4 : uint8[fielda >= 0 ? 10 : 20];
-            field5 : uint8[fielda == 0 ? 10 : 20];
-            field6 : uint8[fielda != 0 ? 10 : 20];
-            field7 : uint8[fieldb <  0 ? 10 : 20];
-            field8 : uint8[fieldb <= 0 ? 10 : 20];
-            field9 : uint8[fieldb >  0 ? 10 : 20];
-            field10: uint8[fieldb >= 0 ? 10 : 20];
-            field11: uint8[fieldb == 0 ? 10 : 20];
-            field12: uint8[fieldb != 0 ? 10 : 20];
-        }
-        '''
-        warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
 
     def test_valid_int_reference(self):
         text = '''
@@ -242,7 +222,10 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (6,12,"Integer not allowed as ternary condition"),
+            (7, 12, "Float not allowed as ternary condition")
+        ])
 
     def test_valid_enum_reference(self):
         text = '''
@@ -263,7 +246,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         self.checkErrors(errors, [])
 
     # We don't allow treating an enum like an integer
-    def test_valid_enum_reference(self):
+    def test_constant_against_enum_reference(self):
         text = '''
         SomeEnum : u8
         {
@@ -279,9 +262,11 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (12,12,"Cannot compare SomeEnum field against integer literal. Use SomeEnum enumerator instead.")
+        ])
 
-    def test_enum_reference_non_existent_enumerand(self):
+    def test_enum_reference_non_existent_enumerator(self):
         text = '''
         SomeEnum : u8
         {
@@ -297,7 +282,9 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (12,12,'Could not resolve reference to SomeEnum.val4')
+        ])
 
     def test_enumerator_reference_for_non_enum_field(self):
         text = '''
@@ -316,7 +303,9 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (13,12,"Cannot compare integer field field2 to enumerator")
+        ])
 
     # We don't support using enumerator value as if it were an integer
     def test_enumerator_value_used_as_collection_size(self):
@@ -334,4 +323,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (11,12,"Can't use enumerator reference to size a collection")
+        ])

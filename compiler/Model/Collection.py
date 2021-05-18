@@ -27,6 +27,9 @@ class Collection(Node):
         return self._type
 
     def check_semantics(self, warnings, errors):
+        if self._type.size_in_bits() not in [8,16,32,64]:
+            self.add_message(f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection', errors)
+
         initial_error_count = len(errors)
         self._size.check_semantics(warnings, errors)
         if initial_error_count < len(errors):
@@ -50,15 +53,14 @@ class Collection(Node):
         assert type(evaluated) is NumberLiteral
         size = evaluated.value()
         line, column = self.location()
+
+        if size % 1 != 0:
+            self.add_message(f'Invalid collection size: {size}', errors)
+
         if size == 0:
-            warnings.append(BuildMessage(line, column,
-                                       'Collection with zero elements. This line will have no effect on the generated code.'))
+            self.add_message('Collection with zero elements. This line will have no effect on the generated code.', warnings)
         elif size < 0:
-            errors.append(BuildMessage(line, column,
-                                       'Negative number of elements in collection.'))
-        if self._type.size_in_bits() not in [8,16,32,64]:
-            errors.append(BuildMessage(line, column,
-                                       f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection'))
+            self.add_message('Negative number of elements in collection.',errors)
 
     def check_semantics_reference(self, warnings, errors):
         assert type(self._size) is Reference

@@ -42,7 +42,7 @@ class ArithmeticOperator(BinaryOperator, ABC):
         if self._left.return_type() is Float or self._right.return_type() is Float:
             return Float
         else:
-            # if the operand is semantially valid, the operands will both be integers, so the result type will be an
+            # if the operand is semantically valid, the operands will both be integers, so the result type will be an
             # integer as well
             return Integer
 
