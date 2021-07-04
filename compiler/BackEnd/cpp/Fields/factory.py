@@ -14,7 +14,7 @@ from Model.Collection import Collection as ModelCollection
 from Model.Field import Field as ModelField
 
 def create(type_name, field, endianness, settings):
-    if type(field.type()) is ModelInt:
+    if isinstance(field.type(), ModelInt):
         return Integer(type_name,field, endianness, settings)
     elif type(field.type()) is ModelFloat:
         if field.size_in_bits() == 32:

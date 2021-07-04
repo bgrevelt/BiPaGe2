@@ -1,6 +1,7 @@
 from generated.BiPaGeListener import BiPaGeListener
 from generated.BiPaGeParser import BiPaGeParser
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 from Model.Enumeration import Enumeration
 import re
 from Model.ImportedFile import ImportedFile
@@ -59,7 +60,7 @@ class ImportAnalyzer(BiPaGeListener):
     def exitEnumeration(self, ctx: BiPaGeParser.EnumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
         signed = type == 'int'
-        type = Integer(size, signed, ctx.start)
+        type = type = SignedInteger(size, ctx.start) if signed else UnsignedInteger(size, ctx.start)
 
         name = str(ctx.Identifier())
         enumerands = [self.noderesult[e] for e in ctx.enumerand()]
