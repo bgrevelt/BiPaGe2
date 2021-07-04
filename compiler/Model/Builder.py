@@ -6,7 +6,7 @@ from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
 
-from Model.Types import Integer,Float,Reference,Flag
+from Model.Types import SignedInteger, UnsignedInteger,Float,Reference,Flag
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
 
@@ -166,7 +166,7 @@ class Builder(BiPaGeListener):
         if ctx.IntegerType():
             type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
             signed = type == 'int'
-            self.noderesult[ctx] = Integer.Integer(size,signed, ctx.start)
+            self.noderesult[ctx] = SignedInteger.SignedInteger(size, ctx.start) if signed else UnsignedInteger.UnsignedInteger(size, ctx.start)
         elif ctx.FloatingPointType():
             _, size = split_sized_type(str(ctx.FloatingPointType()))
             self.noderesult[ctx] = Float.Float(size, ctx.start)
@@ -200,7 +200,8 @@ class Builder(BiPaGeListener):
     def exitEnumeration(self, ctx:BiPaGeParser.EnumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
         signed = type == 'int'
-        type = Integer.Integer(size,signed, ctx.start)
+
+        type = SignedInteger.SignedInteger(size, ctx.start) if signed else UnsignedInteger.UnsignedInteger(size, ctx.start)
 
         name = str(ctx.Identifier())
         enumerands = [self.noderesult[e] for e in ctx.enumerand()]
@@ -212,7 +213,7 @@ class Builder(BiPaGeListener):
     def exitInline_enumeration(self, ctx:BiPaGeParser.Inline_enumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
         signed = type == 'int'
-        type = Integer.Integer(size, signed, ctx.start)
+        type = SignedInteger.SignedInteger(size, ctx.start) if signed else UnsignedInteger.UnsignedInteger(size, ctx.start)
         enumerands = [self.noderesult[e] for e in ctx.enumerand()]
         enum = Enumeration("", type, enumerands, ctx.start)
         self.noderesult[ctx] = enum

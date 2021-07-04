@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.Expression import Expression
 from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 from Model.Types.Float import Float
 
 class ArithmeticOperator(BinaryOperator, ABC):
@@ -32,19 +33,22 @@ class ArithmeticOperator(BinaryOperator, ABC):
             return
 
         # Operands should be integer or floating point
-        if self._left.return_type() not in [Float, Integer]:
+        if self._left.return_type() not in [Float, SignedInteger, UnsignedInteger]:
             self.add_message(f'Left hand operand ({str(self._left)}) does not resolve to integer or float', errors)
-        if self._right.return_type() not in [Float, Integer]:
+        if self._right.return_type() not in [Float, SignedInteger, UnsignedInteger]:
             self.add_message(f'Right hand operand ({str(self._right)}) does not resolve to integer or float', errors)
 
     def return_type(self):
         # If either one of the operands is a float, the result will be considered a float
         if self._left.return_type() is Float or self._right.return_type() is Float:
             return Float
+        # if the operand is semantically valid, the operands will both be integers
+        elif self._left.return_type() is SignedInteger or self._right.return_type() is SignedInteger:
+            # If one of the two operands is signed, the result will be signed
+            return SignedInteger
         else:
-            # if the operand is semantically valid, the operands will both be integers, so the result type will be an
-            # integer as well
-            return Integer
+            # If both operands are unsigned, the result will be unsigned
+            return UnsignedInteger
 
     @abstractmethod
     def compute(self, left:NumberLiteral, right:NumberLiteral):

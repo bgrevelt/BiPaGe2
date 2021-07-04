@@ -1,5 +1,6 @@
 from Model.Expressions.Expression import Expression
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 
 class NumberLiteral(Expression):
     def __init__(self, number, token = None):
@@ -21,7 +22,10 @@ class NumberLiteral(Expression):
         pass
 
     def return_type(self):
-        return Integer
+        if self._number < 0:
+            return SignedInteger
+        else:
+            return UnsignedInteger
 
     def __str__(self):
         return str(self._number)

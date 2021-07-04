@@ -54,7 +54,10 @@ class Reference(Expression):
     def return_type(self):
         from Model.Field import Field
         if type(self.referenced_type()) is Field:
-            return type(self.referenced_type().type())
+            if type(self.referenced_type().type()) == Reference:
+                return type(self.referenced_type().type().referenced_type())
+            else:
+                return type(self.referenced_type().type())
         else:
             return type(self.referenced_type())
 

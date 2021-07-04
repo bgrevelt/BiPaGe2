@@ -11,13 +11,16 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [])
+        self.checkErrors(errors, [
+            (4,12,'Negative number of elements in collection')
+        ])
 
     def test_simple_arithmetic_expression_invalid_size(self):
         text = '''
         Foo
         {
             field : uint8[5/2];
+            field2 : uint8[5/2]; // Needed so the complete datatype adds up to a complete number of bytes. Otherwise that error is thrown first.
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
@@ -53,9 +56,9 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [
-            (6, 12, "Expression results in signed type."),
-            (7, 12, "Expression results in signed type.")
+        self.checkErrors(warnings, [
+            (6, 12, "Expression sizing collection resolves to signed type."),
+            (7, 12, "Expression sizing collection resolves to signed type.")
         ])
 
     def test_reference_ternary_expressions(self):
@@ -76,7 +79,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
 
     # Comparing an unsigned value to a negative value should raise a warning
     # Both for literals and references
-    def test_reference_ternary_expressions(self):
+    def test_reference_ternary_expressions2(self):
         text = '''
         Foo
         {
@@ -91,12 +94,12 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (6, 12, "Comparing unsigned field to negative value, this will always return false"),
-            (7, 12, "Comparing unsigned field to negative value, this will always return false"),
-            (8, 12, "Comparing unsigned field to negative value, this will always return true"),
-            (9, 12, "Comparing unsigned field to negative value, this will always return true"),
-            (10, 12, "Comparing unsigned field to negative value, this will always return false"),
-            (11, 12, "Comparing unsigned field to negative value, this will always return true")
+            (5, 27, "Comparing unsigned value to a negative literal"),
+            (6, 27, "Comparing unsigned value to a negative literal"),
+            (7, 27, "Comparing unsigned value to a negative literal"),
+            (8, 27, "Comparing unsigned value to a negative literal"),
+            (9, 27, "Comparing unsigned value to a negative literal"),
+            (10, 27, "Comparing unsigned value to a negative literal")
         ])
 
     # Ternary expressions should return the same type for both clauses
@@ -113,26 +116,28 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (8,12,'Clauses have different types')
+            (8,26,'Different types for true (Flag) and false (UnsignedInteger) clause')
         ])
 
     # Ternary can return signed value. This should lead to a warning just like when we directly use a signed value
-    def test_ternary_potential_signed(self):
-        text = '''
-        Foo
-        {
-            {
-                field1 : flag;
-                field2 : u3;
-                field3 : s4;
-            } 
-            field4: uint8[field1 ? field2 : field3];
-        }
-        '''
-        warnings, errors, _ = build_model_test(text, "")
-        self.checkErrors(errors, [
-            (9,12,'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.')
-        ])
+    # Disabled this test for now because we don't allow ternary to return different types. Signed and Unsigned integers
+    # are considered different types. Leaving this in because we may at some point choose to allow mixing of signedness
+    # def test_ternary_potential_signed(self):
+    #     text = '''
+    #     Foo
+    #     {
+    #         {
+    #             field1 : flag;
+    #             field2 : u3;
+    #             field3 : s4;
+    #         }
+    #         field4: uint8[field1 ? field2 : field3];
+    #     }
+    #     '''
+    #     warnings, errors, _ = build_model_test(text, "")
+    #     self.checkErrors(errors, [
+    #         (9,12,'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.')
+    #     ])
 
     def test_arithmetic_non_integer(self):
         text = '''
@@ -263,7 +268,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (12,12,"Cannot compare SomeEnum field against integer literal. Use SomeEnum enumerator instead.")
+            (12,27,"Can't compare Enumeration to UnsignedInteger")
         ])
 
     def test_enum_reference_non_existent_enumerator(self):

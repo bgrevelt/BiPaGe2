@@ -1,7 +1,8 @@
-from Model.Expressions.BinaryOperator import BinaryOperator
+from Model.Expressions.EqualityOperator import EqualityOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.Types.UnsignedInteger import UnsignedInteger
 
-class NotEqualsOperator(BinaryOperator):
+class NotEqualsOperator(EqualityOperator):
     def __init__(self, left, right, token=None):
         super().__init__(left, right, token)
 
@@ -23,12 +24,17 @@ class NotEqualsOperator(BinaryOperator):
     def Equals(self, other):
         return type(other) is NotEqualsOperator and super().Equals(other)
 
-    def check_semantics(self, warnings, errors):
-        # todo
-        pass
-
-    def return_type(self):
-        return bool
+    # def check_semantics(self, warnings, errors):
+    #     #TODO: same as equalsoperator and relationaloperator. We need a common base class
+    #     # Comparing negative values to signed integer does not make sense
+    #     if (self._left.return_type() == UnsignedInteger and type(
+    #             self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
+    #             (self._right.return_type() == UnsignedInteger and type(
+    #                 self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
+    #         self.add_message(f'Comparing unsigned value to a negative literal', errors)
+    #
+    # def return_type(self):
+    #     return bool
 
     def __str__(self):
         return f'({str(self._left)} != {str(self._right)})'

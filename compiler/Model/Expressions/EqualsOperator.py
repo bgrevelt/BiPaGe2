@@ -1,7 +1,7 @@
-from Model.Expressions.BinaryOperator import BinaryOperator
+from Model.Expressions.EqualityOperator import EqualityOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
 
-class EqualsOperator(BinaryOperator):
+class EqualsOperator(EqualityOperator):
     def __init__(self, left, right, token=None):
         super().__init__(left, right, token)
 
@@ -21,13 +21,6 @@ class EqualsOperator(BinaryOperator):
 
     def Equals(self, other):
         return type(other) is EqualsOperator and super().Equals(other)
-
-    def check_semantics(self, warnings, errors):
-        #todo
-       pass
-
-    def return_type(self):
-        return bool
 
     def __str__(self):
         return f'({str(self._left)} == {str(self._right)})'

@@ -2,7 +2,8 @@ from Model.Node import Node
 from Model.BuildMessage import BuildMessage
 from Model.Expressions.NumberLiteral import NumberLiteral
 from Model.Types.Reference import Reference
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 
 class Collection(Node):
     def __init__(self, type, size, token):
@@ -36,7 +37,7 @@ class Collection(Node):
             return
 
         # Size expression should resolve to integer
-        if self._size.return_type() is not Integer:
+        if self._size.return_type() not in [SignedInteger, UnsignedInteger] :
             self.add_message(
                 f'Only integer fields can be used to size a collection. Not {self._size.return_type().__name__}.',
                 errors)
@@ -47,17 +48,17 @@ class Collection(Node):
             self.check_semantics_number_literal(warnings, errors)
         elif type(self._size) is Reference:
             self.check_semantics_reference(warnings, errors)
+        elif self._size.return_type() is SignedInteger:
+            self.add_message('Expression sizing collection resolves to signed type. This could lead to runtime trouble if the actual value is negative.', warnings)
 
     def check_semantics_number_literal(self, warnings, errors):
         evaluated = self._size.evaluate()
         assert type(evaluated) is NumberLiteral
         size = evaluated.value()
-        line, column = self.location()
 
-        if size % 1 != 0:
+        if size % 1 != 0: # floating point literal this can happen when we have a division operator that takes two literals (e.g. 3/2)
             self.add_message(f'Invalid collection size: {size}', errors)
-
-        if size == 0:
+        elif size == 0:
             self.add_message('Collection with zero elements. This line will have no effect on the generated code.', warnings)
         elif size < 0:
             self.add_message('Negative number of elements in collection.',errors)
@@ -68,7 +69,7 @@ class Collection(Node):
         # TODO ugly import to prevent cicular import between Field and Collection
         from Model.Field import Field
         if type(self._size.referenced_type()) is Field:
-            if type(self._size.referenced_type().type()) is Integer and self._size.referenced_type().type().signed():
+            if type(self._size.referenced_type().type()) is SignedInteger:
                 warnings.append(BuildMessage(line, column,
                                              f'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.'))
 

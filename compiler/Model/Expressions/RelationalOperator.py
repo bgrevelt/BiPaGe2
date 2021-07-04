@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from Model.Expressions.Expression import Expression
 from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 
 class RelationalOperator(BinaryOperator, ABC):
     def __init__(self, left:Expression, right:Expression, token=None):
@@ -31,11 +32,17 @@ class RelationalOperator(BinaryOperator, ABC):
         self._right.check_semantics(warnings, errors)
         if len(errors) > previous_error_count:
             return
-        else:
-            if self._left.return_type() != Integer:
-                self.add_message(f'Left hand operand {str(self._left)} does not resolve to integer', errors)
-            if self._right.return_type() != Integer:
-                self.add_message(f'Right hand operand {str(self._left)} does not resolve to integer', errors)
+
+        # Comparing negative values to signed integer does not make sense
+        if (self._left.return_type() == UnsignedInteger and type(self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
+                (self._right.return_type() == UnsignedInteger and type(
+                    self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
+            self.add_message(f'Comparing unsigned value to a negative literal', errors)
+
+        if self._left.return_type() not in [SignedInteger, UnsignedInteger]:
+            self.add_message(f'Left hand operand {str(self._left)} does not resolve to integer', errors)
+        if self._right.return_type() not in [SignedInteger, UnsignedInteger]:
+            self.add_message(f'Right hand operand {str(self._left)} does not resolve to integer', errors)
 
 
     def return_type(self):

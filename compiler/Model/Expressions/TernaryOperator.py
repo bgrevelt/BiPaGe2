@@ -29,8 +29,16 @@ class TernaryOperator(Expression):
             self._false.Equals(other._false)
 
     def check_semantics(self, warnings, errors):
-        #TODO
-       pass
+        self._condition.check_semantics(warnings, errors)
+        self._true.check_semantics(warnings, errors)
+        self._false.check_semantics(warnings, errors)
+        return_type_true = self._true.return_type()
+        return_type_false = self._false.return_type()
+        if return_type_true != return_type_false:
+            self.add_message(
+                f'Different types for true ({return_type_true.__name__}) and false ({return_type_false.__name__}) clause',
+                errors
+            )
 
     def return_type(self):
         return_type_true = self._true.return_type()
