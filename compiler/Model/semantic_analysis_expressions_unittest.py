@@ -300,7 +300,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             (12,27,"Can't compare SomeEnum to UnsignedInteger")
         ])
 
-    @unittest.skip("Does not pass yet")
     def test_enum_reference_non_existent_enumerator(self):
         text = '''
         SomeEnum : u8
@@ -318,7 +317,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (12,12,'Could not resolve reference to SomeEnum.val4')
+            (12,37,'Reference "SomeEnum.val4" cannot be resolved')
         ])
 
     @unittest.skip("Does not pass yet")
@@ -343,7 +342,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             (13,12,"Cannot compare integer field field2 to enumerator")
         ])
 
-    @unittest.skip("Does not pass yet")
     # We don't support using enumerator value as if it were an integer
     def test_enumerator_value_used_as_collection_size(self):
         text = '''
@@ -361,5 +359,5 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (11,12,"Can't use enumerator reference to size a collection")
+            (11,12,"Only integer fields can be used to size a collection. Not SomeEnum")
         ])
