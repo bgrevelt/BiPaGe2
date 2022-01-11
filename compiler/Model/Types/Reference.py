@@ -4,6 +4,12 @@ from ..BuildMessage import BuildMessage
 #TODO: I think we should split this up into a TypeReference and FieldReference class
 # That will safe us a lot of hacks all over the place where we figure out if the referenced type is a field or
 # a type (e.g. Enumeration)
+#TODO: I don't think there is any valid situation in which referenced type is None other than malformed input. I'm not sure if we
+# need to cater to that situation in all of these methods. Maybe we can say that if check_semantics returns false any other
+# method is allowed to throw. But that will only work if other types do not call any of the methods of a reference in
+# their check_semantics method. Note: Field calls size_in_bits in the ctor. Maybe we can evaluate if we can set things
+# up so no methods are called before calling check semantics?! But I'm not really comfortable with those types of
+# prerequisites...
 
 class Reference(Expression):
     def __init__(self, name, referenced_type, token):
