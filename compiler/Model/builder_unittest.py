@@ -1,6 +1,7 @@
 import unittest
 from build_model import build_model_from_text
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 from Model.Types.Float import Float
 
 class BuilderUnittests(unittest.TestCase):
@@ -25,14 +26,14 @@ SomeDataType
         datatype = model.datatypes[0]
 
         self.verify_datatype(datatype, "SomeDataType", [
-            ("field1", Integer(8, True, None), 0),
-            ("field2", Integer(16, True, None), 8),
-            ("field3", Integer(32, True, None), 24),
-            ("field4", Integer(64, True, None), 56),
-            ("field5", Integer(8, False, None), 120),
-            ("field6", Integer(16, False, None), 128),
-            ("field7", Integer(32, False, None), 144),
-            ("field8", Integer(64, False, None), 176),
+            ("field1", SignedInteger(8, None), 0),
+            ("field2", SignedInteger(16, None), 8),
+            ("field3", SignedInteger(32, None), 24),
+            ("field4", SignedInteger(64, None), 56),
+            ("field5", UnsignedInteger(8, None), 120),
+            ("field6", UnsignedInteger(16, None), 128),
+            ("field7", UnsignedInteger(32, None), 144),
+            ("field8", UnsignedInteger(64, None), 176),
             ("field9", Float(32, None), 240),
             ("field10", Float(64, None), 272)
         ])
@@ -60,14 +61,14 @@ SomeDataType
             # Aliases get turned into their counterpart types in the builder so the backend only needs to be worried
             # about those typessou
             self.verify_datatype(datatype, "SomeDataType", [
-                ("field1", Integer(8, True, None), 0),
-                ("field2", Integer(16, True, None), 8),
-                ("field3", Integer(32, True, None), 24),
-                ("field4", Integer(64, True, None), 56),
-                ("field5", Integer(8, False, None), 120),
-                ("field6", Integer(16, False, None), 128),
-                ("field7", Integer(32, False, None), 144),
-                ("field8", Integer(64, False, None), 176),
+                ("field1", SignedInteger(8, None), 0),
+                ("field2", SignedInteger(16, None), 8),
+                ("field3", SignedInteger(32, None), 24),
+                ("field4", SignedInteger(64, None), 56),
+                ("field5", UnsignedInteger(8, None), 120),
+                ("field6", UnsignedInteger(16, None), 128),
+                ("field7", UnsignedInteger(32, None), 144),
+                ("field8", UnsignedInteger(64, None), 176),
                 ("field9", Float(32, None), 240),
                 ("field10", Float(64, None), 272)
             ])
@@ -94,10 +95,10 @@ SomeDataType
 
             # Reserved fields are not part of the model since we don't need to do anything with them in the backend
             self.verify_datatype(datatype, "SomeDataType", [
-                ("field1", Integer(8, True, None), 0),
-                ("field3", Integer(32, True, None), 24),
-                ("field5", Integer(8, False, None), 120),
-                ("field7", Integer(32, False, None), 144),
+                ("field1", SignedInteger(8, None), 0),
+                ("field3", SignedInteger(32, None), 24),
+                ("field5", UnsignedInteger(8, None), 120),
+                ("field7", UnsignedInteger(32, None), 144),
                 ("field9", Float(32, None), 240)
             ])
 
@@ -116,10 +117,10 @@ SomeDataType
             ''', "")
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
-            ('field1', Integer(32, True, None),   0, 32, 0,  0xffffffff),
-            ('field2', Integer(5, True, None),   32, 32, 32, 0x0000001f),
-            ('field3', Integer(20, False, None), 37, 32, 32, 0x01ffffe0),
-            ('field4', Integer(7, True, None),   57, 32, 32, 0xfe000000),
+            ('field1', SignedInteger(32, None),   0, 32, 0,  0xffffffff),
+            ('field2', SignedInteger(5, None),   32, 32, 32, 0x0000001f),
+            ('field3', UnsignedInteger(20, None), 37, 32, 32, 0x01ffffe0),
+            ('field4', SignedInteger(7, None),   57, 32, 32, 0xfe000000),
             ('field5', Float(64, None),          64, 64, 64, 0xffffffffffffffff)
         ])
 
@@ -139,10 +140,10 @@ SomeDataType
             ''', "")
         # name, type, offset, size, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
-            ('field1', Integer(32, True, None),    0, 32, 0,  0xffffffff),
-            ('field2', Integer(5, True, None),    32, 32, 32, 0x0000001f),
-            ('field3', Integer(10, False, None),  40, 32, 32, 0x0003ff00),
-            ('field4', Integer(14, True, None),   50, 32, 32, 0xfffc0000),
+            ('field1', SignedInteger(32, None),    0, 32, 0,  0xffffffff),
+            ('field2', SignedInteger(5, None),    32, 32, 32, 0x0000001f),
+            ('field3', UnsignedInteger(10, None),  40, 32, 32, 0x0003ff00),
+            ('field4', SignedInteger(14, None),   50, 32, 32, 0xfffc0000),
             ('field5', Float(64, None),           64, 64, 64, 0xffffffffffffffff)
         ])
 
@@ -162,10 +163,10 @@ SomeDataType
             ''', "")
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
-            ('field1', Integer(32, True, None),  0, 32,  0, 0xffffffff),
-            ('field2', Integer(5, True, None),  32, 32, 32, 0x0000001f),
-            ('field3', Integer(10, False, None),40, 32, 32, 0x0003ff00),
-            ('field4', Integer(14, True, None), 50, 32, 32, 0xfffc0000),
+            ('field1', SignedInteger(32, None),  0, 32,  0, 0xffffffff),
+            ('field2', SignedInteger(5, None),  32, 32, 32, 0x0000001f),
+            ('field3', UnsignedInteger(10, None),40, 32, 32, 0x0003ff00),
+            ('field4', SignedInteger(14, None), 50, 32, 32, 0xfffc0000),
             ('field5', Float(64, None),         64, 64, 64, 0xffffffffffffffff)
         ])
 
