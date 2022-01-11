@@ -3,14 +3,15 @@ import unittest
 from build_model import build_model_test
 from Model.ImportedFile import ImportedFile
 from Model.Enumeration import Enumeration
-from Model.Types.Integer import Integer
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
 
 
 class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
     # Use an enumeration from an imported file
     def test_external_enum(self):
         imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('ImportedEnum', Integer(8, False, None), [('first', 0), ('second', 1)], None)])]
+            Enumeration('ImportedEnum', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
         text = '''
         Foo
         {
@@ -24,7 +25,7 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
 
     def test_missing_external_enum(self):
         imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('ImportedEnum2', Integer(8, False, None), [('first', 0), ('second', 1)], None)])]
+            Enumeration('ImportedEnum2', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
         text = '''
         Foo
         {
@@ -39,7 +40,7 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
 
     def test_duplicated_type_name(self):
         imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('MyEnum', Integer(8, False, None), [('first', 0), ('second', 1)], None)])]
+            Enumeration('MyEnum', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
         text = '''
         MyEnum : s32
         {
@@ -67,7 +68,7 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
                 enumerations=[
                     Enumeration(
                         name='MyEnum',
-                        base_type=Integer(8, False, None),
+                        base_type=UnsignedInteger(8, None),
                         enumerators=[
                             ('first', 0),
                             ('second', 1)
@@ -105,7 +106,7 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
                 enumerations=[
                     Enumeration(
                         name='MyEnum',
-                        base_type=Integer(8, False, None),
+                        base_type=UnsignedInteger(8, None),
                         enumerators=[
                             ('first', 0),
                             ('second', 1)
