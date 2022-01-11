@@ -25,18 +25,18 @@ class DataType(Node):
         return sum(field.size_in_bits() for field in self._fields if field.size_in_bits() is not None)
 
     def check_semantics(self, warnings, errors):
-        self.check_empty(warnings, errors)
-        self.check_unique_field_names(warnings, errors)
-        self.check_capture_scopes(warnings, errors)
-        self.check_fields(warnings, errors)
-        self.check_size(warnings, errors)
+        self._check_empty(warnings, errors)
+        self._check_unique_field_names(warnings, errors)
+        self._check_capture_scopes(warnings, errors)
+        self._check_fields(warnings, errors)
+        self._check_size(warnings, errors)
 
-    def check_empty(self, warnings, errors):
+    def _check_empty(self, warnings, errors):
         if len(self.fields(include_padding_fields=False)) == 0:
             line, column = self.location()
             warnings.append(BuildMessage(line, column, f'Datatype {self.identifier} has no non-padding fields'))
 
-    def check_unique_field_names(self, warnings, errors):
+    def _check_unique_field_names(self, warnings, errors):
         # check if we don't have muliple fields with the same name
         unique_field_names = {field.name for field in self._fields if field.name is not None}
         for field_name in unique_field_names:
@@ -47,15 +47,15 @@ class DataType(Node):
                     line, column = field.location()
                     errors.append(BuildMessage(line, column, msg))
 
-    def check_capture_scopes(self, warnings, errors):
+    def _check_capture_scopes(self, warnings, errors):
         for capture_scope in self.capture_scopes:
             capture_scope.check_semantics(warnings, errors)
 
-    def check_fields(self, warnings, errors):
+    def _check_fields(self, warnings, errors):
         for field in self._fields:
             field.check_semantics(warnings, errors)
 
-    def check_size(self, warnings, errors):
+    def _check_size(self, warnings, errors):
         if self.size_in_bits() is not None and self.size_in_bits() % 8 != 0:
             line, column = self.location()
             errors.append(BuildMessage(line, column,
