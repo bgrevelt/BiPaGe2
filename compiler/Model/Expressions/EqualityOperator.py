@@ -7,6 +7,9 @@ class EqualityOperator(BinaryOperator):
         super().__init__(left, right, token)
 
     def check_semantics(self, warnings, errors):
+        if super().check_semantics(warnings, errors):
+            return
+
         # Comparing negative values to signed integer does not make sense
         if (self._left.return_type() == UnsignedInteger and type(
                 self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \

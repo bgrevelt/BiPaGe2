@@ -26,12 +26,9 @@ class ArithmeticOperator(BinaryOperator, ABC):
     # and we can only size collections with an integer value, there really is no valid use case for using floating points
     # in an expression
     def check_semantics(self, warnings, errors):
-        initial_error_count = len(errors)
-        self._left.check_semantics(warnings, errors)
-        self._right.check_semantics(warnings, errors)
-        if initial_error_count < len(errors):
+        if super().check_semantics(warnings, errors):
             return
-
+        
         # Operands should be integer or floating point
         if self._left.return_type() not in [Float, SignedInteger, UnsignedInteger]:
             self.add_message(f'Left hand operand ({str(self._left)}) does not resolve to integer or float', errors)

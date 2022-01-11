@@ -25,12 +25,7 @@ class RelationalOperator(BinaryOperator, ABC):
         pass
 
     def check_semantics(self, warnings, errors):
-        # both operands should resolve to boolean values
-        # we can only check that if both operands are semantically valid
-        previous_error_count = len(errors)
-        self._left.check_semantics(warnings, errors)
-        self._right.check_semantics(warnings, errors)
-        if len(errors) > previous_error_count:
+        if super().check_semantics(warnings, errors):
             return
 
         # Comparing negative values to signed integer does not make sense
