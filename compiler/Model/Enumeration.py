@@ -10,6 +10,7 @@ class Enumeration(Node):
         self._name = name
         self._enumerators = enumerators
         self._base_type = base_type
+        self.__name__ = name
 
     def name(self):
         return self._name

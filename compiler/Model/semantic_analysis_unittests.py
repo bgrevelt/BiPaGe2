@@ -478,7 +478,7 @@ SomeDataType
             field1 : uint8[MyEnum];
         }''', "")
         self.checkErrors(errors, [
-            (11,12, 'Only integer fields can be used to size a collection. Not Enumeration')
+            (11,12, 'Only integer fields can be used to size a collection. Not MyEnum')
         ])
 
     def test_type_reference_is_field(self):
@@ -527,7 +527,7 @@ SomeDataType
         self.checkErrors(errors, [
             (17, 12, "Only integer fields can be used to size a collection. Not Float."),
             (18, 12, "Only integer fields can be used to size a collection. Not Float."),
-            (19, 12, "Only integer fields can be used to size a collection. Not Enumeration."),
+            (19, 12, "Only integer fields can be used to size a collection. Not MyEnum."),
             (20, 12, "Only integer fields can be used to size a collection. Not Flag."),
             (21, 12, "Only integer fields can be used to size a collection. Not Collection.")
         ])

@@ -1,5 +1,6 @@
 from compiler.Model.Expressions.Expression import Expression
 from ..BuildMessage import BuildMessage
+from compiler.Model.Enumeration import Enumeration
 
 #TODO: I think we should split this up into a TypeReference and FieldReference class
 # That will safe us a lot of hacks all over the place where we figure out if the referenced type is a field or
@@ -61,11 +62,44 @@ class Reference(Expression):
         from Model.Field import Field
         if type(self.referenced_type()) is Field:
             if type(self.referenced_type().type()) == Reference:
-                return type(self.referenced_type().type().referenced_type())
+                return self.referenced_type().type().return_type()
             else:
                 return type(self.referenced_type().type())
         else:
-            return type(self.referenced_type())
+            return self.referenced_type()
 
     def __str__(self):
         return self._name
+
+
+
+class EnumeratorReference(Expression):
+    def __init__(self, identifier:str, parent:Enumeration, token):
+        super().__init__(token)
+        self._identifier = identifier
+        self._parent = parent
+
+    def identifier(self):
+        return self._identifier
+
+    def parent(self):
+        return self._parent
+
+    def check_semantics(self, warnings, errors):
+        #TODO I'm not sure what to check here
+        return
+
+    def Equals(self, other):
+        if type(other) is not EnumeratorReference:
+            return False
+
+        if self._identifier() != other.identifier():
+            return False
+
+        return self._parent == other.parent()
+
+    def return_type(self):
+        return self._parent
+
+    def evaluate(self):
+        return self

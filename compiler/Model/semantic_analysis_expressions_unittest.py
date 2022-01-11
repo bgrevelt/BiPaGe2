@@ -234,7 +234,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             (7, 12, "Float not allowed as ternary condition")
         ])
 
-    @unittest.skip("Does not pass yet")
     def test_valid_enum_reference(self):
         text = '''
         SomeEnum : u8
@@ -252,6 +251,33 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
+
+    def test_different_enum_reference(self):
+        text = '''
+        SomeEnum : u8
+        {
+            val1 = 1,
+            val2 = 2,
+            val3 = 3
+        }
+        
+        SomeOtherEnum : u8
+        {
+            val1 = 1,
+            val2 = 2,
+            val3 = 3
+        }
+
+        Foo
+        {
+            field1 : SomeEnum;
+            field2 : uint8[field1 == SomeOtherEnum.val2 ? 20 : 40];
+        }
+        '''
+        warnings, errors, _ = build_model_test(text, "")
+        self.checkErrors(errors, [
+            (19, 27, "Can't compare SomeEnum to SomeOtherEnum")
+        ])
 
     # We don't allow treating an enum like an integer
     def test_constant_against_enum_reference(self):
@@ -271,7 +297,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (12,27,"Can't compare Enumeration to UnsignedInteger")
+            (12,27,"Can't compare SomeEnum to UnsignedInteger")
         ])
 
     @unittest.skip("Does not pass yet")

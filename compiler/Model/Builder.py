@@ -7,6 +7,7 @@ from .Definition import Definition
 from .CaptureScope import CaptureScope
 
 from Model.Types import SignedInteger, UnsignedInteger,Float,Reference,Flag
+from Model.Types.Reference import EnumeratorReference
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
 
@@ -59,10 +60,15 @@ class Builder(BiPaGeListener):
         self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
         self._imports = imports
         self._imported_enumerations_by_name = {}
+        self._enumerations_by_enumerator_fully_qualified_name = {}
+
         for imp in imports:
             for enum in imp.enumerations:
-                name = (imp.namespace + "." if imp.namespace else "") + enum.name()
-                self._imported_enumerations_by_name[name] = enum
+                enumeration_name = (imp.namespace + "." if imp.namespace else "") + enum.name()
+                self._imported_enumerations_by_name[enumeration_name] = enum
+                for enumerator_name,_ in enum.enumerators():
+                    enumerator_fully_qualified_name = f'{enumeration_name}.{enumerator_name}'
+                    self._enumerations_by_enumerator_fully_qualified_name[enumerator_fully_qualified_name] = enum
 
         self._enumerations_by_name = {}
 
@@ -177,6 +183,8 @@ class Builder(BiPaGeListener):
         elif ctx.inline_enumeration():
             self.noderesult[ctx] = self.noderesult[ctx.inline_enumeration()]
 
+    def _find_field(self, name):
+        return next((field for field in self._current_datatype_fields if name == field.name), None)
 
     def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
         name = ".".join(str(id) for id in ctx.Identifier())
@@ -185,11 +193,15 @@ class Builder(BiPaGeListener):
             ref = self._enumerations_by_name[name]
         elif name in self._imported_enumerations_by_name:
             ref = self._imported_enumerations_by_name[name]
+        elif self._find_field(name):
+            ref = self._find_field(name)
+
+        if ref is not None:
+            self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
+        elif name in self._enumerations_by_enumerator_fully_qualified_name:
+            self.noderesult[ctx] = EnumeratorReference(name.split('.')[-1], self._enumerations_by_enumerator_fully_qualified_name[name], ctx.start)
         else:
-            for field in self._current_datatype_fields:
-                if field.name == name:
-                    ref = field
-        self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
+            self.noderesult[ctx] = Reference.Reference(name, None, ctx.start)
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
         name = str(ctx.Identifier())
@@ -209,6 +221,8 @@ class Builder(BiPaGeListener):
         enum = Enumeration(name, type, enumerands, ctx.start)
         self.noderesult[ctx] = enum
         self._enumerations_by_name[name] = enum
+        for enumerand_name, _ in enumerands:
+            self._enumerations_by_enumerator_fully_qualified_name[f'{name}.{enumerand_name}'] = enum
 
     def exitInline_enumeration(self, ctx:BiPaGeParser.Inline_enumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
