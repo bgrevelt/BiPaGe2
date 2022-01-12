@@ -1,11 +1,10 @@
-from Model.semantic_analysis_unittests import SemanticAnalysisUnittests
 from build_model import build_model_test
 from Model.ImportedFile import ImportedFile
 from Model.Enumeration import Enumeration
 from Model.types import UnsignedInteger
+from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
 
-
-class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
+class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
     # Use an enumeration from an imported file
     def test_external_enum(self):
         imports = [ImportedFile('import.bp', [], '', [

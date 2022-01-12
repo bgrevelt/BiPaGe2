@@ -3,7 +3,7 @@ from build_model import build_model_from_text
 from Model.Collection import Collection
 
 from Model.expressions import *
-from Model.types import Reference
+from Model.expressions import Reference
 
 class ExpressionUnittests(unittest.TestCase):
     def test_simple_add(self):

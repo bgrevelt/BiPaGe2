@@ -1,8 +1,8 @@
-from Model.semantic_analysis_unittests import SemanticAnalysisUnittests
+from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
 from build_model import build_model_test
-import unittest
 
-class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
+
+class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnitTestCase):
     def test_simple_arithmetic_expression(self):
         text = '''
         Foo
