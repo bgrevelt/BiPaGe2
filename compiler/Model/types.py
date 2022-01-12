@@ -1,8 +1,48 @@
 from .Node import Node
 from abc import ABC, abstractmethod
 
+class Type(Node, ABC):
+    @abstractmethod
+    def size_in_bits(self):
+        pass
 
-class Integer(Node, ABC):
+    @abstractmethod
+    def check_semantics(self, warnings, errors):
+        pass
+
+    @abstractmethod
+    def signed(self):
+        pass
+
+class Flag(Type):
+    def __init__(self, token):
+        super().__init__(token)
+
+    def size_in_bits(self):
+        return 1
+
+    def signed(self):
+        return False
+
+    def check_semantics(self, warnings, errors):
+        pass # Nothing to check. Just a bit
+
+class Float(Type):
+    def __init__(self, size, token):
+        super().__init__(token)
+        self._size = size
+
+    def size_in_bits(self):
+        return self._size
+
+    def signed(self):
+        return True
+
+    def check_semantics(self, warnings, errors):
+       if self._size not in (32, 64):
+           self.add_message(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", errors)
+
+class Integer(Type):
     def __init__(self, size, token):
         super().__init__(token)
         self._size = size
@@ -14,10 +54,6 @@ class Integer(Node, ABC):
         line, column = self.location()
         if self._size < 2 or self._size > 64:
             self.add_message(f'Size ({self.size_in_bits()}) for integer outside supported range [2-64]', errors)
-
-    @abstractmethod
-    def signed(self):
-        pass
 
     @abstractmethod
     def range(self):
@@ -43,33 +79,3 @@ class UnsignedInteger(Integer):
     def range(self):
         return 0, 2**self._size -1
 
-class Flag(Node):
-    def __init__(self, token):
-        super().__init__(token)
-
-    def size_in_bits(self):
-        return 1
-
-    def signed(self):
-        return False
-
-    def range(self):
-        return 0,1
-
-    def check_semantics(self, warnings, errors):
-        pass # Nothing to check. Just a bit
-
-class Float(Node):
-    def __init__(self, size, token):
-        super().__init__(token)
-        self._size = size
-
-    def size_in_bits(self):
-        return self._size
-
-    def signed(self):
-        return True
-
-    def check_semantics(self, warnings, errors):
-       if self._size not in (32, 64):
-           self.add_message(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", errors)
