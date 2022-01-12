@@ -37,6 +37,13 @@ class Enumeration(Node):
         self._check_unique_enumerators(warnings, errors)
         self._check_enumerand_value(warnings, errors)
 
+    def Equals(self, other):
+        return type(other) == Enumeration and \
+    self._name == other.name() and \
+    self._base_type == other._base_type and \
+    len(self.enumerators()) == len(other.enumerators()) and \
+    all(l == r for l,r in zip(self.enumerators(), other.enumerators()))
+
     def _check_unique_enumerators(self, warnings, errors):
         line, column = self.location()
         for name, value in self._enumerators:

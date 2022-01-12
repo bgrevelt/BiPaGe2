@@ -69,16 +69,10 @@ class Reference(Expression):
         self._referenced_type = referenced_type
 
     def size_in_bits(self):
-        if self._referenced_type is not None:
-            return self._referenced_type.size_in_bits()
-        else:
-            return 8
+        return self._referenced_type.size_in_bits()
 
     def signed(self):
-        if self._referenced_type is not None:
-            return self._referenced_type.signed()
-        else:
-            return False
+        return self._referenced_type.signed()
 
     def referenced_type(self):
         return self._referenced_type
@@ -87,29 +81,22 @@ class Reference(Expression):
         return self._name
 
     def check_semantics(self, warnings, errors):
-        if self._referenced_type is None:
-            self.add_message(f'Reference "{self._name}" cannot be resolved', errors)
+        return
 
     def evaluate(self):
         return self
 
+class FieldReference(Reference):
+    def __init__(self, name, referenced_type, token):
+        super().__init__(name, referenced_type, token)
+
     def Equals(self, other):
-        if type(other) is not Reference:
-            return False
-
-        if self.name() != other.name():
-            return False
-
-        if self._referenced_type == None:
-            return other.referenced_type() == None
-        else:
-            #TODO: this will lead to a runtime error as Enumeration does not have an Equals method
-            return self._referenced_type.Equals(other.referenced_type())
+        return type(other) == FieldReference and self._name == other.name() and self._referenced_type.Equals(other.referenced_type())
 
     def return_type(self):
         from Model.Field import Field
         if type(self.referenced_type()) is Field:
-            if type(self.referenced_type().type()) == Reference:
+            if type(self.referenced_type().type()) in [FieldReference, EnumerationReference]:
                 return self.referenced_type().type().return_type()
             else:
                 return type(self.referenced_type().type())
@@ -119,37 +106,53 @@ class Reference(Expression):
     def __str__(self):
         return self._name
 
-
-class EnumeratorReference(Expression):
-    def __init__(self, identifier:str, parent, token):
-        super().__init__(token)
-        self._identifier = identifier
-        self._parent = parent
-
-    def identifier(self):
-        return self._identifier
-
-    def parent(self):
-        return self._parent
-
-    def check_semantics(self, warnings, errors):
-        #TODO I'm not sure what to check here
-        return
+class EnumerationReference(Reference):
+    def __init__(self, name, referenced_type, token):
+        super().__init__(name, referenced_type, token)
 
     def Equals(self, other):
-        if type(other) is not EnumeratorReference:
-            return False
-
-        if self._identifier() != other.identifier():
-            return False
-
-        return self._parent == other.parent()
+        return type(other) is EnumerationReference and self.name() != other.name() and self._referenced_type.Equals(other.referenced_type())
 
     def return_type(self):
-        return self._parent
+        return self.referenced_type()
 
-    def evaluate(self):
-        return self
+
+class EnumeratorReference(Reference):
+    def __init__(self, identifier:str, parent, token):
+        super().__init__(identifier, parent, token)
+
+    def identifier(self):
+        return self._name
+
+    def parent(self):
+        return self._referenced_type
+
+    def Equals(self, other):
+        return type(other) is EnumeratorReference and self._name() == other.identifier() and self._referenced_type == other.parent()
+
+    def return_type(self):
+        return self._referenced_type
+
+# Fake reference we use to put a reference object in the model when we can't figure out what is referenced during parsing
+# That means that the input is not semantically valid, but we still want to create a model
+class NullReference(Reference):
+    def __init__(self, identifier:str, token):
+        super().__init__(identifier, None, token)
+
+    def identifier(self):
+        return self._name
+
+    def check_semantics(self, warnings, errors):
+        self.add_message(f'Reference "{self._name}" cannot be resolved', errors)
+
+    def Equals(self, other):
+        return type(other) == NullReference and self._name == other.identifier()
+
+    def return_type(self):
+        return None
+
+    def size_in_bits(self):
+        return 8
 
 class BinaryOperator(Expression):
     def __init__(self, left:Expression, right:Expression, token):

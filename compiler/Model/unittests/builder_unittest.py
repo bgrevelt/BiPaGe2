@@ -186,7 +186,7 @@ SomeDataType
         self.assertEqual(field.offset_in_capture, offset_in_capture)
         self.assertEqual(field.size_in_bits(), field_type.size_in_bits())
         if encapsulating_type_size is not None:
-            self.assertEqual(field.capture_size, encapsulating_type_size)
+            self.assertEqual(field.capture_size(), encapsulating_type_size)
         if encapsulating_type_offset is not None:
             self.assertEqual(field.static_capture_offset(), encapsulating_type_offset)
         if encapsulating_type_mask is not None:

@@ -2,7 +2,7 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 import math
 from Model.Collection import Collection
-from Model.expressions import Reference
+from Model.expressions import FieldReference, EnumerationReference
 from Model.Enumeration import Enumeration
 
 def _standard_size(size):
@@ -20,10 +20,10 @@ class Field(Node):
         super().__init__(token)
         self.name = name
         self._type = type
-        self.standard_size = _standard_size(self.size_in_bits()) if self.size_in_bits() is not None else None
+        #self.standard_size = _standard_size(self.size_in_bits()) if self.size_in_bits() is not None else None
         # capture size and offset default to type size and offset. If this is non-standard type set_capture will be
         # called to override these values.
-        self.capture_size = self.size_in_bits()
+        self._capture_size = None
         self._static_capture_offset = static_offset
         self._dynamic_capture_offset = dynamic_offset
         self.offset_in_capture = 0
@@ -35,7 +35,7 @@ class Field(Node):
 
         assert field_offset >= static_capture_offset
         self.offset_in_capture =  field_offset - static_capture_offset
-        self.capture_size = capture_size
+        self._capture_size = capture_size
         self._static_capture_offset = static_capture_offset
         self._dynamic_capture_offset = dynamic_capture_offset
 
@@ -58,11 +58,11 @@ class Field(Node):
 
         line, column = self.location()
 
-        if type(self._type) is Reference:
+        if type(self._type) is FieldReference:
             if not any(type(self._type.referenced_type()) is t for t in [Enumeration, type(None)]):
                 errors.append(BuildMessage(line, column,
                                            f'Reference to {type(self._type.referenced_type()).__name__} is not a valid field type. Only reference to enumeration is allowed.'))
-            if type(self._type.referenced_type()) is Enumeration and self.is_padding_field():
+        if type(self._type) is EnumerationReference and self.is_padding_field():
                 warnings.append(BuildMessage(line, column, 'Using enumeration as padding. Is this really what you want?'))
 
         if not type(self._type) is Collection and not self.scoped() and not self.is_standard_size():
@@ -94,3 +94,12 @@ class Field(Node):
 
     def is_padding_field(self):
         return self.name is None
+
+    def capture_size(self):
+        if self._capture_size is None:
+            self._capture_size = self.size_in_bits()
+
+        return self._capture_size
+
+    def standard_size(self):
+        return _standard_size(self.size_in_bits()) if self.size_in_bits() is not None else None

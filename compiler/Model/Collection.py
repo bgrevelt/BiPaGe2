@@ -1,6 +1,6 @@
 from Model.Node import Node
 from Model.BuildMessage import BuildMessage
-from Model.expressions import NumberLiteral, Reference
+from Model.expressions import NumberLiteral, FieldReference
 from Model.types import SignedInteger, UnsignedInteger
 
 class Collection(Node):
@@ -44,7 +44,7 @@ class Collection(Node):
 
         if type(evaluated) is NumberLiteral:
             self.check_semantics_number_literal(warnings, errors)
-        elif type(self._size) is Reference:
+        elif type(self._size) is FieldReference:
             self.check_semantics_reference(warnings, errors)
         elif self._size.return_type() is SignedInteger:
             self.add_message('Expression sizing collection resolves to signed type. This could lead to runtime trouble if the actual value is negative.', warnings)
@@ -62,7 +62,7 @@ class Collection(Node):
             self.add_message('Negative number of elements in collection.',errors)
 
     def check_semantics_reference(self, warnings, errors):
-        assert type(self._size) is Reference
+        assert type(self._size) is FieldReference
         line, column = self.location()
         # TODO ugly import to prevent cicular import between Field and Collection
         from Model.Field import Field

@@ -3,7 +3,6 @@ from build_model import build_model_from_text
 from Model.Collection import Collection
 
 from Model.expressions import *
-from Model.expressions import Reference
 
 class ExpressionUnittests(unittest.TestCase):
     def test_simple_add(self):
@@ -156,7 +155,7 @@ class ExpressionUnittests(unittest.TestCase):
 
     def test_evaluate_complex2(self):
         ex = '5 == 6 ? 12 + 9 /3 : 10*some_field + 5 * 5'
-        r = AddOperator(MultiplyOperator(NumberLiteral(10), Reference('some_field', None, None)), NumberLiteral(25))
+        r = AddOperator(MultiplyOperator(NumberLiteral(10), NullReference('some_field', None)), NumberLiteral(25))
         self._test_evaluate(ex, r)
 
     def _test_evaluate(self, expression, value):

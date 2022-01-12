@@ -7,7 +7,7 @@ class Integer(Integral):
         self._settings = settings
 
     def cpp_type(self):
-        return self.to_cpp_type(self._field.standard_size, self._field.is_signed_type())
+        return self.to_cpp_type(self._field.standard_size(), self._field.is_signed_type())
 
     def default_value(self):
         return '0'

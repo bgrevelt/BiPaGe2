@@ -4,7 +4,7 @@ class Integral(Field):
     def __init__(self, type_name, field, endianness):
         super().__init__(type_name, field, endianness)
         self._scoped = field.scoped()
-        self.capture_type = self._to_cpp_type(field.capture_size, field.is_signed_type())
+        self.capture_type = self._to_cpp_type(field.capture_size(), field.is_signed_type())
 
     def getter_body(self):
         if not self._scoped:
@@ -65,7 +65,7 @@ class Integral(Field):
             r = ""
             mask = 2 ** (self._field.size_in_bits() - 1) - 1  # mask should not include sign bit
             sign_mask = 2 ** (self._field.size_in_bits() - 1)
-            sign_mask_return_type = (2 ** self._field.standard_size - 1) - mask
+            sign_mask_return_type = (2 ** self._field.standard_size() - 1) - mask
 
             r += f'bool negative = ((capture_type & 0x{sign_mask:x}) == 0x{sign_mask:x});\n'
             r += f'capture_type &= 0x{mask:x};\n'
@@ -78,14 +78,14 @@ class Integral(Field):
             return r
 
     def _add_return(self):
-        if self._field.capture_size != self._field.standard_size or self.base_type() is not None:
+        if self._field.capture_size() != self._field.standard_size() or self.base_type() is not None:
             return f'return static_cast<{self.cpp_type()}>(capture_type);'
         else:
             return 'return capture_type;'
 
     def _to_cpp_type(self, size=None, signed=None):
         if size is None:
-            size = self._field.capture_size
+            size = self._field.capture_size()
         if signed is None:
             signed = self._issigned()
         # assert disabled to give semantic analysis a chance to catch this

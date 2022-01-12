@@ -7,7 +7,7 @@ from .Definition import Definition
 from .CaptureScope import CaptureScope
 
 from Model.types import SignedInteger, UnsignedInteger,Float,Flag
-from Model.expressions import EnumeratorReference, Reference
+from Model.expressions import EnumeratorReference, FieldReference, NullReference, EnumerationReference
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
 
@@ -122,7 +122,7 @@ class Builder(BiPaGeListener):
             # Create a reference. This way our model doesn't have to know about the difference between a normal enum
             # and an inline enumeration. Just like with a normal enum, we create an enum definition (using the field
             # name to generate a name for the enum) and we refer to that type by name in the field.
-            reference = Reference(name, enum, ctx.start)
+            reference = EnumerationReference(name, enum, ctx.start)
             self.noderesult[ctx.field_type()] = reference
             field_type = reference
 
@@ -178,20 +178,16 @@ class Builder(BiPaGeListener):
 
     def exitReference(self, ctx:BiPaGeParser.ReferenceContext):
         name = ".".join(str(id) for id in ctx.Identifier())
-        ref = None
         if name in self._enumerations_by_name:
-            ref = self._enumerations_by_name[name]
+            self.noderesult[ctx] = EnumerationReference(name, self._enumerations_by_name[name], ctx.start)
         elif name in self._imported_enumerations_by_name:
-            ref = self._imported_enumerations_by_name[name]
+            self.noderesult[ctx] = EnumerationReference(name, self._imported_enumerations_by_name[name], ctx.start)
         elif self._find_field(name):
-            ref = self._find_field(name)
-
-        if ref is not None:
-            self.noderesult[ctx] = Reference(name, ref, ctx.start)
+            self.noderesult[ctx] = FieldReference(name, self._find_field(name), ctx.start)
         elif name in self._enumerations_by_enumerator_fully_qualified_name:
             self.noderesult[ctx] = EnumeratorReference(name.split('.')[-1], self._enumerations_by_enumerator_fully_qualified_name[name], ctx.start)
         else:
-            self.noderesult[ctx] = Reference(name, None, ctx.start)
+            self.noderesult[ctx] = NullReference(name, ctx.start)
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
         name = str(ctx.Identifier())

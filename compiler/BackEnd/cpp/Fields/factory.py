@@ -6,7 +6,7 @@ from BackEnd.cpp.Fields.Flag import Flag
 from BackEnd.cpp.Fields.Collection import Collection
 
 from Model.types import Integer as ModelInt, Float as ModelFloat, Flag as ModelFlag
-from Model.expressions import Reference as ModelReference
+from Model.expressions import FieldReference as ModelFieldReference, EnumerationReference as ModelEnumRef
 from Model.Enumeration import Enumeration as ModelEnum
 from Model.Collection import Collection as ModelCollection
 from Model.Field import Field as ModelField
@@ -20,11 +20,11 @@ def create(type_name, field, endianness, settings):
         else:
             assert field.size_in_bits() == 64, "unknown size for float type: {}".format(field.size_in_bits)
             return Float64(type_name, field, endianness)
-    elif type(field.type()) is ModelReference:
-        if type(field.type().referenced_type()) is ModelEnum:
-            return EnumReference(type_name, field, endianness, settings)
-        else:
-            assert False, "Unsupported tield type"
+    elif type(field.type()) is ModelEnumRef:
+        return EnumReference(type_name, field, endianness, settings)
+    elif type(field.type()) is ModelFieldReference:
+        if type(field.type().referenced_type()) is not ModelEnum:
+            assert False, "Unsupported field type"
     elif type(field.type()) is ModelFlag:
         return Flag(type_name, field, endianness, settings)
     elif type(field.type()) is ModelCollection:

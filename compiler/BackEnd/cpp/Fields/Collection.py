@@ -1,18 +1,18 @@
 from BackEnd.cpp.Fields.Field import Field
 from Model.Field import Field as ModelField
-from Model.expressions import NumberLiteral as ModelNumber, Reference as ModelRef
+from Model.expressions import NumberLiteral as ModelNumber, FieldReference as ModelFieldRef, EnumerationReference as ModelEnumRef
 from Model.Collection import Collection as ModelCollection
 
 class Collection(Field):
     def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str):
         self._collection_type = cpp_type
-        self._is_enum_collection = type(field.type().type()) is ModelRef
+        self._is_enum_collection = type(field.type().type()) is ModelEnumRef
         super().__init__(type_name, field, endianness)
 
         self._collection_size = self._field.type().collection_size()
         if type(self._collection_size) is ModelNumber:
             self._collection_size = self._collection_size.evaluate()
-        elif type(self._collection_size) is ModelRef:
+        elif type(self._collection_size) is ModelFieldRef:
             self._collection_size = f'static_cast<size_t>({self._collection_size.name()}())'
 
     def getter_body(self):
