@@ -1,4 +1,8 @@
 from Model.Expressions.Expression import Expression
+from Model.Types.SignedInteger import SignedInteger
+from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.Types.Flag import Flag
 
 class TernaryOperator(Expression):
     def __init__(self, condition, true, false, token=None):
@@ -34,7 +38,18 @@ class TernaryOperator(Expression):
         self._false.check_semantics(warnings, errors)
         return_type_true = self._true.return_type()
         return_type_false = self._false.return_type()
-        if return_type_true != return_type_false:
+        return_type_condition = self._condition.return_type()
+
+        if return_type_condition not in [bool, Flag]:
+            self.add_message(
+                f'{return_type_condition.__name__} not allowed as ternary condition',
+                errors)
+
+        # We can mix and match signed integers, unsigned integers, and number literals
+        allowed_mix = return_type_true in [SignedInteger, UnsignedInteger, NumberLiteral] \
+                      and return_type_false in [SignedInteger, UnsignedInteger, NumberLiteral]
+
+        if not allowed_mix and return_type_true != return_type_false:
             self.add_message(
                 f'Different types for true ({return_type_true.__name__}) and false ({return_type_false.__name__}) clause',
                 errors
@@ -43,8 +58,11 @@ class TernaryOperator(Expression):
     def return_type(self):
         return_type_true = self._true.return_type()
         return_type_false = self._false.return_type()
-        assert return_type_true == return_type_false, f'True and false clause have different return types ({return_type_true} and {return_type_false})'
-        return return_type_true
+        if return_type_true == SignedInteger or return_type_false == SignedInteger:
+            return SignedInteger
+        else:
+            assert return_type_true == return_type_false, f'True and false clause have different return types ({return_type_true} and {return_type_false})'
+            return return_type_true
 
     def __str__(self):
         return f'{str(self._condition)} ? {str(self._true)} : {str(self._false)}'

@@ -202,7 +202,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
 
-    @unittest.skip("Does not pass yet")
     def test_valid_flag_reference(self):
         text = '''
         Foo
@@ -216,22 +215,24 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
+        self.checkErrors(warnings, [
+            (8,12,'Expression sizing collection resolves to signed type. This could lead to runtime trouble if the actual value is negative.')
+        ])
 
-    @unittest.skip("Does not pass yet")
     def test_invalid_flag_reference(self):
         text = '''
         Foo
         {
             field1 : u16;
             field2 : f32;
-            field3 : uint8[field1 ? field2 : 0];
+            field3 : uint8[field1 ? 5 : 0];
             field4 : uint8[field2 ? 8 : 0];
         }
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (6,12,"Integer not allowed as ternary condition"),
-            (7, 12, "Float not allowed as ternary condition")
+            (6,27,"UnsignedInteger not allowed as ternary condition"),
+            (7, 27, "Float not allowed as ternary condition")
         ])
 
     def test_valid_enum_reference(self):
@@ -320,7 +321,6 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
             (12,37,'Reference "SomeEnum.val4" cannot be resolved')
         ])
 
-    @unittest.skip("Does not pass yet")
     def test_enumerator_reference_for_non_enum_field(self):
         text = '''
         SomeEnum : u8
@@ -339,7 +339,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnittests):
         '''
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [
-            (13,12,"Cannot compare integer field field2 to enumerator")
+            (13,27,"Can't compare SignedInteger to SomeEnum")
         ])
 
     # We don't support using enumerator value as if it were an integer
