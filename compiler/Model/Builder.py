@@ -6,8 +6,7 @@ from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
 
-from Model.Types import SignedInteger, UnsignedInteger,Float,Reference,Flag
-from Model.Types.Reference import EnumeratorReference
+from Model.types import EnumeratorReference,SignedInteger, UnsignedInteger,Float,Reference,Flag
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
 
@@ -59,6 +58,7 @@ class Builder(BiPaGeListener):
         self.noderesult = {}
         self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
         self._imports = imports
+        #todo: Do we need this? Can't we use _enumerations_by_name for both local and imported enumerations?
         self._imported_enumerations_by_name = {}
         self._enumerations_by_enumerator_fully_qualified_name = {}
 
@@ -132,7 +132,7 @@ class Builder(BiPaGeListener):
             # Create a reference. This way our model doesn't have to know about the difference between a normal enum
             # and an inline enumeration. Just like with a normal enum, we create an enum definition (using the field
             # name to generate a name for the enum) and we refer to that type by name in the field.
-            reference = Reference.Reference(name, enum, ctx.start)
+            reference = Reference(name, enum, ctx.start)
             self.noderesult[ctx.field_type()] = reference
             field_type = reference
 
@@ -172,14 +172,14 @@ class Builder(BiPaGeListener):
         if ctx.IntegerType():
             type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
             signed = type == 'int'
-            self.noderesult[ctx] = SignedInteger.SignedInteger(size, ctx.start) if signed else UnsignedInteger.UnsignedInteger(size, ctx.start)
+            self.noderesult[ctx] = SignedInteger(size, ctx.start) if signed else UnsignedInteger(size, ctx.start)
         elif ctx.FloatingPointType():
             _, size = split_sized_type(str(ctx.FloatingPointType()))
-            self.noderesult[ctx] = Float.Float(size, ctx.start)
+            self.noderesult[ctx] = Float(size, ctx.start)
         elif ctx.reference():
             self.noderesult[ctx] = self.noderesult[ctx.reference()]
         elif ctx.FlagType():
-            self.noderesult[ctx] = Flag.Flag(ctx.start)
+            self.noderesult[ctx] = Flag(ctx.start)
         elif ctx.inline_enumeration():
             self.noderesult[ctx] = self.noderesult[ctx.inline_enumeration()]
 
@@ -197,11 +197,11 @@ class Builder(BiPaGeListener):
             ref = self._find_field(name)
 
         if ref is not None:
-            self.noderesult[ctx] = Reference.Reference(name, ref, ctx.start)
+            self.noderesult[ctx] = Reference(name, ref, ctx.start)
         elif name in self._enumerations_by_enumerator_fully_qualified_name:
             self.noderesult[ctx] = EnumeratorReference(name.split('.')[-1], self._enumerations_by_enumerator_fully_qualified_name[name], ctx.start)
         else:
-            self.noderesult[ctx] = Reference.Reference(name, None, ctx.start)
+            self.noderesult[ctx] = Reference(name, None, ctx.start)
 
     def exitEnumerand(self, ctx:BiPaGeParser.EnumerandContext):
         name = str(ctx.Identifier())
@@ -213,7 +213,7 @@ class Builder(BiPaGeListener):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
         signed = type == 'int'
 
-        type = SignedInteger.SignedInteger(size, ctx.start) if signed else UnsignedInteger.UnsignedInteger(size, ctx.start)
+        type = SignedInteger(size, ctx.start) if signed else UnsignedInteger(size, ctx.start)
 
         name = str(ctx.Identifier())
         enumerands = [self.noderesult[e] for e in ctx.enumerand()]
@@ -227,7 +227,7 @@ class Builder(BiPaGeListener):
     def exitInline_enumeration(self, ctx:BiPaGeParser.Inline_enumerationContext):
         type, size = split_sized_type(remove_aliases(str(ctx.IntegerType())))
         signed = type == 'int'
-        type = SignedInteger.SignedInteger(size, ctx.start) if signed else UnsignedInteger.UnsignedInteger(size, ctx.start)
+        type = SignedInteger(size, ctx.start) if signed else UnsignedInteger(size, ctx.start)
         enumerands = [self.noderesult[e] for e in ctx.enumerand()]
         enum = Enumeration("", type, enumerands, ctx.start)
         self.noderesult[ctx] = enum

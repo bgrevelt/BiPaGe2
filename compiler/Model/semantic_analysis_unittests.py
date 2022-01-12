@@ -1,8 +1,5 @@
 import unittest
-from build_model import build_model_from_text, build_model_test
-from Model.ImportedFile import ImportedFile
-from Model.Enumeration import Enumeration
-from Model.Types.Integer import Integer
+from build_model import build_model_from_text
 
 class SemanticAnalysisUnittests(unittest.TestCase):
     def test_duplicate_field_name(self):

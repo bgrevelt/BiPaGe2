@@ -5,11 +5,8 @@ from BackEnd.cpp.Fields.EnumReference import EnumReference
 from BackEnd.cpp.Fields.Flag import Flag
 from BackEnd.cpp.Fields.Collection import Collection
 
-from Model.Types.Integer import Integer as ModelInt
-from Model.Types.Float import Float as ModelFloat
-from Model.Types.Reference import Reference as ModelReference
+from Model.types import Integer as ModelInt, Float as ModelFloat, Flag as ModelFlag, Reference as ModelReference
 from Model.Enumeration import Enumeration as ModelEnum
-from Model.Types.Flag import Flag as ModelFlag
 from Model.Collection import Collection as ModelCollection
 from Model.Field import Field as ModelField
 

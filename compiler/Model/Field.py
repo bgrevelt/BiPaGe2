@@ -2,7 +2,7 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 import math
 from Model.Collection import Collection
-from Model.Types.Reference import Reference
+from Model.types import Reference
 from Model.Enumeration import Enumeration
 
 def _standard_size(size):

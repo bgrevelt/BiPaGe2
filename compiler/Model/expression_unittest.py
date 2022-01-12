@@ -15,7 +15,7 @@ from Model.Expressions.MultiplyOperator import MultiplyOperator
 from Model.Expressions.NotEqualsOperator import NotEqualsOperator
 from Model.Expressions.SubstractOperator import SubtractOperator
 from Model.Expressions.TernaryOperator import TernaryOperator
-from Model.Types.Reference import Reference
+from Model.types import Reference
 
 class ExpressionUnittests(unittest.TestCase):
     def test_simple_add(self):

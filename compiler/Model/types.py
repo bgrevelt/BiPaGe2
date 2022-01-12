@@ -1,6 +1,82 @@
+from .Node import Node
+from abc import ABC, abstractmethod
 from compiler.Model.Expressions.Expression import Expression
-from ..BuildMessage import BuildMessage
-from compiler.Model.Enumeration import Enumeration
+
+
+class Integer(Node, ABC):
+    def __init__(self, size, token):
+        super().__init__(token)
+        self._size = size
+
+    def size_in_bits(self):
+        return self._size
+
+    def check_semantics(self, warnings, errors):
+        line, column = self.location()
+        if self._size < 2 or self._size > 64:
+            self.add_message(f'Size ({self.size_in_bits()}) for integer outside supported range [2-64]', errors)
+
+    @abstractmethod
+    def signed(self):
+        pass
+
+    @abstractmethod
+    def range(self):
+        pass
+
+class SignedInteger(Integer):
+    def __init__(self, size, token):
+        super().__init__(size, token)
+
+    def signed(self):
+        return True
+
+    def range(self):
+        return -1 * (2**self._size // 2), 2**self._size // 2 -1
+
+class UnsignedInteger(Integer):
+    def __init__(self, size, token):
+        super().__init__(size, token)
+
+    def signed(self):
+        return False
+
+    def range(self):
+        return 0, 2**self._size -1
+
+class Flag(Node):
+    def __init__(self, token):
+        super().__init__(token)
+
+    def size_in_bits(self):
+        return 1
+
+    def signed(self):
+        return False
+
+    def range(self):
+        return 0,1
+
+    def check_semantics(self, warnings, errors):
+        pass # Nothing to check. Just a bit
+
+class Float(Node):
+    def __init__(self, size, token):
+        super().__init__(token)
+        self._size = size
+
+    def size_in_bits(self):
+        return self._size
+
+    def signed(self):
+        return True
+
+    def check_semantics(self, warnings, errors):
+       if self._size not in (32, 64):
+           self.add_message(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", errors)
+
+
+
 
 #TODO: I think we should split this up into a TypeReference and FieldReference class
 # That will safe us a lot of hacks all over the place where we figure out if the referenced type is a field or
@@ -37,10 +113,8 @@ class Reference(Expression):
         return self._name
 
     def check_semantics(self, warnings, errors):
-        line, column = self.location()
         if self._referenced_type is None:
-            errors.append(BuildMessage(line, column,
-                                       f'Reference "{self._name}" cannot be resolved'))
+            self.add_message(f'Reference "{self._name}" cannot be resolved', errors)
 
     def evaluate(self):
         return self
@@ -74,7 +148,7 @@ class Reference(Expression):
 
 
 class EnumeratorReference(Expression):
-    def __init__(self, identifier:str, parent:Enumeration, token):
+    def __init__(self, identifier:str, parent, token):
         super().__init__(token)
         self._identifier = identifier
         self._parent = parent

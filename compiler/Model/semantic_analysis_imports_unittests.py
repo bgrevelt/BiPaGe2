@@ -1,10 +1,8 @@
 from Model.semantic_analysis_unittests import SemanticAnalysisUnittests
-import unittest
 from build_model import build_model_test
 from Model.ImportedFile import ImportedFile
 from Model.Enumeration import Enumeration
-from Model.Types.SignedInteger import SignedInteger
-from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.types import UnsignedInteger
 
 
 class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):

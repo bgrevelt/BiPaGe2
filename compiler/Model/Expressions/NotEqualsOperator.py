@@ -1,6 +1,5 @@
 from Model.Expressions.EqualityOperator import EqualityOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Types.UnsignedInteger import UnsignedInteger
 
 class NotEqualsOperator(EqualityOperator):
     def __init__(self, left, right, token=None):

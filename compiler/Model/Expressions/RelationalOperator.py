@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from Model.Expressions.Expression import Expression
 from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Types.SignedInteger import SignedInteger
-from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.types import SignedInteger, UnsignedInteger
 
 class RelationalOperator(BinaryOperator, ABC):
     def __init__(self, left:Expression, right:Expression, token=None):

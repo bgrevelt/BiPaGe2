@@ -1,8 +1,6 @@
 from Model.Expressions.Expression import Expression
-from Model.Types.SignedInteger import SignedInteger
-from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.types import SignedInteger, UnsignedInteger, Flag
 from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Types.Flag import Flag
 
 class TernaryOperator(Expression):
     def __init__(self, condition, true, false, token=None):

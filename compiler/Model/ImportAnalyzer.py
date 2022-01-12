@@ -1,7 +1,6 @@
 from generated.BiPaGeListener import BiPaGeListener
 from generated.BiPaGeParser import BiPaGeParser
-from Model.Types.SignedInteger import SignedInteger
-from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.types import SignedInteger, UnsignedInteger
 from Model.Enumeration import Enumeration
 import re
 from Model.ImportedFile import ImportedFile

@@ -1,6 +1,5 @@
 from Model.Expressions.Expression import Expression
-from Model.Types.SignedInteger import SignedInteger
-from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.types import SignedInteger, UnsignedInteger
 
 class NumberLiteral(Expression):
     def __init__(self, number, token = None):

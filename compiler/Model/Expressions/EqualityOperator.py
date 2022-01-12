@@ -1,6 +1,6 @@
 from Model.Expressions.BinaryOperator import BinaryOperator
 from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Types.UnsignedInteger import UnsignedInteger
+from Model.types import UnsignedInteger
 
 class EqualityOperator(BinaryOperator):
     def __init__(self, left, right, token=None):
