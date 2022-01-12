@@ -1,7 +1,7 @@
 from Model.Node import Node
 from Model.BuildMessage import BuildMessage
-from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.types import SignedInteger, UnsignedInteger, Reference
+from Model.expressions import NumberLiteral, Reference
+from Model.types import SignedInteger, UnsignedInteger
 
 class Collection(Node):
     def __init__(self, type, size, token):

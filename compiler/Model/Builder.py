@@ -6,22 +6,12 @@ from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
 
-from Model.types import EnumeratorReference,SignedInteger, UnsignedInteger,Float,Reference,Flag
+from Model.types import SignedInteger, UnsignedInteger,Float,Flag
+from Model.expressions import EnumeratorReference, Reference
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
 
-from Model.Expressions.NumberLiteral import NumberLiteral
-from Model.Expressions.AddOperator import AddOperator
-from Model.Expressions.DivisionOperator import DivisionOperator
-from Model.Expressions.EqualsOperator import EqualsOperator
-from Model.Expressions.GreaterThanEqualOperator import GreaterThanEqualOperator
-from Model.Expressions.GreaterThanOperator import GreaterThanOperator
-from Model.Expressions.LessThanEqualOperator import LessThanEqualOperator
-from Model.Expressions.LessThanOperator import LessThanOperator
-from Model.Expressions.MultiplyOperator import MultiplyOperator
-from Model.Expressions.NotEqualsOperator import NotEqualsOperator
-from Model.Expressions.SubstractOperator import SubtractOperator
-from Model.Expressions.TernaryOperator import TernaryOperator
+from Model.expressions import *
 
 import os
 import re

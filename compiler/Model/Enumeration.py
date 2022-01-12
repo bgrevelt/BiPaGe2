@@ -2,7 +2,7 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 from typing import List, Tuple
 import math
-from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.expressions import NumberLiteral
 
 class Enumeration(Node):
     def __init__(self, name:str, base_type, enumerators:List[Tuple[str,int]], token):

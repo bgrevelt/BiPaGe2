@@ -1,0 +1,512 @@
+from abc import ABC, abstractmethod
+from Model.types import SignedInteger, UnsignedInteger, Float
+from Model.Node import Node
+
+class Expression(Node, ABC):
+    def __init__(self, token):
+        super().__init__(token)
+
+    @abstractmethod
+    def check_semantics(self, warnings, errors):
+       pass
+
+    @abstractmethod
+    def return_type(self):
+        pass
+
+    @abstractmethod
+    def evaluate(self):
+        pass
+
+    # Used for testing. Test if the expression matches other
+    @abstractmethod
+    def Equals(self, other):
+        pass
+
+class NumberLiteral(Expression):
+    def __init__(self, number, token = None):
+        super().__init__(token)
+        self._number = number
+
+    def evaluate(self):
+        # nothing to evaluate, we're just a number literal
+        return self
+
+    def value(self):
+        return self._number
+
+    def Equals(self, other):
+        return type(other) is NumberLiteral and other._number == self._number
+
+    def check_semantics(self, warnings, errors):
+        #Nothing to check for a number literal
+        pass
+
+    def return_type(self):
+        if self._number < 0:
+            return SignedInteger
+        else:
+            return UnsignedInteger
+
+    def __str__(self):
+        return str(self._number)
+
+
+#TODO: I think we should split this up into a TypeReference and FieldReference class
+# That will safe us a lot of hacks all over the place where we figure out if the referenced type is a field or
+# a type (e.g. Enumeration)
+#TODO: I don't think there is any valid situation in which referenced type is None other than malformed input. I'm not sure if we
+# need to cater to that situation in all of these methods. Maybe we can say that if check_semantics returns false any other
+# method is allowed to throw. But that will only work if other types do not call any of the methods of a reference in
+# their check_semantics method. Note: Field calls size_in_bits in the ctor. Maybe we can evaluate if we can set things
+# up so no methods are called before calling check semantics?! But I'm not really comfortable with those types of
+# prerequisites...
+
+class Reference(Expression):
+    def __init__(self, name, referenced_type, token):
+        super().__init__(token)
+        self._name = name
+        self._referenced_type = referenced_type
+
+    def size_in_bits(self):
+        if self._referenced_type is not None:
+            return self._referenced_type.size_in_bits()
+        else:
+            return 8
+
+    def signed(self):
+        if self._referenced_type is not None:
+            return self._referenced_type.signed()
+        else:
+            return False
+
+    def referenced_type(self):
+        return self._referenced_type
+
+    def name(self):
+        return self._name
+
+    def check_semantics(self, warnings, errors):
+        if self._referenced_type is None:
+            self.add_message(f'Reference "{self._name}" cannot be resolved', errors)
+
+    def evaluate(self):
+        return self
+
+    def Equals(self, other):
+        if type(other) is not Reference:
+            return False
+
+        if self.name() != other.name():
+            return False
+
+        if self._referenced_type == None:
+            return other.referenced_type() == None
+        else:
+            #TODO: this will lead to a runtime error as Enumeration does not have an Equals method
+            return self._referenced_type.Equals(other.referenced_type())
+
+    def return_type(self):
+        from Model.Field import Field
+        if type(self.referenced_type()) is Field:
+            if type(self.referenced_type().type()) == Reference:
+                return self.referenced_type().type().return_type()
+            else:
+                return type(self.referenced_type().type())
+        else:
+            return self.referenced_type()
+
+    def __str__(self):
+        return self._name
+
+
+class EnumeratorReference(Expression):
+    def __init__(self, identifier:str, parent, token):
+        super().__init__(token)
+        self._identifier = identifier
+        self._parent = parent
+
+    def identifier(self):
+        return self._identifier
+
+    def parent(self):
+        return self._parent
+
+    def check_semantics(self, warnings, errors):
+        #TODO I'm not sure what to check here
+        return
+
+    def Equals(self, other):
+        if type(other) is not EnumeratorReference:
+            return False
+
+        if self._identifier() != other.identifier():
+            return False
+
+        return self._parent == other.parent()
+
+    def return_type(self):
+        return self._parent
+
+    def evaluate(self):
+        return self
+
+class BinaryOperator(Expression):
+    def __init__(self, left:Expression, right:Expression, token):
+        super().__init__(token)
+        self._left = left
+        self._right = right
+        self._evaluated_left = self._left.evaluate()
+        self._evaluated_right = self._right.evaluate()
+
+    def Equals(self, other):
+        if not isinstance(other, BinaryOperator):
+            return False
+
+        return self._left.Equals(other._left) and self._right.Equals(other._right)
+
+    def check_semantics(self, warnings, errors):
+        inital_error_count = len(errors)
+        self._left.check_semantics(warnings, errors)
+        self._right.check_semantics(warnings, errors)
+        return len(errors) > inital_error_count
+
+class RelationalOperator(BinaryOperator, ABC):
+    def __init__(self, left:Expression, right:Expression, token=None):
+        super().__init__(left, right, token)
+
+    def evaluate(self):
+        evaluated_left = self._left.evaluate()
+        evaluated_right = self._right.evaluate()
+        if type(evaluated_left) is not NumberLiteral or type(evaluated_right) is not NumberLiteral:
+            # If both operands are number literals, we can compute the result of the relational operation
+            # If not, one of the operands may (indirectly) contain a reference. In that case, we cannot evaluate
+            # the value until run time.
+            return self
+        else:
+            return self.compute(evaluated_left, evaluated_right)
+
+    @abstractmethod
+    def compute(self, left:NumberLiteral, right:NumberLiteral) -> bool:
+        pass
+
+    def check_semantics(self, warnings, errors):
+        if super().check_semantics(warnings, errors):
+            return
+
+        # Comparing negative values to signed integer does not make sense
+        if (self._left.return_type() == UnsignedInteger and type(self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
+                (self._right.return_type() == UnsignedInteger and type(
+                    self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
+            self.add_message(f'Comparing unsigned value to a negative literal', errors)
+
+        if self._left.return_type() not in [SignedInteger, UnsignedInteger]:
+            self.add_message(f'Left hand operand {str(self._left)} does not resolve to integer', errors)
+        if self._right.return_type() not in [SignedInteger, UnsignedInteger]:
+            self.add_message(f'Right hand operand {str(self._left)} does not resolve to integer', errors)
+
+
+    def return_type(self):
+        # Relational operators always return booleans
+        return bool
+
+class EqualityOperator(BinaryOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def check_semantics(self, warnings, errors):
+        if super().check_semantics(warnings, errors):
+            return
+
+        # Comparing negative values to signed integer does not make sense
+        if (self._left.return_type() == UnsignedInteger and type(
+                self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
+                (self._right.return_type() == UnsignedInteger and type(
+                    self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
+            self.add_message(f'Comparing unsigned value to a negative literal', errors)
+
+        elif self._left.return_type() != self._right.return_type():
+            self.add_message(f"Can't compare {self._left.return_type().__name__} to {self._right.return_type().__name__}", errors)
+
+    def return_type(self):
+        return bool
+
+class ArithmeticOperator(BinaryOperator, ABC):
+    def __init__(self, left: Expression, right: Expression, token):
+        super().__init__(left, right, token)
+
+    def evaluate(self):
+        if type(self._evaluated_left) is not NumberLiteral or type(self._evaluated_right) is not NumberLiteral:
+            # If both operands are number literals, we can compute the number literal this operator will return
+            # If not, one of the operands may (indirectly) contain a reference. In that case, we cannot evaluate
+            # the value until run time.
+            self._left = self._evaluated_left
+            self._right = self._evaluated_right
+            return self
+        else:
+            return NumberLiteral(self.compute(self._evaluated_left, self._evaluated_right), self._token)
+
+    # Arithmetic expressions can only be applied to integer and/or floating point operands. Note that we support
+    # floats in the operand because it is mathematically valid, but since we can only use expressions to size collections
+    # and we can only size collections with an integer value, there really is no valid use case for using floating points
+    # in an expression
+    def check_semantics(self, warnings, errors):
+        if super().check_semantics(warnings, errors):
+            return
+
+        # Operands should be integer or floating point
+        if self._left.return_type() not in [Float, SignedInteger, UnsignedInteger]:
+            self.add_message(f'Left hand operand ({str(self._left)}) does not resolve to integer or float', errors)
+        if self._right.return_type() not in [Float, SignedInteger, UnsignedInteger]:
+            self.add_message(f'Right hand operand ({str(self._right)}) does not resolve to integer or float', errors)
+
+    def return_type(self):
+        # If either one of the operands is a float, the result will be considered a float
+        if self._left.return_type() is Float or self._right.return_type() is Float:
+            return Float
+        # if the operand is semantically valid, the operands will both be integers
+        elif self._left.return_type() is SignedInteger or self._right.return_type() is SignedInteger:
+            # If one of the two operands is signed, the result will be signed
+            return SignedInteger
+        else:
+            # If both operands are unsigned, the result will be unsigned
+            return UnsignedInteger
+
+    @abstractmethod
+    def compute(self, left: NumberLiteral, right: NumberLiteral):
+        pass
+
+class AddOperator(ArithmeticOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is AddOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() + right.value()
+
+
+    def __str__(self):
+        return f'({str(self._left)} + {str(self._right)})'
+
+class DivisionOperator(ArithmeticOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is DivisionOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() / right.value()
+
+    def check_semantics(self, warnings, errors):
+        super().check_semantics(warnings, errors)
+        self.add_message(f'Division operator {self.__str__()} may have in non-integer result. It depends on the target language how those results are handled.', warnings)
+
+    def __str__(self):
+        return f'({str(self._left)} / {str(self._right)})'
+
+class EqualsOperator(EqualityOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def evaluate(self):
+        if type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral:
+            # both operands are number literals. We can resolve this
+            return self._evaluated_left.Equals(self._evaluated_right)
+
+        if type(self._evaluated_left) is bool and type(self._evaluated_right) is bool:
+            # both operands are booleans. We can resolve this
+            return self._evaluated_left.Equals(self._evaluated_right)
+
+        # There are theoretically cases we could resolve as well. For example
+        # some_field + 1 == 1 + some_field will always be true
+        # but we'll just leave the tough stuff up to the compiler/interpreter for the output language
+        return self
+
+    def Equals(self, other):
+        return type(other) is EqualsOperator and super().Equals(other)
+
+    def __str__(self):
+        return f'({str(self._left)} == {str(self._right)})'
+
+class GreaterThanEqualOperator(RelationalOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is GreaterThanEqualOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() >= right.value()
+
+    def __str__(self):
+        return f'({str(self._left)} >= {str(self._right)})'
+
+class GreaterThanOperator(RelationalOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is GreaterThanOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() > right.value()
+
+    def __str__(self):
+        return f'({str(self._left)} >= {str(self._right)})'
+
+class LessThanEqualOperator(RelationalOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is LessThanEqualOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() <= right.value()
+
+    def __str__(self):
+        return f'({str(self._left)} <= {str(self._right)})'
+
+class LessThanOperator(RelationalOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is LessThanOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() < right.value()
+
+    def __str__(self):
+        return f'({str(self._left)} < {str(self._right)})'
+
+class MultiplyOperator(ArithmeticOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is MultiplyOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() * right.value()
+
+    def __str__(self):
+        return f'({str(self._left)} * {str(self._right)})'
+
+class NotEqualsOperator(EqualityOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    #todo: This is more or less a duplicate of the EqualsOperator
+    def evaluate(self):
+        if type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral:
+            # both operands are number literals. We can resolve this
+            return not self._evaluated_left.Equals(self._evaluated_right)
+
+        if type(self._evaluated_left) is bool and type(self._evaluated_right) is bool:
+            # both operands are booleans. We can resolve this
+            return not self._evaluated_left.Equals(self._evaluated_right)
+
+        # There are theoretically cases we could resolve as well. For example
+        # some_field + 1 == 1 + some_field will always be true
+        # but we'll just leave the tough stuff up to the compiler/interpreter for the output language
+        return self
+
+    def Equals(self, other):
+        return type(other) is NotEqualsOperator and super().Equals(other)
+
+    # def check_semantics(self, warnings, errors):
+    #     #TODO: same as equalsoperator and relationaloperator. We need a common base class
+    #     # Comparing negative values to signed integer does not make sense
+    #     if (self._left.return_type() == UnsignedInteger and type(
+    #             self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
+    #             (self._right.return_type() == UnsignedInteger and type(
+    #                 self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
+    #         self.add_message(f'Comparing unsigned value to a negative literal', errors)
+    #
+    # def return_type(self):
+    #     return bool
+
+    def __str__(self):
+        return f'({str(self._left)} != {str(self._right)})'
+
+
+class SubtractOperator(ArithmeticOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def Equals(self, other):
+        return type(other) is SubtractOperator and super().Equals(other)
+
+    def compute(self, left:NumberLiteral, right:NumberLiteral):
+        return left.value() - right.value()
+
+    def __str__(self):
+        return f'({str(self._left)} - {str(self._right)})'
+
+class TernaryOperator(Expression):
+    def __init__(self, condition, true, false, token=None):
+        super().__init__(token)
+        self._condition = condition
+        self._true = true
+        self._false = false
+
+    def evaluate(self):
+        evaluated_condition = self._condition.evaluate()
+        evaluated_true = self._true.evaluate()
+        evaluated_false = self._false.evaluate()
+
+        if type(evaluated_condition) is bool:
+            # if the condition can be 'compile time' evaluated to a boolean, we can evaluate the operator to just the
+            # evaluated true or false clause
+            return evaluated_true if evaluated_condition else evaluated_false
+        else:
+            # if not, we can't 'evaluate away' the ternary operator itself, but maybe we can simplify the clauses
+            self._true = evaluated_true
+            self._false = evaluated_false
+            return self
+
+    def Equals(self, other):
+        return type(other) is TernaryOperator and \
+            self._condition.Equals(other._condition) and \
+            self._true.Equals(other._true) and \
+            self._false.Equals(other._false)
+
+    def check_semantics(self, warnings, errors):
+        self._condition.check_semantics(warnings, errors)
+        self._true.check_semantics(warnings, errors)
+        self._false.check_semantics(warnings, errors)
+        return_type_true = self._true.return_type()
+        return_type_false = self._false.return_type()
+        return_type_condition = self._condition.return_type()
+
+        from Model.types import Flag
+        if return_type_condition not in [bool, Flag]:
+            self.add_message(
+                f'{return_type_condition.__name__} not allowed as ternary condition',
+                errors)
+
+        # We can mix and match signed integers, unsigned integers, and number literals
+        allowed_mix = return_type_true in [SignedInteger, UnsignedInteger, NumberLiteral] \
+                      and return_type_false in [SignedInteger, UnsignedInteger, NumberLiteral]
+
+        if not allowed_mix and return_type_true != return_type_false:
+            self.add_message(
+                f'Different types for true ({return_type_true.__name__}) and false ({return_type_false.__name__}) clause',
+                errors
+            )
+
+    def return_type(self):
+        return_type_true = self._true.return_type()
+        return_type_false = self._false.return_type()
+        if return_type_true == SignedInteger or return_type_false == SignedInteger:
+            return SignedInteger
+        else:
+            assert return_type_true == return_type_false, f'True and false clause have different return types ({return_type_true} and {return_type_false})'
+            return return_type_true
+
+    def __str__(self):
+        return f'{str(self._condition)} ? {str(self._true)} : {str(self._false)}'

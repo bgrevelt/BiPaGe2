@@ -1,7 +1,6 @@
 from BackEnd.cpp.Fields.Field import Field
 from Model.Field import Field as ModelField
-from Model.types import Reference as ModelRef
-from Model.Expressions.NumberLiteral import NumberLiteral as ModelNumber
+from Model.expressions import NumberLiteral as ModelNumber, Reference as ModelRef
 from Model.Collection import Collection as ModelCollection
 
 class Collection(Field):

@@ -5,7 +5,7 @@ from Model.Enumeration import Enumeration
 import re
 from Model.ImportedFile import ImportedFile
 import os
-from Model.Expressions.NumberLiteral import NumberLiteral
+from Model.expressions import NumberLiteral
 
 #TODO: duplicated code
 def split_sized_type(type):

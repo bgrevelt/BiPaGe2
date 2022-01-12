@@ -1,13 +1,16 @@
+import "some/dir/bipage1.bp";
 @bigendian;
-
 Bla : s8
 {
-  aap = 1
+  aap = -1
 }
 
 Foo
 {
-    f1: s32;
-    f2: Bla[-2^2];
-    f3 : s32;
+    {
+        f : flag;
+        enum: Bloep;
+        u4;
+    }
+    f1: s32[enum==Bloep.two?2:(enum==Bloep.one?1:0)];
 }
