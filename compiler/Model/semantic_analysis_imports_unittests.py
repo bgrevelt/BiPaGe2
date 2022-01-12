@@ -150,5 +150,19 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnittests):
         # Didn't include the namespace so we should get an unknown type error
         self.checkErrors(errors, [(5, 21, "Reference \"sMyEnum\" cannot be resolved")])
 
+    def test_imported_enumerator(self):
+        imports = [ImportedFile('import.bp', [], '', [
+            Enumeration('MyEnum', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
+        text = '''
+        Foo
+        {
+            field1 : MyEnum;
+            field2 : f64[field1==MyEnum.first?1:0];
+            field3 : float64;
+        }
+        '''
+        warnings, errors, _ = build_model_test(text, imports)
+        self.checkErrors(errors, [])
+
 
 
