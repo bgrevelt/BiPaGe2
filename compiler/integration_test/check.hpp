@@ -3,6 +3,8 @@
 #include <functional>
 #include <iostream>
 #include <type_traits>
+#include "../../library/c++/BiPaGe/Collection.h"
+
 #define check_equal(l,r) check_equal_func(l,r,__FUNCTION__, __LINE__)
 #define check_exception(e,f) check_exception_func<e>(f,__FUNCTION__, __LINE__, #e)
 #define check_type(e,v) check_type_func<e>(v,__FUNCTION__, __LINE__, #e)
@@ -54,6 +56,30 @@ void check_equal_func(const std::vector<T1>& l, const std::vector<T2>& r, const 
     }
 }
 
+template<typename T>
+void check_equal_func(const BiPaGe::CollectionLittleEndian<T>& l, const std::vector<T>& r, const char* caller, int line)
+{
+    if(l.size() != r.size())
+    {
+        std::cerr << "check_equal called from " << caller << ", line " << line << ": Vector L size " << l.size() << " is not equal to R size " << r.size() << std::endl;
+        exit(-1);
+    }
+    if(!std::equal(l.begin(), l.end(), r.begin()))
+    {
+        std::cerr << "check_equal called from " << caller << ", line " << line << ": Two vectors are not equal:" << std::endl;
+        for(size_t i = 0 ; i < l.size() ; ++i)
+        {
+            std::cerr << +l[i] << " " << +r[i];
+            if(l[i] != r[i])
+            {
+                std::cerr << " <--";
+            }
+            std::cerr << std::endl;
+        }
+        exit(-1);
+    }
+}
+
 template<typename ExceptionType>
 void check_exception_func(std::function<void()>f, const char* caller, int line, const char* expected)
 {
@@ -83,6 +109,16 @@ std::uint8_t* serialize(std::uint8_t* data, T value)
 {
     *reinterpret_cast<T*>(data) = value;
     return data + sizeof(T);
+}
+
+template<typename T>
+std::uint8_t* serialize(std::uint8_t* data, const std::vector<T>& values)
+{
+    for(const T& val : values)
+    {
+        data = serialize(data, val);
+    }
+    return data;
 }
 
 void naive_swap_impl(char* data, size_t size)

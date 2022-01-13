@@ -18,6 +18,13 @@ from integration_test.collection_big_endian_integrationtest import *
 from integration_test.collection_enum_integrationtest import *
 from integration_test.dynamic_collection_integrationtest import *
 from integration_test.dynamic_collection_big_endian_integrationtest import *
+from integration_test.dynamic_collection_expression_add_integrationtest import *
+from integration_test.dynamic_collection_expression_div_integrationtest import *
+from integration_test.dynamic_collection_expression_equality_integrationtest import *
+from integration_test.dynamic_collection_expression_mul_integrationtest import *
+from integration_test.dynamic_collection_expression_relational_integrationtest import *
+from integration_test.dynamic_collection_expression_sub_integrationtest import *
+from integration_test.dynamic_collection_expression_ternary_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -40,6 +47,13 @@ def suite():
     test_suite.addTest(unittest.makeSuite(CollectionEnum))
     test_suite.addTest(unittest.makeSuite(DynamicCollection))
     test_suite.addTest(unittest.makeSuite(DynamicCollectionBigEndian))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionAdd))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionDiv))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionEquality))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionMul))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionRelational))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionSub))
+    test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionTernary))
     return test_suite
 
 mySuit=suite()
