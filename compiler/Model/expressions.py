@@ -124,6 +124,9 @@ class EnumeratorReference(Reference):
     def identifier(self):
         return self._name
 
+    def fully_qualified_name(self):
+        return f'{self._referenced_type._name}.{self._name}'
+
     def parent(self):
         return self._referenced_type
 
@@ -173,6 +176,12 @@ class BinaryOperator(Expression):
         self._left.check_semantics(warnings, errors)
         self._right.check_semantics(warnings, errors)
         return len(errors) > inital_error_count
+
+    def left(self):
+        return self._left
+
+    def right(self):
+        return self._right
 
 class RelationalOperator(BinaryOperator, ABC):
     def __init__(self, left:Expression, right:Expression, token=None):
@@ -456,6 +465,15 @@ class TernaryOperator(Expression):
         self._condition = condition
         self._true = true
         self._false = false
+
+    def condition(self):
+        return self._condition
+
+    def true_clause(self):
+        return self._true
+
+    def false_clause(self):
+        return self._false
 
     def evaluate(self):
         evaluated_condition = self._condition.evaluate()

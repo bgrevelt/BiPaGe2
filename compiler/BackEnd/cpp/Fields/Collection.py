@@ -1,19 +1,15 @@
 from BackEnd.cpp.Fields.Field import Field
 from Model.Field import Field as ModelField
-from Model.expressions import NumberLiteral as ModelNumber, FieldReference as ModelFieldRef, EnumerationReference as ModelEnumRef
+import Model.expressions
 from Model.Collection import Collection as ModelCollection
 
 class Collection(Field):
     def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str):
         self._collection_type = cpp_type
-        self._is_enum_collection = type(field.type().type()) is ModelEnumRef
+        self._is_enum_collection = type(field.type().type()) is Model.expressions.EnumerationReference
         super().__init__(type_name, field, endianness)
 
-        self._collection_size = self._field.type().collection_size()
-        if type(self._collection_size) is ModelNumber:
-            self._collection_size = self._collection_size.evaluate()
-        elif type(self._collection_size) is ModelFieldRef:
-            self._collection_size = f'static_cast<size_t>({self._collection_size.name()}())'
+        self._collection_size = f'static_cast<size_t>({self._convert_expression(self._field.type().collection_size())})'
 
     def getter_body(self):
         return f'return {self.cpp_type()}(data_ + {self._dynamic_offset}{self.offset_name()}, {self._collection_size});'
@@ -77,3 +73,42 @@ class Collection(Field):
         collection = self._field.type()
         assert type(collection) is ModelCollection, f"We're building a collection object but the model type passed in is not an object, but {collection}"
         return self._endianness == 'big' and collection.element_size_in_bits() != 8
+
+    def _convert_binary_expression(self, expression, operation):
+        return f'({self._convert_expression(expression.left())} {operation} {self._convert_expression(expression.right())})'
+
+
+    def _convert_expression(self, expression):
+        expression_type = type(expression)
+        if expression_type is Model.expressions.NumberLiteral:
+            return expression.evaluate()
+        elif expression_type is Model.expressions.FieldReference:
+            return f'{expression.name()}()'
+        elif expression_type is Model.expressions.EnumerationReference:
+            assert False, "This should have been caught in semantic analysis"
+        elif expression_type is Model.expressions.EnumeratorReference:
+            return expression.fully_qualified_name().replace('.', '::')
+        elif expression_type is Model.expressions.EqualsOperator:
+            return self._convert_binary_expression(expression, '==')
+        elif expression_type is Model.expressions.NotEqualsOperator:
+            return self._convert_binary_expression(expression, '!=')
+        elif expression_type is Model.expressions.MultiplyOperator:
+            return self._convert_binary_expression(expression, '*')
+        elif expression_type is Model.expressions.DivisionOperator:
+            return self._convert_binary_expression(expression, '/')
+        elif expression_type is Model.expressions.AddOperator:
+            return self._convert_binary_expression(expression, '+')
+        elif expression_type is Model.expressions.SubtractOperator:
+            return self._convert_binary_expression(expression, '-')
+        elif expression_type is Model.expressions.LessThanOperator:
+            return self._convert_binary_expression(expression, '<')
+        elif expression_type is Model.expressions.LessThanEqualOperator:
+            return self._convert_binary_expression(expression, '<=')
+        elif expression_type is Model.expressions.GreaterThanOperator:
+            return self._convert_binary_expression(expression, '>')
+        elif expression_type is Model.expressions.GreaterThanEqualOperator:
+            return self._convert_binary_expression(expression, '>=')
+        elif expression_type is Model.expressions.TernaryOperator:
+            return f'({self._convert_size_expression(expression.condition())} ? {self._convert_size_expression(expression.true_clause())} : {self._convert_size_expression(expression.false_clause())})'
+        else:
+            assert False, f'Unhandled expression type {expression_type}: {expression}'
