@@ -236,7 +236,6 @@ MyDataStructureWithACollection
 ```
 
 Based on an expression
-> :warning: Not implemented yet!
 ```
 MyDataStructureWithACollection
 {
@@ -246,6 +245,15 @@ MyDataStructureWithACollection
     padding : u8[packet_size - (16/8) - (64/8)];
 }
 ```
+The following expressions are supported:
+* Brackets `field: u8[(field2 + field3) * 2]`
+* Addition `field: u8[some_other_field + 4]`
+* Subtraction `field: u8[some_other_field - 3]`
+* Multiplication `padding: u8[number_of_ints * 4]`
+* Division `samples: f64[(total_size - header) / 8]`
+* Ternary `optional_collection: s32[some_flag? 100 : 0]`
+* (In)Equality `data1: s32[data_enum_field == payload.data1? 100 : 0]` (and similarly `!=`)
+* Relational `field: f32[some_other_field > 20 ? 100 : 10]` (and similarly `>=`, `<`, `<=`)
 
 
 ## Endianness
