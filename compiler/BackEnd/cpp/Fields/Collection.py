@@ -109,6 +109,6 @@ class Collection(Field):
         elif expression_type is Model.expressions.GreaterThanEqualOperator:
             return self._convert_binary_expression(expression, '>=')
         elif expression_type is Model.expressions.TernaryOperator:
-            return f'({self._convert_size_expression(expression.condition())} ? {self._convert_size_expression(expression.true_clause())} : {self._convert_size_expression(expression.false_clause())})'
+            return f'({self._convert_expression(expression.condition())} ? {self._convert_expression(expression.true_clause())} : {self._convert_expression(expression.false_clause())})'
         else:
             assert False, f'Unhandled expression type {expression_type}: {expression}'
