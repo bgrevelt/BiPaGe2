@@ -1,42 +1,15 @@
 from generated.BiPaGeListener import BiPaGeListener
 from generated.BiPaGeParser import BiPaGeParser
-
 from .DataType import DataType
 from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
-
-from Model.types import SignedInteger, UnsignedInteger,Float,Flag
-from Model.expressions import EnumeratorReference, FieldReference, NullReference, EnumerationReference
+from Model.types import Flag
 from Model.Enumeration import Enumeration
 from Model.Collection import Collection
-
 from Model.expressions import *
-
 import os
-import re
-
-
-# split a sized type (e.g int16) into the type (int) and the size(16)
-def split_sized_type(type):
-    typename = "".join([c for c in type if not c.isnumeric()])
-    size = int("".join([c for c in type if c.isnumeric()]))
-    return typename,size
-
-def is_aliased_type(type):
-    return re.search("^[s,u,f]\d{1,2}$",type) is not None
-
-def remove_aliases(type):
-    aliases = {
-        'u': 'uint',
-        's': 'int',
-        'f': 'float'
-    }
-    if is_aliased_type(type):
-        return aliases[type[0]] + type[1:]
-    else:
-        return type
-
+from Model.helpers import *
 
 class Builder(BiPaGeListener):
     def __init__(self, file, imports):
@@ -47,27 +20,11 @@ class Builder(BiPaGeListener):
         self._definition = None
         self.noderesult = {}
         self._definition_name = os.path.splitext(os.path.split(file)[1])[0] if file is not None else 'default_name'
-        self._imports = imports
-        #todo: Do we need this? Can't we use _enumerations_by_name for both local and imported enumerations?
-        self._imported_enumerations_by_name = {}
+        self._imported_enumerations_by_name = {} # We store these separately from the local enumerations because we don't perform any analysis on these (that's done when the imported file is compiled)
         self._enumerations_by_enumerator_fully_qualified_name = {}
-
-        for imp in imports:
-            for enum in imp.enumerations:
-                enumeration_name = (imp.namespace + "." if imp.namespace else "") + enum.name()
-                self._imported_enumerations_by_name[enumeration_name] = enum
-                for enumerator_name,_ in enum.enumerators():
-                    enumerator_fully_qualified_name = f'{enumeration_name}.{enumerator_name}'
-                    self._enumerations_by_enumerator_fully_qualified_name[enumerator_fully_qualified_name] = enum
-
         self._enumerations_by_name = {}
 
-        # remove the type aliases here so we don't have to worry about it in the backend.
-        self.fieldtype_translation = {
-            'u' : 'uint',
-            's' : 'int',
-            'f' : 'float'
-        }
+        self._process_imports(imports)
 
         # We have this here to store fields in the current datatype as we encounter them. The reason that we can't
         # use noderesult like we do with everything else is that we want to have all fields that are in a datatype
@@ -78,6 +35,15 @@ class Builder(BiPaGeListener):
         # because the generated code would still be valid, but it's nicer if the getters/setters in the generated code
         # have the same order as in the input file. So we use this approach to do just that.
         self._current_datatype_fields = []
+
+    def _process_imports(self, imports):
+        for imp in imports:
+            for enum in imp.enumerations:
+                enumeration_name = (imp.namespace + "." if imp.namespace else "") + enum.name()
+                self._imported_enumerations_by_name[enumeration_name] = enum
+                for enumerator_name,_ in enum.enumerators():
+                    enumerator_fully_qualified_name = f'{enumeration_name}.{enumerator_name}'
+                    self._enumerations_by_enumerator_fully_qualified_name[enumerator_fully_qualified_name] = enum
 
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
         namespace = []

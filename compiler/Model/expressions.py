@@ -51,17 +51,6 @@ class NumberLiteral(Expression):
     def __str__(self):
         return str(self._number)
 
-
-#TODO: I think we should split this up into a TypeReference and FieldReference class
-# That will safe us a lot of hacks all over the place where we figure out if the referenced type is a field or
-# a type (e.g. Enumeration)
-#TODO: I don't think there is any valid situation in which referenced type is None other than malformed input. I'm not sure if we
-# need to cater to that situation in all of these methods. Maybe we can say that if check_semantics returns false any other
-# method is allowed to throw. But that will only work if other types do not call any of the methods of a reference in
-# their check_semantics method. Note: Field calls size_in_bits in the ctor. Maybe we can evaluate if we can set things
-# up so no methods are called before calling check semantics?! But I'm not really comfortable with those types of
-# prerequisites...
-
 class Reference(Expression):
     def __init__(self, name, referenced_type, token):
         super().__init__(token)
@@ -240,6 +229,17 @@ class EqualityOperator(BinaryOperator):
         elif self._left.return_type() != self._right.return_type():
             self.add_message(f"Can't compare {self._left.return_type().__name__} to {self._right.return_type().__name__}", errors)
 
+    def _operands_equal(self):
+        if (type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral) or\
+            (type(self._evaluated_left) is bool and type(self._evaluated_right) is bool):
+            return self._evaluated_left.Equals(self._evaluated_right)
+
+        # There are theoretically cases we could resolve as well. For example
+        # some_field + 1 == 1 + some_field will always be true
+        # but we'll just leave the tough stuff up to the compiler/interpreter for the output language
+
+        return None
+
     def return_type(self):
         return bool
 
@@ -319,30 +319,6 @@ class DivisionOperator(ArithmeticOperator):
     def __str__(self):
         return f'({str(self._left)} / {str(self._right)})'
 
-class EqualsOperator(EqualityOperator):
-    def __init__(self, left, right, token=None):
-        super().__init__(left, right, token)
-
-    def evaluate(self):
-        if type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral:
-            # both operands are number literals. We can resolve this
-            return self._evaluated_left.Equals(self._evaluated_right)
-
-        if type(self._evaluated_left) is bool and type(self._evaluated_right) is bool:
-            # both operands are booleans. We can resolve this
-            return self._evaluated_left.Equals(self._evaluated_right)
-
-        # There are theoretically cases we could resolve as well. For example
-        # some_field + 1 == 1 + some_field will always be true
-        # but we'll just leave the tough stuff up to the compiler/interpreter for the output language
-        return self
-
-    def Equals(self, other):
-        return type(other) is EqualsOperator and super().Equals(other)
-
-    def __str__(self):
-        return f'({str(self._left)} == {str(self._right)})'
-
 class GreaterThanEqualOperator(RelationalOperator):
     def __init__(self, left, right, token=None):
         super().__init__(left, right, token)
@@ -408,39 +384,32 @@ class MultiplyOperator(ArithmeticOperator):
     def __str__(self):
         return f'({str(self._left)} * {str(self._right)})'
 
+class EqualsOperator(EqualityOperator):
+    def __init__(self, left, right, token=None):
+        super().__init__(left, right, token)
+
+    def evaluate(self):
+        # method returns a troolean. None means we don't know if their equal. Yes, I know trooleans are bad. I'm sorry.
+        operands_equal = self._operands_equal()
+        return self if operands_equal is None else operands_equal
+
+    def Equals(self, other):
+        return type(other) is EqualsOperator and super().Equals(other)
+
+    def __str__(self):
+        return f'({str(self._left)} == {str(self._right)})'
+
 class NotEqualsOperator(EqualityOperator):
     def __init__(self, left, right, token=None):
         super().__init__(left, right, token)
 
-    #todo: This is more or less a duplicate of the EqualsOperator
     def evaluate(self):
-        if type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral:
-            # both operands are number literals. We can resolve this
-            return not self._evaluated_left.Equals(self._evaluated_right)
-
-        if type(self._evaluated_left) is bool and type(self._evaluated_right) is bool:
-            # both operands are booleans. We can resolve this
-            return not self._evaluated_left.Equals(self._evaluated_right)
-
-        # There are theoretically cases we could resolve as well. For example
-        # some_field + 1 == 1 + some_field will always be true
-        # but we'll just leave the tough stuff up to the compiler/interpreter for the output language
-        return self
+        # method returns a troolean. None means we don't know if their equal. Yes, I know trooleans are bad. I'm sorry.
+        operands_equal = self._operands_equal()
+        return self if operands_equal is None else not operands_equal
 
     def Equals(self, other):
         return type(other) is NotEqualsOperator and super().Equals(other)
-
-    # def check_semantics(self, warnings, errors):
-    #     #TODO: same as equalsoperator and relationaloperator. We need a common base class
-    #     # Comparing negative values to signed integer does not make sense
-    #     if (self._left.return_type() == UnsignedInteger and type(
-    #             self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
-    #             (self._right.return_type() == UnsignedInteger and type(
-    #                 self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
-    #         self.add_message(f'Comparing unsigned value to a negative literal', errors)
-    #
-    # def return_type(self):
-    #     return bool
 
     def __str__(self):
         return f'({str(self._left)} != {str(self._right)})'

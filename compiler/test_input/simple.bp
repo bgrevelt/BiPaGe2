@@ -1,5 +1,6 @@
 import "some/dir/bipage1.bp";
 @bigendian;
+
 Bla : s8
 {
   aap = -1
@@ -7,10 +8,6 @@ Bla : s8
 
 Foo
 {
-    {
-        f : flag;
-        enum: Bloep;
-        u4;
-    }
-    f1: s32[enum==Bloep.two?2:(enum==Bloep.one?1:0)];
+    enum_field: Bla;
+    f1: s32[enum_field==Bla.aap?2:0];
 }

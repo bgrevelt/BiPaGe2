@@ -6,26 +6,7 @@ import re
 from Model.ImportedFile import ImportedFile
 import os
 from Model.expressions import NumberLiteral
-
-#TODO: duplicated code
-def split_sized_type(type):
-    typename = "".join([c for c in type if not c.isnumeric()])
-    size = int("".join([c for c in type if c.isnumeric()]))
-    return typename,size
-
-def is_aliased_type(type):
-    return re.search("^[s,u,f]\d{1,2}$",type) is not None
-
-def remove_aliases(type):
-    aliases = {
-        'u': 'uint',
-        's': 'int',
-        'f': 'float'
-    }
-    if is_aliased_type(type):
-        return aliases[type[0]] + type[1:]
-    else:
-        return type
+from Model.helpers import *
 
 class ImportAnalyzer(BiPaGeListener):
     def __init__(self, path):

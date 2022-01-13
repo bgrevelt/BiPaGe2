@@ -64,10 +64,7 @@ class Collection(Node):
     def check_semantics_reference(self, warnings, errors):
         assert type(self._size) is FieldReference
         line, column = self.location()
-        # TODO ugly import to prevent cicular import between Field and Collection
-        from Model.Field import Field
-        if type(self._size.referenced_type()) is Field:
-            if type(self._size.referenced_type().type()) is SignedInteger:
+        if type(self._size.referenced_type().type()) is SignedInteger:
                 warnings.append(BuildMessage(line, column,
                                              f'Collection sized by signed integer. If the field has a negative value this will lead to runtime errors.'))
 

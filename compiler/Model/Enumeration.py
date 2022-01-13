@@ -1,8 +1,8 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
 from typing import List, Tuple
-import math
 from Model.expressions import NumberLiteral
+from Model.helpers import to_standard_size
 
 class Enumeration(Node):
     def __init__(self, name:str, base_type, enumerators:List[Tuple[str,int]], token):
@@ -22,10 +22,7 @@ class Enumeration(Node):
         return self._base_type.size_in_bits()
 
     def standard_size(self):
-        #TODO: This code should be moved to some place where both field en enumerator can use it.
-        bytes_required = math.ceil(self._base_type.size_in_bits() / 8)
-        bytes_nearest_type = 2 ** (math.ceil(math.log(bytes_required, 2)))
-        return bytes_nearest_type * 8
+        return to_standard_size(self._base_type.size_in_bits())
 
     def signed(self):
         return self._base_type.signed()

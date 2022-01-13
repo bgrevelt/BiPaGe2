@@ -4,16 +4,9 @@ import math
 from Model.Collection import Collection
 from Model.expressions import FieldReference, EnumerationReference
 from Model.Enumeration import Enumeration
-
+from Model.helpers import to_standard_size
 def _standard_size(size):
-    if size <= 0:
-        # Yes this is a problem, but we'll accept it here so semantic analysis can catch it
-        return size
-    else:
-        bytes_required = math.ceil(size / 8)
-        bytes_nearest_type = 2 ** (math.ceil(math.log(bytes_required, 2)))
-        return bytes_nearest_type * 8
-
+    return to_standard_size(size) if size > 0 else size # # Yes negative size is a problem, but we'll accept it here so semantic analysis can catch it
 
 class Field(Node):
     def __init__(self, name, type, static_offset, dynamic_offset, token):
