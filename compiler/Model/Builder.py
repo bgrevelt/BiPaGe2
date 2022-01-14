@@ -65,6 +65,9 @@ class Builder(BiPaGeListener):
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         self._static_offset = 0
+        self._dynamic_offset = None
+        self._static_capture_offset = 0
+        self._dynamic_capture_offset = None
 
     def exitDatatype(self, ctx:BiPaGeParser.DatatypeContext):
         capture_scopes = [self.noderesult[capture_scope] for capture_scope in ctx.capture_scope()]
