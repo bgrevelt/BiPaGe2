@@ -105,6 +105,16 @@ class EnumerationReference(Reference):
     def return_type(self):
         return self.referenced_type()
 
+class DataTypeReference(Reference):
+    def __init__(self, name, referenced_type, token):
+        super().__init__(name, referenced_type, token)
+
+    def Equals(self, other):
+        return type(other) is DataTypeReference and self.name() == other.name() and self._referenced_type.Equals(other.referenced_type())
+
+    def return_type(self):
+        return self.referenced_type()
+
 
 class EnumeratorReference(Reference):
     def __init__(self, identifier:str, parent, token):

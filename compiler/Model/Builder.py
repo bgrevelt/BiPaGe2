@@ -23,6 +23,7 @@ class Builder(BiPaGeListener):
         self._imported_enumerations_by_name = {} # We store these separately from the local enumerations because we don't perform any analysis on these (that's done when the imported file is compiled)
         self._enumerations_by_enumerator_fully_qualified_name = {}
         self._enumerations_by_name = {}
+        self._data_types_by_name = {}
 
         self._process_imports(imports)
 
@@ -70,6 +71,7 @@ class Builder(BiPaGeListener):
 
         node = DataType(str(ctx.Identifier()), capture_scopes, self._current_datatype_fields, ctx.start)
         self.noderesult[ctx] = node
+        self._data_types_by_name[node.identifier] = node
 
         self._current_datatype_fields = []
 
@@ -152,6 +154,8 @@ class Builder(BiPaGeListener):
             self.noderesult[ctx] = FieldReference(name, self._find_field(name), ctx.start)
         elif name in self._enumerations_by_enumerator_fully_qualified_name:
             self.noderesult[ctx] = EnumeratorReference(name.split('.')[-1], self._enumerations_by_enumerator_fully_qualified_name[name], ctx.start)
+        elif name in self._data_types_by_name:
+            self.noderesult[ctx] = DataTypeReference(name, self._data_types_by_name[name], ctx.start)
         else:
             self.noderesult[ctx] = NullReference(name, ctx.start)
 

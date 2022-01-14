@@ -2,7 +2,7 @@ from .Node import Node
 from .BuildMessage import BuildMessage
 import math
 from Model.Collection import Collection
-from Model.expressions import FieldReference, EnumerationReference
+from Model.expressions import FieldReference, EnumerationReference, DataTypeReference, Reference
 from Model.Enumeration import Enumeration
 from Model.helpers import to_standard_size
 def _standard_size(size):
@@ -50,15 +50,13 @@ class Field(Node):
         self._type.check_semantics(warnings, errors)
 
         line, column = self.location()
-
-        if type(self._type) is FieldReference:
-            if not any(type(self._type.referenced_type()) is t for t in [Enumeration, type(None)]):
+        if isinstance(self._type, Reference) and type(self._type) not in [EnumerationReference, DataTypeReference]:
                 errors.append(BuildMessage(line, column,
                                            f'Reference to {type(self._type.referenced_type()).__name__} is not a valid field type. Only reference to enumeration is allowed.'))
         if type(self._type) is EnumerationReference and self.is_padding_field():
                 warnings.append(BuildMessage(line, column, 'Using enumeration as padding. Is this really what you want?'))
 
-        if not type(self._type) is Collection and not self.scoped() and not self.is_standard_size():
+        if not type(self._type) is Collection and not type(self._type) is DataTypeReference and not self.scoped() and not self.is_standard_size():
             errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
 
     def capture_type_mask(self):
