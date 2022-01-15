@@ -103,6 +103,7 @@ void test_foo_view()
     check_equal(parsed.field6(), -125000);
     check_equal(parsed.field7(), 12500000);
     check_equal(parsed.field8(), 0);
+    check_equal(parsed.size(), 20);
 }
 
 void test_foo_builder()

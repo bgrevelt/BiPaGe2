@@ -61,6 +61,7 @@ void test_view()
     check_equal(parsed.field2(), name::space::one::SomeEnum::five);
     check_equal(parsed.field3(), name::space::two::SomeEnum::lorem);
     check_equal(parsed.field4(), -123.456);
+    check_equal(parsed.size(), 12);
 }
 
 void test_builder()

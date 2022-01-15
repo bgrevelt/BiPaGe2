@@ -43,6 +43,7 @@ void test_foo_view()
 
     check_equal(parsed.field1(), -35643);
     check_equal(parsed.field3(), 33);
+    check_equal(parsed.size(), 13);
 }
 
 void test_bar_view()
@@ -58,6 +59,7 @@ void test_bar_view()
 
     check_equal(parsed.Corey(), -25);
     check_equal(parsed.Billy(), uint64_t(std::numeric_limits<int64_t>::min()));
+    check_equal(parsed.size(), 21);
 }
 
 void test_foo_builder()

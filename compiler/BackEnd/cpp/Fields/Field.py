@@ -99,3 +99,9 @@ class Field(ABC):
             return None
         else:
             return create(self._type_name, offset, self._endianness, None)
+
+    def has_static_size(self):
+        return not self._field.size_in_bits() is None
+
+    def capture_size(self):
+        return self._field.capture_size()

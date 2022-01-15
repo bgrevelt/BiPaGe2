@@ -46,6 +46,8 @@ void test_foo_view()
     
     check_equal(parsed.field3(), 2500);
     check_type(std::uint16_t, parsed.field3());
+    
+    check_equal(parsed.size(), 4);
 }
 
 void test_foo_builder()

@@ -73,12 +73,14 @@ private:
                 {fields}
                 
                 {tostring}
+                
+                {size}
     
             private:
                 const std::uint8_t* data_;
                 {dynamic_offsets}
             }};
-            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets())
+            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets(), size=self._view_size())
 
     def builder_code(self):
         fields = '\n'.join([field.builder_field_code() for field in self._fields])
@@ -149,7 +151,6 @@ private:
 
 
     def _builder_size(self):
-        size = None
         if self._datatype.size_in_bits() is not None: # static size
             size = str(math.ceil(self._datatype.size_in_bits() / 8))
         else:
@@ -167,6 +168,12 @@ private:
     def _get_dynamic_offsets(self):
         offset_names = {field.dynamic_capture_offset().name() for field in self._fields if
                         field.dynamic_capture_offset() is not None}
+
+        # Make sure that we include an offset to the last field because we need it to determine the size of the
+        # Data type
+        if not self._fields[-1].has_static_size():
+            offset_names.add(self._fields[-1].name())
+
         return [field for field in self._fields if field.name() in offset_names]
 
     def _view_dynamic_offsets(self):
@@ -189,6 +196,19 @@ private:
         getters = '\n'.join(getters)
         indexes = '\n'.join(indexes)
         return getters + '\n' + indexes
+
+    def _view_size(self):
+        last_field = self._fields[-1]
+        if last_field.has_static_size():
+            body = f'{last_field._dynamic_offset}{last_field.offset_name()} + {last_field.capture_size()//8};'
+        else:
+            # The last field is a dynamic field, so we can simply use the GetEndOF method of that
+            body = f'GetEndOf{last_field.name()}();'
+
+        return f'''size_t size()
+        {{
+            return {body}
+        }}'''
 
     def _builder_dynamic_offsets(self):
         getters = []
