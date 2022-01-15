@@ -205,7 +205,7 @@ private:
             # The last field is a dynamic field, so we can simply use the GetEndOF method of that
             body = f'GetEndOf{last_field.name()}();'
 
-        return f'''size_t size()
+        return f'''size_t size_in_bytes()
         {{
             return {body}
         }}'''

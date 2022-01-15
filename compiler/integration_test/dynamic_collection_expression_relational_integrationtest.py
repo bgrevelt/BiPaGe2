@@ -66,7 +66,7 @@ void test_foo_view()
     check_equal(parsed.collection7(), collection7_values);
     check_equal(parsed.collection8(), collection8_values);
     check_equal(parsed.field6(), 1.234);
-    check_equal(parsed.size(), 54);
+    check_equal(parsed.size_in_bytes(), 54);
 }
 
 int main(int argc, char* argv[])

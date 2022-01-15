@@ -62,7 +62,7 @@ void test_foo_view()
     }
     check_equal(parsed.field3(), 1.234);
     check_equal(parsed.field4(), 33);
-    check_equal(parsed.size(), 37);
+    check_equal(parsed.size_in_bytes(), 37);
 }
 
 void test_foo_builder()

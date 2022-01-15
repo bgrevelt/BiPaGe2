@@ -132,7 +132,7 @@ void test_foo_view()
     check_equal(parsed.field17(), Enum2::Enum2_7);
     check_equal(parsed.field18(), Enum2::Enum2_8);
     check_equal(parsed.field19(), Enum2::Enum2_9);
-    check_equal(parsed.size(), 53);
+    check_equal(parsed.size_in_bytes(), 53);
 }
 
 void test_foo_builder()

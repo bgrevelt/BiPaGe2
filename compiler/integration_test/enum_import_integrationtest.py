@@ -61,7 +61,7 @@ void test_view()
     check_equal(parsed.field5(), SomeEnum::nine);
     check_equal(parsed.field6(), SomeEnum::twofiftyfive);
     check_equal(parsed.field7(), -123.456);
-    check_equal(parsed.size(), 15);
+    check_equal(parsed.size_in_bytes(), 15);
 }
 
 void test_builder()

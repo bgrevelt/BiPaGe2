@@ -55,7 +55,7 @@ void test_foo_view()
     check_equal(parsed.field1(), field1_ENUM::mies);
     check_equal(parsed.field2(), field2_ENUM::vis);
     check_equal(parsed.field3(), 1.234);
-    check_equal(parsed.size(), 9);
+    check_equal(parsed.size_in_bytes(), 9);
     
 }
 

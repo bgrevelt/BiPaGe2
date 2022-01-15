@@ -50,7 +50,7 @@ void test_foo_view()
     check_equal(parsed.field3(), 7);
     check_equal(parsed.field4(), false);
     check_equal(parsed.field5(), -533);
-    check_equal(parsed.size(), 5);
+    check_equal(parsed.size_in_bytes(), 5);
 }
 
 

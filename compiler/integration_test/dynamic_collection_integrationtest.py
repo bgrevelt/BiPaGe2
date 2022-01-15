@@ -86,7 +86,7 @@ void test_foo_view()
         check_equal(collection2[i], field4_values[i]);
     }
     check_equal(parsed.field5(), 1.234);
-    check_equal(parsed.size(), 39);
+    check_equal(parsed.size_in_bytes(), 39);
 }
 
 
