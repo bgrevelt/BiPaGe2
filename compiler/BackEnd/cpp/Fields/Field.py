@@ -105,3 +105,6 @@ class Field(ABC):
 
     def capture_size(self):
         return self._field.capture_size()
+
+    def is_collection(self):
+        return False

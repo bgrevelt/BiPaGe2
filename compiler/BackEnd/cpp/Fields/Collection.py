@@ -112,3 +112,6 @@ class Collection(Field):
             return f'({self._convert_expression(expression.condition())} ? {self._convert_expression(expression.true_clause())} : {self._convert_expression(expression.false_clause())})'
         else:
             assert False, f'Unhandled expression type {expression_type}: {expression}'
+
+    def is_collection(self):
+        return True

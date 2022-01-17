@@ -3,7 +3,6 @@ from .Beautifier import *
 import math
 from BackEnd.cpp.CaptureScope import CaptureScope
 
-
 class DataType:
     def __init__(self, datatype, endianness, settings):
         self._endianness = endianness
@@ -80,7 +79,7 @@ private:
                 const std::uint8_t* data_;
                 {dynamic_offsets}
             }};
-            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets(), size=self._view_size())
+            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_collection_offsets(), size=self._view_size())
 
     def builder_code(self):
         fields = '\n'.join([field.builder_field_code() for field in self._fields])
@@ -93,7 +92,7 @@ private:
                                     pointer_build=self._builder_build_method(),
                                     size=self._builder_size(),
                                     fields=fields,
-                                    dynamic_offsets=self._builder_dynamic_offsets())
+                                    dynamic_offsets=self._builder_collection_offsets())
 
     def _builder_ctor(self):
         parameters = ",\n".join([field.builder_parameter_code() for field in self._fields])
@@ -165,37 +164,33 @@ private:
                 return {size};
             }}'''
 
-    def _get_dynamic_offsets(self):
-        offset_names = {field.dynamic_capture_offset().name() for field in self._fields if
-                        field.dynamic_capture_offset() is not None}
-
-        # Make sure that we include an offset to the last field because we need it to determine the size of the
-        # Data type
-        if not self._fields[-1].has_static_size():
-            offset_names.add(self._fields[-1].name())
-
-        return [field for field in self._fields if field.name() in offset_names]
-
-    def _view_dynamic_offsets(self):
+    def _collection_offsets(self, size_code):
         getters = []
         indexes = []
 
-        for offset in self._get_dynamic_offsets():
-            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name()}() +' if offset.dynamic_capture_offset() is not None else ""
-            offset_static_offset = offset.offset_name()
-            getters.append(f'''size_t GetEndOf{offset.name()}() const
-            {{
-                if(end_of_{offset.name()}_ == 0)
-                    end_of_{offset.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name()}().size_in_bytes();
-        
-                return end_of_{offset.name()}_;
-            }}''')
+        for field in self._fields:
+            if field.is_collection():
+                offset_dynamic_offset = f'GetEndOf{field.dynamic_capture_offset().name()}() +' if field.dynamic_capture_offset() is not None else ""
+                offset_static_offset = field.offset_name()
+                getters.append(f'''size_t GetEndOf{field.name()}() const
+                        {{
+                            if(end_of_{field.name()}_ == 0)
+                                end_of_{field.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {size_code(field.name())};
 
-            indexes.append(f'mutable size_t end_of_{offset.name()}_ = 0;')
+                            return end_of_{field.name()}_;
+                        }}''')
+
+                indexes.append(f'mutable size_t end_of_{field.name()}_ = 0;')
 
         getters = '\n'.join(getters)
         indexes = '\n'.join(indexes)
         return getters + '\n' + indexes
+
+    def _view_collection_offsets(self):
+        return self._collection_offsets(lambda field_name: f'{field_name}().size_in_bytes()')
+
+    def _builder_collection_offsets(self):
+        return self._collection_offsets(lambda field_name: f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)')
 
     def _view_size(self):
         last_field = self._fields[-1]
@@ -210,23 +205,3 @@ private:
             return {body}
         }}'''
 
-    def _builder_dynamic_offsets(self):
-        getters = []
-        indexes = []
-
-        for offset in self._get_dynamic_offsets():
-            offset_dynamic_offset = f'GetEndOf{offset.dynamic_capture_offset().name()}() +' if offset.dynamic_capture_offset() is not None else ""
-            offset_static_offset = offset.offset_name()
-            getters.append(f'''size_t GetEndOf{offset.name()}() const
-            {{
-                if(end_of_{offset.name()}_ == 0)
-                    end_of_{offset.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {offset.name()}_.size() * sizeof(decltype ({offset.name()}_)::value_type);
-
-                return end_of_{offset.name()}_;
-            }}''')
-
-            indexes.append(f'mutable size_t end_of_{offset.name()}_ = 0;')
-
-        getters = '\n'.join(getters)
-        indexes = '\n'.join(indexes)
-        return getters + '\n' + indexes
