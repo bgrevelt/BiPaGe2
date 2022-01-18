@@ -4,6 +4,7 @@ import math
 from BackEnd.cpp.CaptureScope import CaptureScope
 from Model.Collection import Collection
 from Model.expressions import DataTypeReference
+from BackEnd.cpp.Fields.Field import Field
 
 class DataType:
     def __init__(self, datatype, endianness, settings):
@@ -157,16 +158,8 @@ private:
             size = str(math.ceil(self._datatype.size_in_bits() / 8))
         else:
             size = str(math.ceil(self._datatype.static_size_in_bits() / 8))
-            collection_fields = [field for field in self._datatype.fields() if type(field.type()) is Collection]
-            collection_fields = [f'{field.name}_.size() * sizeof(decltype ({field.name}_)::value_type)' for field in collection_fields]
-            data_type_fields = [field for field in self._datatype.fields() if
-                                 type(field.type()) is DataTypeReference]
-            data_type_fields = [f'{field.name}_.size()' for field in
-                                data_type_fields]
-            if len(collection_fields) > 0:
-                size += '+ ' + ' + '.join(collection_fields)
-            if len(data_type_fields) > 0:
-                size += '+ ' + ' + '.join(data_type_fields)
+            dynamic_fields = [field.size_builder(field.name()) for field in self._fields if field.size_builder(field.name()) is not None]
+            size += '+ ' + ' + '.join(dynamic_fields)
 
         return \
             f'''size_t size() const // return the size of the serialized data
@@ -174,85 +167,40 @@ private:
                 return {size};
             }}'''
 
-    def _collection_offsets(self, size_code):
+    def _offset(self, type):
         getters = []
         indexes = []
 
         for field in self._fields:
-            if field.is_collection():
-                offset_dynamic_offset = f'GetEndOf{field.dynamic_capture_offset().name()}() +' if field.dynamic_capture_offset() is not None else ""
-                offset_static_offset = field.offset_name()
-                getters.append(f'''size_t GetEndOf{field.name()}() const
-                        {{
-                            if(end_of_{field.name()}_ == 0)
-                                end_of_{field.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {size_code(field.name())};
+            size_code = field.size_view(field.name()) if type == 'view' else field.size_builder(field.name())
+            if size_code is None:
+                continue
 
-                            return end_of_{field.name()}_;
-                        }}''')
+            offset_dynamic_offset = f'GetEndOf{field.dynamic_capture_offset().name()}() +' if field.dynamic_capture_offset() is not None else ""
+            offset_static_offset = field.offset_name()
+            getter = f'''size_t GetEndOf{field.name()}() const
+                                    {{
+                                        if(end_of_{field.name()}_ == 0)
+                                            end_of_{field.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {size_code};
+    
+                                        return end_of_{field.name()}_;
+                                    }}'''
 
-                indexes.append(f'mutable size_t end_of_{field.name()}_ = 0;')
+            index = f'mutable size_t end_of_{field.name()}_ = 0;'
+            getters.append(getter)
+            indexes.append(index)
+
 
         getters = '\n'.join(getters)
         indexes = '\n'.join(indexes)
         return getters + '\n' + indexes
-
-    def _offset(self, field, size_code):
-        offset_dynamic_offset = f'GetEndOf{field.dynamic_capture_offset().name()}() +' if field.dynamic_capture_offset() is not None else ""
-        offset_static_offset = field.offset_name()
-        getter = f'''size_t GetEndOf{field.name()}() const
-                                {{
-                                    if(end_of_{field.name()}_ == 0)
-                                        end_of_{field.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {size_code(field.name())};
-
-                                    return end_of_{field.name()}_;
-                                }}'''
-
-        index = f'mutable size_t end_of_{field.name()}_ = 0;'
-        return getter, index
 
 
     def _view_dynamic_offsets(self):
-        getters = []
-        indexes = []
-
-        for field in self._fields:
-            if field.is_collection():
-                getter, index = self._offset(field, lambda field_name: f'{field_name}().size_in_bytes()')
-                getters.append(getter)
-                indexes.append(index)
-            elif field.is_datatype():
-                getter, index = self._offset(field, lambda field_name: f'{field_name}().size_in_bytes()')
-                getters.append(getter)
-                indexes.append(index)
-
-        getters = '\n'.join(getters)
-        indexes = '\n'.join(indexes)
-        return getters + '\n' + indexes
+        return self._offset('view')
 
     def _builder_dynamic_offsets(self):
-        getters = []
-        indexes = []
-
-        for field in self._fields:
-            if field.is_collection():
-                getter, index = self._offset(field, lambda field_name: f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)')
-                getters.append(getter)
-                indexes.append(index)
-            elif field.is_datatype():
-                getter, index = self._offset(field, lambda field_name: f'{field_name}_.size()')
-                getters.append(getter)
-                indexes.append(index)
-
-        getters = '\n'.join(getters)
-        indexes = '\n'.join(indexes)
-        return getters + '\n' + indexes
-
-
-    # def _view_collection_offsets(self):
-    #     return self._collection_offsets(lambda field_name: f'{field_name}().size_in_bytes()')
-
-    # def _builder_collection_offsets(self):
-    #     return self._collection_offsets(lambda field_name: f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)')
+        return self._offset('builder')
 
     def _view_size(self):
         last_field = self._fields[-1]

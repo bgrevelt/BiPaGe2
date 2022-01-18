@@ -106,11 +106,11 @@ class Field(ABC):
     def capture_size(self):
         return self._field.capture_size()
 
-    def is_collection(self):
-        return False
-
-    def is_datatype(self):
-        return False
-
     def cache_field(self):
+        return None
+
+    def size_builder(self, field_name):
+        return None
+
+    def size_view(self, field_name):
         return None

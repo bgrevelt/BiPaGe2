@@ -56,12 +56,15 @@ return *{self._field.name}_;'''
             return {self._field.name}_;
         }}'''
 
-    def is_datatype(self):
-        return True
-
     def includes(self):
         return ['<optional>'] if self._cpp17 else []
 
     def cache_field(self):
         # String slicing in the return type is an ugle hack to go from const T & to T
         return f'mutable std::optional<{self.cpp_type()[6:-1]}> {self._field.name}_;' if self._cpp17 else None
+
+    def size_builder(self, field_name):
+        return f'{field_name}_.size()'
+
+    def size_view(self, field_name):
+        return f'{field_name}().size_in_bytes()'

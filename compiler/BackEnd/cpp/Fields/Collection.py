@@ -113,5 +113,8 @@ class Collection(Field):
         else:
             assert False, f'Unhandled expression type {expression_type}: {expression}'
 
-    def is_collection(self):
-        return True
+    def size_builder(self, field_name):
+        return f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)'
+
+    def size_view(self, field_name):
+        return f'{field_name}().size_in_bytes()'
