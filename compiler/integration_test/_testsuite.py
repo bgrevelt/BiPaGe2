@@ -27,6 +27,7 @@ from integration_test.dynamic_collection_expression_sub_integrationtest import *
 from integration_test.dynamic_collection_expression_ternary_integrationtest import *
 from integration_test.nested_data_type_integrationtest import *
 from integration_test.nested_data_type_no_cpp17_integrationtest import *
+from integration_test.double_nested_data_type_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -58,6 +59,7 @@ def suite():
     test_suite.addTest(unittest.makeSuite(DynamicCollectionExpressionTernary))
     test_suite.addTest(unittest.makeSuite(NestedDataType))
     test_suite.addTest(unittest.makeSuite(NestedDataTypeNoCpp17))
+    test_suite.addTest(unittest.makeSuite(DoubleNestedDataType))
     return test_suite
 
 mySuit=suite()
