@@ -108,3 +108,6 @@ class Field(ABC):
 
     def is_collection(self):
         return False
+
+    def is_datatype(self):
+        return False

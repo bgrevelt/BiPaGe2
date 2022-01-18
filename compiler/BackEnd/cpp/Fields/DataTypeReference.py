@@ -26,14 +26,12 @@ class DataTypeReference(Field):
         return f'return {self._referenced_type.identifier}_view(data_ + {self._dynamic_offset}{self.offset_name()});'
 
     def builder_serialize_body(self):
-        return ''
+        return f'{self._field.name}_.build(sink + {self._dynamic_offset}{self.offset_name()});\n'
 
     def builder_parameter_code(self):
-        # std::uintt_t foo
         return f'{self._builder_cpp_type} {self._field.name}'
 
     def builder_field_code(self):
-        # std::uint8_t foo_ = 0;
         return f'{self._builder_cpp_type} {self._field.name}_ = {self.default_value()};'
 
     def builder_setter_code(self):
@@ -48,3 +46,6 @@ class DataTypeReference(Field):
         {{
             return {self._field.name}_;
         }}'''
+
+    def is_datatype(self):
+        return True

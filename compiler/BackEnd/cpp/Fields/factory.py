@@ -4,9 +4,10 @@ from BackEnd.cpp.Fields.Integer import Integer
 from BackEnd.cpp.Fields.EnumReference import EnumReference
 from BackEnd.cpp.Fields.Flag import Flag
 from BackEnd.cpp.Fields.Collection import Collection
+from BackEnd.cpp.Fields.DataTypeReference import DataTypeReference
 
 from Model.types import Integer as ModelInt, Float as ModelFloat, Flag as ModelFlag
-from Model.expressions import FieldReference as ModelFieldReference, EnumerationReference as ModelEnumRef
+from Model.expressions import FieldReference as ModelFieldReference, EnumerationReference as ModelEnumRef, DataTypeReference as ModelDataTypeRef
 from Model.Enumeration import Enumeration as ModelEnum
 from Model.Collection import Collection as ModelCollection
 from Model.Field import Field as ModelField
@@ -33,5 +34,7 @@ def create(type_name, field, endianness, settings):
         fakeField = ModelField("", field.type().type(), 0, None, None)
         fakeField = create("", fakeField, endianness, settings)
         return Collection(type_name, field, fakeField.cpp_type(), endianness)
+    elif type(field.type()) is ModelDataTypeRef:
+        return DataTypeReference(type_name, field,endianness, settings)
     else:
         assert False, "Unknown type {} and length {}".format(field.type(), field.size_in_bits())

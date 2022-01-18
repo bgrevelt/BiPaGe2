@@ -2,6 +2,8 @@ from .Fields import factory as field_factory
 from .Beautifier import *
 import math
 from BackEnd.cpp.CaptureScope import CaptureScope
+from Model.Collection import Collection
+from Model.expressions import DataTypeReference
 
 class DataType:
     def __init__(self, datatype, endianness, settings):
@@ -79,7 +81,7 @@ private:
                 const std::uint8_t* data_;
                 {dynamic_offsets}
             }};
-            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_collection_offsets(), size=self._view_size())
+            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets(), size=self._view_size())
 
     def builder_code(self):
         fields = '\n'.join([field.builder_field_code() for field in self._fields])
@@ -92,7 +94,7 @@ private:
                                     pointer_build=self._builder_build_method(),
                                     size=self._builder_size(),
                                     fields=fields,
-                                    dynamic_offsets=self._builder_collection_offsets())
+                                    dynamic_offsets=self._builder_dynamic_offsets())
 
     def _builder_ctor(self):
         parameters = ",\n".join([field.builder_parameter_code() for field in self._fields])
@@ -154,9 +156,16 @@ private:
             size = str(math.ceil(self._datatype.size_in_bits() / 8))
         else:
             size = str(math.ceil(self._datatype.static_size_in_bits() / 8))
-            dynamic_fields = {field.dynamic_capture_offset() for field in self._datatype.fields() if field.dynamic_capture_offset() is not None}
-            dynamic_fields = [f'{field.name}_.size() * sizeof(decltype ({field.name}_)::value_type)' for field in dynamic_fields]
-            size = size + '+ ' + ' + '.join(dynamic_fields)
+            collection_fields = [field for field in self._datatype.fields() if type(field.type()) is Collection]
+            collection_fields = [f'{field.name}_.size() * sizeof(decltype ({field.name}_)::value_type)' for field in collection_fields]
+            data_type_fields = [field for field in self._datatype.fields() if
+                                 type(field.type()) is DataTypeReference]
+            data_type_fields = [f'{field.name}_.size()' for field in
+                                data_type_fields]
+            if len(collection_fields) > 0:
+                size += '+ ' + ' + '.join(collection_fields)
+            if len(data_type_fields) > 0:
+                size += '+ ' + ' + '.join(data_type_fields)
 
         return \
             f'''size_t size() const // return the size of the serialized data
@@ -186,11 +195,63 @@ private:
         indexes = '\n'.join(indexes)
         return getters + '\n' + indexes
 
-    def _view_collection_offsets(self):
-        return self._collection_offsets(lambda field_name: f'{field_name}().size_in_bytes()')
+    def _offset(self, field, size_code):
+        offset_dynamic_offset = f'GetEndOf{field.dynamic_capture_offset().name()}() +' if field.dynamic_capture_offset() is not None else ""
+        offset_static_offset = field.offset_name()
+        getter = f'''size_t GetEndOf{field.name()}() const
+                                {{
+                                    if(end_of_{field.name()}_ == 0)
+                                        end_of_{field.name()}_ = {offset_dynamic_offset} {offset_static_offset} + {size_code(field.name())};
 
-    def _builder_collection_offsets(self):
-        return self._collection_offsets(lambda field_name: f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)')
+                                    return end_of_{field.name()}_;
+                                }}'''
+
+        index = f'mutable size_t end_of_{field.name()}_ = 0;'
+        return getter, index
+
+
+    def _view_dynamic_offsets(self):
+        getters = []
+        indexes = []
+
+        for field in self._fields:
+            if field.is_collection():
+                getter, index = self._offset(field, lambda field_name: f'{field_name}().size_in_bytes()')
+                getters.append(getter)
+                indexes.append(index)
+            elif field.is_datatype():
+                getter, index = self._offset(field, lambda field_name: f'{field_name}().size_in_bytes()')
+                getters.append(getter)
+                indexes.append(index)
+
+        getters = '\n'.join(getters)
+        indexes = '\n'.join(indexes)
+        return getters + '\n' + indexes
+
+    def _builder_dynamic_offsets(self):
+        getters = []
+        indexes = []
+
+        for field in self._fields:
+            if field.is_collection():
+                getter, index = self._offset(field, lambda field_name: f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)')
+                getters.append(getter)
+                indexes.append(index)
+            elif field.is_datatype():
+                getter, index = self._offset(field, lambda field_name: f'{field_name}_.size()')
+                getters.append(getter)
+                indexes.append(index)
+
+        getters = '\n'.join(getters)
+        indexes = '\n'.join(indexes)
+        return getters + '\n' + indexes
+
+
+    # def _view_collection_offsets(self):
+    #     return self._collection_offsets(lambda field_name: f'{field_name}().size_in_bytes()')
+
+    # def _builder_collection_offsets(self):
+    #     return self._collection_offsets(lambda field_name: f'{field_name}_.size() * sizeof(decltype ({field_name}_)::value_type)')
 
     def _view_size(self):
         last_field = self._fields[-1]
