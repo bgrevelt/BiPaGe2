@@ -33,6 +33,13 @@ class ToString(unittest.TestCase, IntegrationTest):
             }
             collection: f32[6];
         }
+        
+        Bar
+        {
+            f1: f64;
+            f2: Foo;
+            f3: s32;
+        }
         ''')
         self.write_cmake_file()
         self.write_test_cpp_file('''
@@ -44,6 +51,7 @@ void test_simple()
 {            
     std::uint8_t buffer[1024];
     auto p = buffer;
+    p = serialize(p, -123.456);
     p = serialize(p, static_cast<std::int32_t>(-35643));
     p = serialize(p, 1.234);
     p = serialize(p, SomeEnum::one);
@@ -58,8 +66,9 @@ void test_simple()
     p = serialize(p, 4.56f);
     p = serialize(p, 5.67f);
     p = serialize(p, 6.78f);
+    p = serialize(p, static_cast<std::int32_t>(25));
 
-    Foo_view parsed(buffer);
+    Bar_view parsed(buffer);
     std::cout << parsed.to_string() << std::endl;
 }
 
@@ -84,6 +93,9 @@ int main(int argc, char* argv[])
 
         exit_code, output = self.run_all(testargs=["simple"])
         self.check_output(output, '''
+                f1: -123.456
+                f2:
+                {
                 field: -35643
                 another_field_name_nice_and_long: 1.234
                 enum1: SomeEnum::one (1)
@@ -94,7 +106,9 @@ int main(int argc, char* argv[])
                 flag1: cleared
                 flag2: set
                 filler: 0
-                collection: [1.23, 2.34, 3.45, 4.56, 5.67, 6.78]''')
+                collection: [1.23, 2.34, 3.45, 4.56, 5.67, 6.78]
+                }
+                f3: 25''')
 
     def check_output(self, expected, output):
         # check two strings ignoring whitespace and casing
