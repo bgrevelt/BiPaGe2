@@ -47,7 +47,7 @@ class IntegrationTest:
         # specify the C++ standard
         set(CMAKE_CXX_STANDARD 11)
         set(CMAKE_CXX_STANDARD_REQUIRED True)
-        set(CMAKE_CXX_FLAGS "${{CMAKE_CXX_FLAGS}} -std=c++11")''')
+        set(CMAKE_CXX_FLAGS "${{CMAKE_CXX_FLAGS}} -std=c++17")''')
 
     def write_test_cpp_file(self, content):
         with open(f'temp_{self.test_name}/{self.test_name}.cpp', 'w+') as f:

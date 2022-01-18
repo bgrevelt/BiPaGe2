@@ -111,3 +111,6 @@ class Field(ABC):
 
     def is_datatype(self):
         return False
+
+    def cache_field(self):
+        return None

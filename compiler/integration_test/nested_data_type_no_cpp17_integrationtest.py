@@ -1,7 +1,7 @@
 import unittest
 from integration_test.integrationtest import IntegrationTest
 
-class NestedDataType(unittest.TestCase, IntegrationTest):
+class NestedDataTypeNoCpp17(unittest.TestCase, IntegrationTest):
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
@@ -24,7 +24,7 @@ class NestedDataType(unittest.TestCase, IntegrationTest):
         ''')
         self.write_cmake_file()
         self.write_test_cpp_file('''
-#include "nested_data_type_integrationtest_generated.h"
+#include "nested_data_type_no_cpp17_integrationtest_generated.h"
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -102,12 +102,31 @@ int main(int argc, char* argv[])
         test_bar_builder();
 }''')
 
+    def write_cmake_file(self):
+        with open(f'temp_{self.test_name}/CMakeLists.txt', 'w+') as f:
+            f.write(f'''
+        cmake_minimum_required(VERSION 3.4)
+
+        # set the project name
+        project(integration_test)
+
+        # Set the include path
+        include_directories(../../../library/c++)
+
+        # add the executable
+        add_executable({self.test_name} {self.test_name}.cpp)
+
+        # specify the C++ standard
+        set(CMAKE_CXX_STANDARD 11)
+        set(CMAKE_CXX_STANDARD_REQUIRED True)
+        set(CMAKE_CXX_FLAGS "${{CMAKE_CXX_FLAGS}} -std=c++11")''')
+
     def test_foo_view(self):
-        exit_code, output = self.run_all(bipageargs=['--cpp-17'], testargs=["view"])
+        exit_code, output = self.run_all(testargs=["view"])
         self.assertEqual(exit_code, 0)
 
     def test_foo_builder(self):
-        exit_code, output = self.run_all(bipageargs=['--cpp-17'], testargs=["build"])
+        exit_code, output = self.run_all(testargs=["build"])
         self.assertEqual(exit_code, 0)
 
 

@@ -80,8 +80,9 @@ private:
             private:
                 const std::uint8_t* data_;
                 {dynamic_offsets}
+                {field_caches}
             }};
-            '''.format(typename=self._identifier, fields=fields, tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets(), size=self._view_size())
+            '''.format(typename=self._identifier, fields=fields, field_caches=self.field_caches(), tostring=self.to_string_code(), dynamic_offsets=self._view_dynamic_offsets(), size=self._view_size())
 
     def builder_code(self):
         fields = '\n'.join([field.builder_field_code() for field in self._fields])
@@ -261,8 +262,12 @@ private:
             # The last field is a dynamic field, so we can simply use the GetEndOF method of that
             body = f'GetEndOf{last_field.name()}();'
 
-        return f'''size_t size_in_bytes()
+        return f'''size_t size_in_bytes() const
         {{
             return {body}
         }}'''
+
+    def field_caches(self):
+        cache_fields = [field.cache_field() for field in self._fields if field.cache_field() is not None]
+        return '\n'.join(cache_fields)
 

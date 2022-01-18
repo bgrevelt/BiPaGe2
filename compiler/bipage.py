@@ -10,6 +10,7 @@ def parse_arguments():
     parser.add_argument('--cpp-no-validate-builder-input', dest='cpp_validate_input', default=True, action='store_false')
     parser.add_argument('--cpp-no-to-string', dest='cpp_to_string', default=True,
                         action='store_false')
+    parser.add_argument('--cpp-17', dest='cpp17', default=False, action='store_true')
 
     return parser.parse_args()
 
