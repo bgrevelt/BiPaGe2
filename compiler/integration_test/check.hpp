@@ -3,6 +3,8 @@
 #include <functional>
 #include <iostream>
 #include <type_traits>
+#include <string>
+#include <vector>
 #include "../../library/c++/BiPaGe/Collection.h"
 
 #define check_equal(l,r) check_equal_func(l,r,__FUNCTION__, __LINE__)
@@ -38,9 +40,8 @@ void check_equal_func(const std::vector<T1>& l, const std::vector<T2>& r, const 
     if(l.size() != r.size())
     {
         std::cerr << "check_equal called from " << caller << ", line " << line << ": Vector L size " << l.size() << " is not equal to R size " << r.size() << std::endl;
-        exit(-1);
     }
-    if(!std::equal(l.begin(), l.end(), r.begin()))
+    if(!std::equal(l.begin(), l.begin() + std::min(l.size(), r.size()), r.begin()))
     {
         std::cerr << "check_equal called from " << caller << ", line " << line << ": Two vectors are not equal:" << std::endl;
         for(size_t i = 0 ; i < l.size() ; ++i)
@@ -54,6 +55,24 @@ void check_equal_func(const std::vector<T1>& l, const std::vector<T2>& r, const 
         }
         exit(-1);
     }
+}
+
+std::string clean_string(std::string s)
+{
+    s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char x){return std::isspace(x);}), s.end());
+    return s;
+}
+
+void check_equal_func(const std::string l, const std::string r, const char* caller, int line)
+{
+    std::string lclean = clean_string(l);
+    std::string rclean = clean_string(r);
+    // convert to vector of char so we can use the vector compare function
+    check_equal_func(
+                std::vector<char>(lclean.begin(),lclean.end()),
+                std::vector<char>(rclean.begin(),rclean.end()),
+                caller,
+                line);
 }
 
 template<typename T>

@@ -1,13 +1,14 @@
-import "some/dir/bipage1.bp";
-@bigendian;
-
-Bla : s8
-{
-  aap = -1
-}
-
 Foo
 {
-    enum_field: Bla;
-    f1: s32[enum_field==Bla.aap?2:0];
+    field1: s32;
+    f32;
+    field3: u16;
+    field4: u8[field3];
+    field5: f64;
+}
+Bar
+{
+    f1: s32;
+    f2: Foo[f1];
+    f3: f64;
 }

@@ -46,15 +46,16 @@ class Collection(Field):
         }}'''
 
     def to_string_code(self, string_stream_var_name):
-        if type(self._field.type().type()) is Model.expressions.DataTypeReference:
-            #TODO
-            return ''
-
+        value = '*current'
+        if self._is_enum_collection:
+            value = "enum_to_string(*current)"
+        elif self._collection_type == 'std::uint8_t':
+            value = 'static_cast<int>(*current)'
         return f'''auto {self._field.name}_iterator = {self._field.name}();
             {string_stream_var_name} << "[ ";
             for(auto current = {self._field.name}_iterator.begin() ; current < {self._field.name}_iterator.end() ; ++current)
             {{
-                {string_stream_var_name} << {"enum_to_string(*current)" if self._is_enum_collection else "*current"} << (current < ({self._field.name}_iterator.end()-1) ? ", " : "");
+                {string_stream_var_name} << {value} << (current < ({self._field.name}_iterator.end()-1) ? ", " : "");
             }}
             {string_stream_var_name} << " ]";'''
 
