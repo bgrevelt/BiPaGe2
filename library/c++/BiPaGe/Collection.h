@@ -6,7 +6,6 @@
 #include <iterator>
 #include <cstddef>
 #include <sstream>
-#include <iostream>
 #include "Endianness.h"
 
 namespace BiPaGe
@@ -157,19 +156,17 @@ namespace BiPaGe
             while(size > 0)
             {
                 elems_.push_back(T(data));
-                auto bsize = elems_.back().size_in_bytes();
-                std::cout << "Element " << size << " " << bsize << " bytes" << std::endl;
-                data += bsize;
+                data += elems_.back().size_in_bytes();
                 size--;
             }
             binary_size_ = data - data_start;
         }
 
-        typename std::vector<T>::iterator begin() const
+        typename std::vector<T>::const_iterator begin() const
         {
             return elems_.begin();
         }
-        typename std::vector<T>::iterator end() const
+        typename std::vector<T>::const_iterator end() const
         {
             return elems_.end();
         }

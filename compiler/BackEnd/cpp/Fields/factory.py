@@ -3,7 +3,7 @@ from BackEnd.cpp.Fields.Float import Float64
 from BackEnd.cpp.Fields.Integer import Integer
 from BackEnd.cpp.Fields.EnumReference import EnumReference
 from BackEnd.cpp.Fields.Flag import Flag
-from BackEnd.cpp.Fields.Collection import Collection
+from BackEnd.cpp.Fields.Collection import Collection, DataTypeCollection
 from BackEnd.cpp.Fields.DataTypeReference import DataTypeReference
 
 from Model.types import Integer as ModelInt, Float as ModelFloat, Flag as ModelFlag
@@ -33,7 +33,10 @@ def create(type_name, field, endianness, settings):
         # The only reason we do that is so we can translate it to a cpp field so we can query it for it's cpp type
         fakeField = ModelField("", field.type().type(), 0, None, None)
         fakeField = create("", fakeField, endianness, settings)
-        return Collection(type_name, field, fakeField.cpp_type(), endianness)
+        if type(field.type().type()) is ModelDataTypeRef:
+            return DataTypeCollection(type_name, field, fakeField.cpp_type(), endianness)
+        else:
+            return Collection(type_name, field, fakeField.cpp_type(), endianness)
     elif type(field.type()) is ModelDataTypeRef:
         return DataTypeReference(type_name, field,endianness, settings)
     else:
