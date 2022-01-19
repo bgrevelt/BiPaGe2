@@ -1,6 +1,6 @@
 from Model.Node import Node
 from Model.BuildMessage import BuildMessage
-from Model.expressions import NumberLiteral, FieldReference
+from Model.expressions import NumberLiteral, FieldReference, DataTypeReference
 from Model.types import SignedInteger, UnsignedInteger
 
 class Collection(Node):
@@ -26,7 +26,7 @@ class Collection(Node):
         return self._type
 
     def check_semantics(self, warnings, errors):
-        if self._type.size_in_bits() not in [8,16,32,64]:
+        if self._type.size_in_bits() not in [8,16,32,64] and type(self._type) not in [DataTypeReference]:
             self.add_message(f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection', errors)
 
         initial_error_count = len(errors)

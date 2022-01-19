@@ -6,7 +6,7 @@
 #include <iterator>
 #include <cstddef>
 #include <sstream>
-
+#include <iostream>
 #include "Endianness.h"
 
 namespace BiPaGe
@@ -143,5 +143,65 @@ namespace BiPaGe
         {
 
         }
+    };
+
+    template<typename T>
+    class DataTypeCollection
+    {
+    public:
+        DataTypeCollection(const std::uint8_t* data, size_t size)
+            : data_(data)
+            , size_(size)
+        {
+            const std::uint8_t* data_start = data;
+            while(size > 0)
+            {
+                elems_.push_back(T(data));
+                auto bsize = elems_.back().size_in_bytes();
+                std::cout << "Element " << size << " " << bsize << " bytes" << std::endl;
+                data += bsize;
+                size--;
+            }
+            binary_size_ = data - data_start;
+        }
+
+        typename std::vector<T>::iterator begin() const
+        {
+            return elems_.begin();
+        }
+        typename std::vector<T>::iterator end() const
+        {
+            return elems_.end();
+        }
+        const T& at(size_t index) const
+        {
+            return elems_.at(index);
+        }
+        const T& back() const
+        {
+            return elems_.back();
+        }
+        const T& front() const
+        {
+            return elems_.front();
+        }
+        size_t size() const
+        {
+            return elems_.size();
+        }
+        T operator[](size_t index) const
+        {
+            return elems_[index];
+        }
+        size_t size_in_bytes() const
+        {
+            return binary_size_;
+        }
+
+    private:
+        const void* data_;
+        const size_t size_;
+        size_t binary_size_ = 0;
+        std::vector<T> elems_;
     };
 }
