@@ -39,8 +39,13 @@ class Float(Type):
         return True
 
     def check_semantics(self, warnings, errors):
-       if self._size not in (32, 64):
-           self.add_message(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", errors)
+        if self._size not in (32, 64):
+            self.add_message(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", errors)
+            return True
+        return False
+
+
+
 
 class Integer(Type):
     def __init__(self, size, token):
@@ -51,9 +56,10 @@ class Integer(Type):
         return self._size
 
     def check_semantics(self, warnings, errors):
-        line, column = self.location()
         if self._size < 2 or self._size > 64:
             self.add_message(f'Size ({self.size_in_bits()}) for integer outside supported range [2-64]', errors)
+            return True
+        return False
 
     @abstractmethod
     def range(self):

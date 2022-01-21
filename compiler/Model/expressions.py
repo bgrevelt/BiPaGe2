@@ -40,7 +40,7 @@ class NumberLiteral(Expression):
 
     def check_semantics(self, warnings, errors):
         #Nothing to check for a number literal
-        pass
+        return False
 
     def return_type(self):
         if self._number < 0:
@@ -70,7 +70,7 @@ class Reference(Expression):
         return self._name
 
     def check_semantics(self, warnings, errors):
-        return
+        return False
 
     def evaluate(self):
         return self
@@ -146,6 +146,7 @@ class NullReference(Reference):
 
     def check_semantics(self, warnings, errors):
         self.add_message(f'Reference "{self._name}" cannot be resolved', errors)
+        return True
 
     def Equals(self, other):
         return type(other) == NullReference and self._name == other.identifier()
@@ -203,7 +204,7 @@ class RelationalOperator(BinaryOperator, ABC):
 
     def check_semantics(self, warnings, errors):
         if super().check_semantics(warnings, errors):
-            return
+            return True
 
         # Comparing negative values to signed integer does not make sense
         if (self._left.return_type() == UnsignedInteger and type(self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
@@ -227,7 +228,7 @@ class EqualityOperator(BinaryOperator):
 
     def check_semantics(self, warnings, errors):
         if super().check_semantics(warnings, errors):
-            return
+            return True
 
         # Comparing negative values to signed integer does not make sense
         if (self._left.return_type() == UnsignedInteger and type(
@@ -274,7 +275,7 @@ class ArithmeticOperator(BinaryOperator, ABC):
     # in an expression
     def check_semantics(self, warnings, errors):
         if super().check_semantics(warnings, errors):
-            return
+            return True
 
         # Operands should be integer or floating point
         if self._left.return_type() not in [Float, SignedInteger, UnsignedInteger]:
@@ -323,8 +324,9 @@ class DivisionOperator(ArithmeticOperator):
         return left.value() / right.value()
 
     def check_semantics(self, warnings, errors):
-        super().check_semantics(warnings, errors)
+        error = super().check_semantics(warnings, errors)
         self.add_message(f'Division operator {self.__str__()} may have in non-integer result. It depends on the target language how those results are handled.', warnings)
+        return error
 
     def __str__(self):
         return f'({str(self._left)} / {str(self._right)})'
@@ -476,9 +478,13 @@ class TernaryOperator(Expression):
             self._false.Equals(other._false)
 
     def check_semantics(self, warnings, errors):
+        initial_error_count = len(errors)
         self._condition.check_semantics(warnings, errors)
         self._true.check_semantics(warnings, errors)
         self._false.check_semantics(warnings, errors)
+        if len(errors) > initial_error_count:
+            return True
+
         return_type_true = self._true.return_type()
         return_type_false = self._false.return_type()
         return_type_condition = self._condition.return_type()
@@ -498,6 +504,9 @@ class TernaryOperator(Expression):
                 f'Different types for true ({return_type_true.__name__}) and false ({return_type_false.__name__}) clause',
                 errors
             )
+
+        if len(errors) > initial_error_count:
+            return True
 
     def return_type(self):
         return_type_true = self._true.return_type()

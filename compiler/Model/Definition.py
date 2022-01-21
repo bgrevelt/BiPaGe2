@@ -16,6 +16,7 @@ class Definition(Node):
 
 
     def check_semantics(self, imported_types:List[ImportedFile], warnings, errors):
+        initial_error_count = len(errors)
         names = defaultdict(list)
         for datatype in self.datatypes:
             names[datatype.identifier].append(datatype.location())
@@ -38,3 +39,5 @@ class Definition(Node):
 
         for enum in self.enumerations:
             enum.check_semantics(warnings, errors)
+
+        return len(errors) > initial_error_count

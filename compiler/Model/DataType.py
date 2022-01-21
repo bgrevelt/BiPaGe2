@@ -25,11 +25,13 @@ class DataType(Node):
         return sum(field.size_in_bits() for field in self._fields if field.size_in_bits() is not None)
 
     def check_semantics(self, warnings, errors):
+        initial_error_count = len(errors)
         self._check_empty(warnings, errors)
         self._check_unique_field_names(warnings, errors)
         self._check_capture_scopes(warnings, errors)
         self._check_fields(warnings, errors)
         self._check_size(warnings, errors)
+        return len(errors) > initial_error_count
 
     def _check_empty(self, warnings, errors):
         if len(self.fields(include_padding_fields=False)) == 0:

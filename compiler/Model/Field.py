@@ -47,7 +47,10 @@ class Field(Node):
         return self._dynamic_capture_offset
 
     def check_semantics(self, warnings, errors):
+        initial_error_count = len(errors)
         self._type.check_semantics(warnings, errors)
+        if len(errors) > initial_error_count:
+            return True
 
         line, column = self.location()
         if isinstance(self._type, Reference) and type(self._type) not in [EnumerationReference, DataTypeReference]:
@@ -58,6 +61,8 @@ class Field(Node):
 
         if not type(self._type) is Collection and not type(self._type) is DataTypeReference and not self.scoped() and not self.is_standard_size():
             errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
+
+        return len(errors) > initial_error_count
 
     def capture_type_mask(self):
         offset_in_capture_type = 0 if self.offset_in_capture is None else self.offset_in_capture

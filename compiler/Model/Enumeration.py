@@ -31,8 +31,10 @@ class Enumeration(Node):
         return self._enumerators
 
     def check_semantics(self, warnings, errors):
+        initial_error_count = len(errors)
         self._check_unique_enumerators(warnings, errors)
         self._check_enumerand_value(warnings, errors)
+        return len(errors) > initial_error_count
 
     def Equals(self, other):
         return type(other) == Enumeration and \

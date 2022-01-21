@@ -20,6 +20,8 @@ class CaptureScope(Node):
         return [field for field in self._fields if include_padding_fields or (not field.is_padding_field())]
 
     def check_semantics(self, warnings, errors):
+        initial_error_count = len(errors)
+
         line, column = self.location()
         standard_widths = [8,16,32,64]
 
@@ -38,4 +40,6 @@ class CaptureScope(Node):
                 line, column = field.location()
                 errors.append(BuildMessage(line, column,
                                            "Collections inside a capture scope are not supported"))
+
+        return len(errors) > initial_error_count
 
