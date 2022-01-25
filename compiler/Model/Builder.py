@@ -10,6 +10,7 @@ from Model.Collection import Collection
 from Model.expressions import *
 import os
 from Model.helpers import *
+from typing import List
 
 class Builder(BiPaGeListener):
     def __init__(self, file, imports):
@@ -37,10 +38,11 @@ class Builder(BiPaGeListener):
         # have the same order as in the input file. So we use this approach to do just that.
         self._current_datatype_fields = []
 
-    def _process_imports(self, imports):
-        for imp in imports:
-            for enum in imp.enumerations:
-                enumeration_name = (imp.namespace + "." if imp.namespace else "") + enum.name()
+    def _process_imports(self, imports:List[Definition]):
+        for definition in imports:
+            for enum in definition.enumerations:
+                ns = definition.namespace_as_string()
+                enumeration_name = (ns + "." if ns else "") + enum.name()
                 self._imported_enumerations_by_name[enumeration_name] = enum
                 for enumerator_name,_ in enum.enumerators():
                     enumerator_fully_qualified_name = f'{enumeration_name}.{enumerator_name}'

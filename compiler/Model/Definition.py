@@ -1,8 +1,6 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
 from collections import defaultdict
-from Model.ImportedFile import ImportedFile
-from typing import List
 
 class Definition(Node):
     def __init__(self,name, endianness, namespace, imports, datatypes, enumerations, token):
@@ -14,6 +12,9 @@ class Definition(Node):
         self.namespace = namespace
         self.enumerations = enumerations
 
+    def namespace_as_string(self):
+        return '.'.join(self.namespace)
+
 
     def check_semantics(self, warnings, errors):
         initial_error_count = len(errors)
@@ -23,7 +24,9 @@ class Definition(Node):
         for enum in self.enumerations:
             names[enum.name()].append(enum.location())
         for import_ in self.imports:
-            for name, enum in import_.enumerations_by_fully_qualified_name().items():
+            for enum in import_.enumerations:
+                ns = import_.namespace_as_string()
+                name = (ns + "." if ns else "") + enum.name()
                 names[name].append(enum.location())
 
 

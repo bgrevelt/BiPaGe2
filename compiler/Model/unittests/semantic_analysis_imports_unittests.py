@@ -1,5 +1,5 @@
 from build_model import build_model_test
-from Model.ImportedFile import ImportedFile
+from Model.Definition import Definition
 from Model.Enumeration import Enumeration
 from Model.types import UnsignedInteger
 from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
@@ -7,8 +7,26 @@ from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTest
 class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
     # Use an enumeration from an imported file
     def test_external_enum(self):
-        imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('ImportedEnum', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
+        imports = [
+                      Definition(
+                          name='import',
+                          endianness='little',
+                          namespace=[],
+                          imports=[],
+                          datatypes=[],
+                          enumerations=[
+                              Enumeration(
+                                  name='ImportedEnum',
+                                  base_type=UnsignedInteger(8, None),
+                                  enumerators=[
+                                      ('first', 0),
+                                      ('second', 1)
+                                  ],
+                                  token=None)
+                          ],
+                          token=None )
+                    ]
+
         text = '''
         Foo
         {
@@ -21,8 +39,25 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
         self.checkErrors(errors, [])  # Enum exists in import so we should not get any errors
 
     def test_missing_external_enum(self):
-        imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('ImportedEnum2', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
+        imports = [
+                      Definition(
+                          name='import',
+                          endianness='little',
+                          namespace=[],
+                          imports=[],
+                          datatypes=[],
+                          enumerations=[
+                              Enumeration(
+                                  name='ImportedEnum2',
+                                  base_type=UnsignedInteger(8, None),
+                                  enumerators=[
+                                      ('first', 0),
+                                      ('second', 1)
+                                  ],
+                                  token=None)
+                          ],
+                          token=None )
+                    ]
         text = '''
         Foo
         {
@@ -36,8 +71,25 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
                                    'Reference "ImportedEnum" cannot be resolved')])  # Enum does not exists in import so we should get an errors
 
     def test_duplicated_type_name(self):
-        imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('MyEnum', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
+        imports = [
+            Definition(
+                name='import',
+                endianness='little',
+                namespace=[],
+                imports=[],
+                datatypes=[],
+                enumerations=[
+                    Enumeration(
+                        name='MyEnum',
+                        base_type=UnsignedInteger(8, None),
+                        enumerators=[
+                            ('first', 0),
+                            ('second', 1)
+                        ],
+                        token=None)
+                ],
+                token=None)
+        ]
         text = '''
         MyEnum : s32
         {
@@ -58,10 +110,12 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
 
     def test_duplicated_type_name_in_namespace(self):
         imports = [
-            ImportedFile(
-                path='import.bp',
-                imports = [],
-                namespace='ns',
+            Definition(
+                name='import',
+                endianness='little',
+                namespace=['ns'],
+                imports=[],
+                datatypes=[],
                 enumerations=[
                     Enumeration(
                         name='MyEnum',
@@ -70,10 +124,9 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
                             ('first', 0),
                             ('second', 1)
                         ],
-                        token=None
-                    )
-                ]
-            )
+                        token=None)
+                ],
+                token=None)
         ]
         text = '''
         MyEnum : s32
@@ -96,10 +149,12 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
 
     def test_imported_enum_in_namespace(self):
         imports = [
-            ImportedFile(
-                path='import.bp',
+            Definition(
+                name='import',
+                endianness='little',
+                namespace=['some','name','space'],
                 imports=[],
-                namespace='some.name.space',
+                datatypes=[],
                 enumerations=[
                     Enumeration(
                         name='MyEnum',
@@ -109,9 +164,9 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
                             ('second', 1)
                         ],
                         token=None)
-                    ]
-                )
-            ]
+                ],
+                token=None)
+        ]
 
         warnings, errors, _ = build_model_test('''
         Foo
@@ -148,8 +203,25 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
         self.checkErrors(errors, [(5, 21, "Reference \"sMyEnum\" cannot be resolved")])
 
     def test_imported_enumerator(self):
-        imports = [ImportedFile('import.bp', [], '', [
-            Enumeration('MyEnum', UnsignedInteger(8, None), [('first', 0), ('second', 1)], None)])]
+        imports = [
+            Definition(
+                name='import',
+                endianness='little',
+                namespace=[],
+                imports=[],
+                datatypes=[],
+                enumerations=[
+                    Enumeration(
+                        name='MyEnum',
+                        base_type=UnsignedInteger(8, None),
+                        enumerators=[
+                            ('first', 0),
+                            ('second', 1)
+                        ],
+                        token=None)
+                ],
+                token=None)
+        ]
         text = '''
         Foo
         {

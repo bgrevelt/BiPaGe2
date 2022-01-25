@@ -2,11 +2,10 @@ from generated.BiPaGeListener import BiPaGeListener
 from generated.BiPaGeParser import BiPaGeParser
 from Model.types import SignedInteger, UnsignedInteger
 from Model.Enumeration import Enumeration
-import re
-from Model.ImportedFile import ImportedFile
 import os
 from Model.expressions import NumberLiteral
 from Model.helpers import *
+from Model.Definition import Definition
 
 class ImportAnalyzer(BiPaGeListener):
     def __init__(self, path):
@@ -18,7 +17,14 @@ class ImportAnalyzer(BiPaGeListener):
         self._cwd = os.path.split(os.path.abspath(path))[0]
 
     def properties(self):
-        return ImportedFile(self.path, self.imports, self.namespace, self.enumerations)
+        return Definition(
+                name=os.path.splitext(os.path.split(self.path)[1])[0],
+                endianness='little', #TODO
+                namespace=self.namespace.split('.') if self.namespace is not None else [],
+                imports=self.imports,
+                datatypes=[],
+                enumerations=self.enumerations,
+                token=None) #TODO
 
     def exitNamespace(self, ctx:BiPaGeParser.NamespaceContext):
         self.namespace = ".".join(str(i) for i in ctx.Identifier())
