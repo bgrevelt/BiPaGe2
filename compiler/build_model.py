@@ -60,7 +60,7 @@ def build_model_from_text(text, filename=None):
     errors = errorlistener.errors()
     if len(errors) == 0:
         model = builder.model()
-        model.check_semantics(imports, warnings, errors)
+        model.check_semantics(warnings, errors)
 
     return warnings, errors, model
 
@@ -75,6 +75,6 @@ def build_model_test(text, imports=None):
     errors = errorlistener.errors()
     if len(errors) == 0:
         model = builder.model()
-        model.check_semantics(imports, warnings, errors)
+        model.check_semantics(warnings, errors)
 
     return warnings, errors, model

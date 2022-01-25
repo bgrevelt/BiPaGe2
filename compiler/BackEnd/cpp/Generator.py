@@ -54,10 +54,11 @@ class Generator:
     def get_import_includes(model):
         imports = []
         for i in model.imports:
-            i = i.replace('"', '')
-            file, _ = os.path.splitext(i)
-            file += "_generated.h"
-            imports.append(f'#include "{file}"')
+            path = i.path
+            path = path.replace('"', '')
+            path, _ = os.path.splitext(path)
+            path += "_generated.h"
+            imports.append(f'#include "{path}"')
         return imports
 
     @staticmethod

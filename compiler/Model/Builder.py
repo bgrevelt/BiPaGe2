@@ -24,7 +24,7 @@ class Builder(BiPaGeListener):
         self._enumerations_by_enumerator_fully_qualified_name = {}
         self._enumerations_by_name = {}
         self._data_types_by_name = {}
-
+        self._imports = imports
         self._process_imports(imports)
 
         # We have this here to store fields in the current datatype as we encounter them. The reason that we can't
@@ -59,8 +59,7 @@ class Builder(BiPaGeListener):
 
         datatypes = [self.noderesult[d] for d in ctx.datatype()]
         enumerations = self._enumerations_by_name.values()
-        imports = [self.noderesult[i] for i in ctx.import_rule()]
-        self._definition = Definition(self._definition_name, endianness, namespace, imports, datatypes, enumerations, ctx.start)
+        self._definition = Definition(self._definition_name, endianness, namespace, self._imports, datatypes, enumerations, ctx.start)
 
 
     def enterDatatype(self, ctx:BiPaGeParser.DatatypeContext):

@@ -15,14 +15,14 @@ class Definition(Node):
         self.enumerations = enumerations
 
 
-    def check_semantics(self, imported_types:List[ImportedFile], warnings, errors):
+    def check_semantics(self, warnings, errors):
         initial_error_count = len(errors)
         names = defaultdict(list)
         for datatype in self.datatypes:
             names[datatype.identifier].append(datatype.location())
         for enum in self.enumerations:
             names[enum.name()].append(enum.location())
-        for import_ in imported_types:
+        for import_ in self.imports:
             for name, enum in import_.enumerations_by_fully_qualified_name().items():
                 names[name].append(enum.location())
 
