@@ -27,13 +27,12 @@ class Collection(Node):
 
     def check_semantics(self, warnings, errors):
         initial_error_count = len(errors)
+
+        if self._type.check_semantics(warnings, errors) or self._size.check_semantics(warnings, errors):
+            return True
+
         if self._type.size_in_bits() not in [8,16,32,64] and type(self._type) not in [DataTypeReference]:
             self.add_message(f'Non-standard ({self._type.size_in_bits()}) sized types not supported in collection', errors)
-
-        initial_error_count = len(errors)
-        self._size.check_semantics(warnings, errors)
-        if initial_error_count < len(errors):
-            return
 
         # Size expression should resolve to integer
         if self._size.return_type() not in [SignedInteger, UnsignedInteger] :
