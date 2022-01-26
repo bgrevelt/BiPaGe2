@@ -30,11 +30,11 @@ class Enumeration(Node):
     def enumerators(self):
         return self._enumerators
 
-    def check_semantics(self, warnings, errors):
-        initial_error_count = len(errors)
-        self._check_unique_enumerators(warnings, errors)
-        self._check_enumerand_value(warnings, errors)
-        return len(errors) > initial_error_count
+    def check_semantics(self, messages):
+        initial_error_count = messages.error_count()
+        self._check_unique_enumerators(messages)
+        self._check_enumerand_value(messages)
+        return messages.error_count() > initial_error_count
 
     def Equals(self, other):
         return type(other) == Enumeration and \
@@ -43,27 +43,23 @@ class Enumeration(Node):
     len(self.enumerators()) == len(other.enumerators()) and \
     all(l == r for l,r in zip(self.enumerators(), other.enumerators()))
 
-    def _check_unique_enumerators(self, warnings, errors):
-        line, column = self.location()
+    def _check_unique_enumerators(self, messages):
         for name, value in self._enumerators:
             if sum(1 for n,v in self._enumerators if n==name) > 1:
-                errors.append(BuildMessage(line, column, f'Duplicated enumerand {name} in {self._name}'))
+                self.add_error(f'Duplicated enumerand {name} in {self._name}', messages)
 
-    def _check_enumerand_value(self, warnings, errors):
+    def _check_enumerand_value(self, messages):
         min, max = self._base_type.range()
         for name, value in self._enumerators:
-            line, column = value.location()
-
             if type(value) is not NumberLiteral:
-                errors.append(BuildMessage(line, column, f'Only number literals are allowed for enumerator values. Not {type(value).__name__}'))
+                value.add_error(f'Only number literals are allowed for enumerator values. Not {type(value).__name__}', messages)
                 continue
 
-            value = value.value()
-            if value < min or value > max:
-                errors.append(BuildMessage(line, column, f'Enumerand {name} in enumeration {self._name} has a value that is outside of the supported range of the underlying type ({min},{max})'))
+            if value.value() < min or value.value() > max:
+                value.add_error(f'Enumerand {name} in enumeration {self._name} has a value that is outside of the supported range of the underlying type ({min},{max})',messages)
 
-            enumerators_with_value = [e for e in self._enumerators if type(e[1]) is NumberLiteral and e[1].value() == value]
+            enumerators_with_value = [e for e in self._enumerators if type(e[1]) is NumberLiteral and e[1].value() == value.value()]
             if len(enumerators_with_value) > 1:
-                msg = f'Same value ({value}) used by mulitple enumerands in enumeration {self._name}:\n'
+                msg = f'Same value ({value.value()}) used by mulitple enumerands in enumeration {self._name}:\n'
                 msg += "\n".join(f'\t{n}' for n,v in enumerators_with_value)
-                errors.append(BuildMessage(line, column, msg))
+                value.add_error(msg, messages)

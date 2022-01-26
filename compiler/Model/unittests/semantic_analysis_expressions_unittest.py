@@ -41,7 +41,7 @@ class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnitTestCase):
         warnings, errors, _ = build_model_test(text, "")
         self.checkErrors(errors, [])
         self.checkErrors(warnings, [
-            (6,27,'Division operator (field1 / field2) may have in non-integer result')
+            (6,27,'Division operator (field1 / field2) may have a non-integer result')
         ])
 
     # expressions that (can) return a signed value should lead to a warning

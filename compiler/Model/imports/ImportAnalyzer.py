@@ -38,7 +38,7 @@ class ImportAnalyzer(BiPaGeListener):
 def get_imports_from_text(input, path):
     lexer = BiPaGeLexer(InputStream(input))
     parser = BiPaGeParser(CommonTokenStream(lexer))
-    errorlistener = BiPaGeErrorListener()
+    errorlistener = BiPaGeErrorListener(path)
     _set_error_listener(lexer, errorlistener)
     _set_error_listener(parser, errorlistener)
     tree = parser.definition()

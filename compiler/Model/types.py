@@ -7,7 +7,7 @@ class Type(Node, ABC):
         pass
 
     @abstractmethod
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self, messages):
         pass
 
     @abstractmethod
@@ -24,7 +24,7 @@ class Flag(Type):
     def signed(self):
         return False
 
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self, messages):
         pass # Nothing to check. Just a bit
 
 class Float(Type):
@@ -38,9 +38,9 @@ class Float(Type):
     def signed(self):
         return True
 
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self, messages):
         if self._size not in (32, 64):
-            self.add_message(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", errors)
+            self.add_error(f"Width {self._size} not supported for float type. Only 32 and 64 bit float types are supported", messages)
             return True
         return False
 
@@ -55,9 +55,9 @@ class Integer(Type):
     def size_in_bits(self):
         return self._size
 
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self, messages):
         if self._size < 2 or self._size > 64:
-            self.add_message(f'Size ({self.size_in_bits()}) for integer outside supported range [2-64]', errors)
+            self.add_error(f'Size ({self.size_in_bits()}) for integer outside supported range [2-64]', messages)
             return True
         return False
 

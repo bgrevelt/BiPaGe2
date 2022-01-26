@@ -14,13 +14,13 @@ def parse_arguments():
 
     return parser.parse_args()
 
-def print_semantic_messages(file, warnings, errors):
+def print_semantic_messages(warnings, errors):
     for error in errors:
-        msg = error.message.format(file=file)
-        print(f'{file}:{error.line}:{error.column} ERROR {msg}')
+        msg = error.message.format(file=error.path)
+        print(f'{error.path}:{error.line}:{error.column} ERROR {msg}')
 
     for warning in warnings:
-        print(f'{file}:{warning.line}:{warning.column} WARNING {warning.message}')
+        print(f'{warning.path}:{warning.line}:{warning.column} WARNING {warning.message}')
 
 
 
@@ -32,7 +32,7 @@ def main(argv):
     for file in args.input:
         warnings, errors, model = build_model_from_file(file)
 
-        print_semantic_messages(file, warnings, errors)
+        print_semantic_messages(warnings, errors)
         if len(errors) > 0:
             continue
 

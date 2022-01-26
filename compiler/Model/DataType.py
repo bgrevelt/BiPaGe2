@@ -24,21 +24,20 @@ class DataType(Node):
     def static_size_in_bits(self):
         return sum(field.size_in_bits() for field in self._fields if field.size_in_bits() is not None)
 
-    def check_semantics(self, warnings, errors):
-        initial_error_count = len(errors)
-        self._check_empty(warnings, errors)
-        self._check_unique_field_names(warnings, errors)
-        self._check_capture_scopes(warnings, errors)
-        self._check_fields(warnings, errors)
-        self._check_size(warnings, errors)
-        return len(errors) > initial_error_count
+    def check_semantics(self, messages):
+        initial_error_count = messages.error_count()
+        self._check_empty(messages)
+        self._check_unique_field_names(messages)
+        self._check_capture_scopes(messages)
+        self._check_fields(messages)
+        self._check_size(messages)
+        return messages.error_count() > initial_error_count
 
-    def _check_empty(self, warnings, errors):
+    def _check_empty(self, messages):
         if len(self.fields(include_padding_fields=False)) == 0:
-            line, column = self.location()
-            warnings.append(BuildMessage(line, column, f'Datatype {self.identifier} has no non-padding fields'))
+            self.add_warning(f'Datatype {self.identifier} has no non-padding fields',messages)
 
-    def _check_unique_field_names(self, warnings, errors):
+    def _check_unique_field_names(self, messages):
         # check if we don't have muliple fields with the same name
         unique_field_names = {field.name for field in self._fields if field.name is not None}
         for field_name in unique_field_names:
@@ -46,22 +45,19 @@ class DataType(Node):
             if len(fields) > 1:
                 for field in fields:
                     msg = f"Semantic error: Duplicate field name {field.name} found in data type {self.identifier}."
-                    line, column = field.location()
-                    errors.append(BuildMessage(line, column, msg))
+                    field.add_error(msg, messages)
 
-    def _check_capture_scopes(self, warnings, errors):
+    def _check_capture_scopes(self, messages):
         for capture_scope in self.capture_scopes:
-            capture_scope.check_semantics(warnings, errors)
+            capture_scope.check_semantics(messages)
 
-    def _check_fields(self, warnings, errors):
+    def _check_fields(self, messages):
         for field in self._fields:
-            field.check_semantics(warnings, errors)
+            field.check_semantics(messages)
 
-    def _check_size(self, warnings, errors):
+    def _check_size(self, messages):
         if self.size_in_bits() is not None and self.size_in_bits() % 8 != 0:
-            line, column = self.location()
-            errors.append(BuildMessage(line, column,
-                            f'''DataType {self.identifier} is ({self.size_in_bits()}) bits in size. Datatypes should be a multiple of eight in size (e.g a number of bytes).'''))
+            self.add_error(f'''DataType {self.identifier} is ({self.size_in_bits()}) bits in size. Datatypes should be a multiple of eight in size (e.g a number of bytes).''', messages)
 
     def fields(self, include_padding_fields = False):
         return [field for field in self._fields if include_padding_fields or (not field.is_padding_field())]

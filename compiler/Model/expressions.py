@@ -7,7 +7,7 @@ class Expression(Node, ABC):
         super().__init__(token)
 
     @abstractmethod
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self, messages):
        pass
 
     @abstractmethod
@@ -38,7 +38,7 @@ class NumberLiteral(Expression):
     def Equals(self, other):
         return type(other) is NumberLiteral and other._number == self._number
 
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self, messages):
         #Nothing to check for a number literal
         return False
 
@@ -69,7 +69,7 @@ class Reference(Expression):
     def name(self):
         return self._name
 
-    def check_semantics(self, warnings, errors):
+    def check_semantics(self,messages):
         return False
 
     def evaluate(self):
@@ -144,8 +144,8 @@ class NullReference(Reference):
     def identifier(self):
         return self._name
 
-    def check_semantics(self, warnings, errors):
-        self.add_message(f'Reference "{self._name}" cannot be resolved', errors)
+    def check_semantics(self, messages):
+        self.add_error(f'Reference "{self._name}" cannot be resolved', messages)
         return True
 
     def Equals(self, other):
@@ -171,11 +171,11 @@ class BinaryOperator(Expression):
 
         return self._left.Equals(other._left) and self._right.Equals(other._right)
 
-    def check_semantics(self, warnings, errors):
-        inital_error_count = len(errors)
-        self._left.check_semantics(warnings, errors)
-        self._right.check_semantics(warnings, errors)
-        return len(errors) > inital_error_count
+    def check_semantics(self, messages):
+        inital_error_count = messages.error_count()
+        self._left.check_semantics(messages)
+        self._right.check_semantics(messages)
+        return messages.error_count() > inital_error_count
 
     def left(self):
         return self._left
@@ -202,20 +202,20 @@ class RelationalOperator(BinaryOperator, ABC):
     def compute(self, left:NumberLiteral, right:NumberLiteral) -> bool:
         pass
 
-    def check_semantics(self, warnings, errors):
-        if super().check_semantics(warnings, errors):
+    def check_semantics(self, messages):
+        if super().check_semantics(messages):
             return True
 
         # Comparing negative values to signed integer does not make sense
         if (self._left.return_type() == UnsignedInteger and type(self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
                 (self._right.return_type() == UnsignedInteger and type(
                     self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
-            self.add_message(f'Comparing unsigned value to a negative literal', errors)
+            self.add_error(f'Comparing unsigned value to a negative literal', messages)
 
         if self._left.return_type() not in [SignedInteger, UnsignedInteger]:
-            self.add_message(f'Left hand operand {str(self._left)} does not resolve to integer', errors)
+            self.add_error(f'Left hand operand {str(self._left)} does not resolve to integer', messages)
         if self._right.return_type() not in [SignedInteger, UnsignedInteger]:
-            self.add_message(f'Right hand operand {str(self._left)} does not resolve to integer', errors)
+            self.add_error(f'Right hand operand {str(self._left)} does not resolve to integer', messages)
 
 
     def return_type(self):
@@ -226,8 +226,8 @@ class EqualityOperator(BinaryOperator):
     def __init__(self, left, right, token=None):
         super().__init__(left, right, token)
 
-    def check_semantics(self, warnings, errors):
-        if super().check_semantics(warnings, errors):
+    def check_semantics(self, messages):
+        if super().check_semantics(messages):
             return True
 
         # Comparing negative values to signed integer does not make sense
@@ -235,10 +235,10 @@ class EqualityOperator(BinaryOperator):
                 self._right.evaluate()) == NumberLiteral and self._right.evaluate().value() < 0) or \
                 (self._right.return_type() == UnsignedInteger and type(
                     self._left.evaluate()) == NumberLiteral and self._left.evaluate().value() < 0):
-            self.add_message(f'Comparing unsigned value to a negative literal', errors)
+            self.add_error(f'Comparing unsigned value to a negative literal', messages)
 
         elif self._left.return_type() != self._right.return_type():
-            self.add_message(f"Can't compare {self._left.return_type().__name__} to {self._right.return_type().__name__}", errors)
+            self.add_error(f"Can't compare {self._left.return_type().__name__} to {self._right.return_type().__name__}", messages)
 
     def _operands_equal(self):
         if (type(self._evaluated_left) is NumberLiteral and type(self._evaluated_right) is NumberLiteral) or\
@@ -273,15 +273,15 @@ class ArithmeticOperator(BinaryOperator, ABC):
     # floats in the operand because it is mathematically valid, but since we can only use expressions to size collections
     # and we can only size collections with an integer value, there really is no valid use case for using floating points
     # in an expression
-    def check_semantics(self, warnings, errors):
-        if super().check_semantics(warnings, errors):
+    def check_semantics(self, messages):
+        if super().check_semantics(messages):
             return True
 
         # Operands should be integer or floating point
         if self._left.return_type() not in [Float, SignedInteger, UnsignedInteger]:
-            self.add_message(f'Left hand operand ({str(self._left)}) does not resolve to integer or float', errors)
+            self.add_error(f'Left hand operand ({str(self._left)}) does not resolve to integer or float', messages)
         if self._right.return_type() not in [Float, SignedInteger, UnsignedInteger]:
-            self.add_message(f'Right hand operand ({str(self._right)}) does not resolve to integer or float', errors)
+            self.add_error(f'Right hand operand ({str(self._right)}) does not resolve to integer or float', messages)
 
     def return_type(self):
         # If either one of the operands is a float, the result will be considered a float
@@ -323,9 +323,9 @@ class DivisionOperator(ArithmeticOperator):
     def compute(self, left:NumberLiteral, right:NumberLiteral):
         return left.value() / right.value()
 
-    def check_semantics(self, warnings, errors):
-        error = super().check_semantics(warnings, errors)
-        self.add_message(f'Division operator {self.__str__()} may have in non-integer result. It depends on the target language how those results are handled.', warnings)
+    def check_semantics(self, messages):
+        error = super().check_semantics(messages)
+        self.add_warning(f'Division operator {self.__str__()} may have a non-integer result. It depends on the target language how those results are handled.', messages)
         return error
 
     def __str__(self):
@@ -477,12 +477,12 @@ class TernaryOperator(Expression):
             self._true.Equals(other._true) and \
             self._false.Equals(other._false)
 
-    def check_semantics(self, warnings, errors):
-        initial_error_count = len(errors)
-        self._condition.check_semantics(warnings, errors)
-        self._true.check_semantics(warnings, errors)
-        self._false.check_semantics(warnings, errors)
-        if len(errors) > initial_error_count:
+    def check_semantics(self, messages):
+        initial_error_count = messages.error_count()
+        self._condition.check_semantics(messages)
+        self._true.check_semantics(messages)
+        self._false.check_semantics(messages)
+        if messages.error_count() > initial_error_count:
             return True
 
         return_type_true = self._true.return_type()
@@ -491,21 +491,21 @@ class TernaryOperator(Expression):
 
         from Model.types import Flag
         if return_type_condition not in [bool, Flag]:
-            self.add_message(
+            self.add_error(
                 f'{return_type_condition.__name__} not allowed as ternary condition',
-                errors)
+                messages)
 
         # We can mix and match signed integers, unsigned integers, and number literals
         allowed_mix = return_type_true in [SignedInteger, UnsignedInteger, NumberLiteral] \
                       and return_type_false in [SignedInteger, UnsignedInteger, NumberLiteral]
 
         if not allowed_mix and return_type_true != return_type_false:
-            self.add_message(
+            self.add_error(
                 f'Different types for true ({return_type_true.__name__}) and false ({return_type_false.__name__}) clause',
-                errors
+                messages
             )
 
-        if len(errors) > initial_error_count:
+        if messages.error_count() > initial_error_count:
             return True
 
     def return_type(self):

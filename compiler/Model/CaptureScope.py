@@ -19,27 +19,21 @@ class CaptureScope(Node):
     def fields(self, include_padding_fields = False):
         return [field for field in self._fields if include_padding_fields or (not field.is_padding_field())]
 
-    def check_semantics(self, warnings, errors):
-        initial_error_count = len(errors)
-
-        line, column = self.location()
+    def check_semantics(self, messages):
+        initial_error_count = messages.error_count();
         standard_widths = [8,16,32,64]
 
         if self._size > 64:
-            errors.append(BuildMessage(line, column,
-                                       f"Accumulated size of fields in capture scope ({self._size} bits) is Larger than the maximum supported capture type: 64 bits."))
+            self.add_error(f"Accumulated size of fields in capture scope ({self._size} bits) is Larger than the maximum supported capture type: 64 bits.", messages)
         elif not self._size in standard_widths:
-            errors.append(BuildMessage(line, column, f"Accumulated size of fields in capture scope ({self._size} bits) is not a standard size."))
+            self.add_error(f"Accumulated size of fields in capture scope ({self._size} bits) is not a standard size.", messages)
 
         if all(f.size_in_bits() in standard_widths for f in self._fields):
-            warnings.append(BuildMessage(line, column,
-                                       f"Capture scope contains only standard types. Capture scope is likely to be superfluous."))
+            self.add_warning(f"Capture scope contains only standard types. Capture scope is likely to be superfluous.", messages)
 
         for field in self._fields:
             if type(field.type()) is Collection:
-                line, column = field.location()
-                errors.append(BuildMessage(line, column,
-                                           "Collections inside a capture scope are not supported"))
+                field.add_error("Collections inside a capture scope are not supported", messages)
 
-        return len(errors) > initial_error_count
+        return messages.error_count() > initial_error_count
 

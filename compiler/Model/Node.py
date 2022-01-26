@@ -1,5 +1,5 @@
 from typing import List
-from Model.BuildMessage import BuildMessage
+from Model.BuildMessage import BuildMessageContainer
 
 class Node:
     def __init__(self, token):
@@ -11,6 +11,10 @@ class Node:
         else: # We often leave the token empty in unit tests
             return 0,0
 
-    def add_message(self, message:str, messages:List[BuildMessage]):
+    def add_error(self, message:str, messages:BuildMessageContainer):
         line, column = self.location()
-        messages.append(BuildMessage(line, column, message))
+        messages.add_error(message, line, column)
+
+    def add_warning(self, message:str, messages:BuildMessageContainer):
+        line, column = self.location()
+        messages.add_warning(message, line, column)

@@ -5,6 +5,7 @@ from antlr4 import *
 from ErrorListener import BiPaGeErrorListener
 from generated.BiPaGeParser import BiPaGeParser
 from Model.imports.ImportAnalyzer import get_import_tree
+from Model.BuildMessage import BuildMessageContainer
 
 def _set_error_listener(target, listener):
     target.removeErrorListeners()
@@ -27,19 +28,16 @@ def build_model_from_file(file):
 
 def _build_model(text, filename, imports):
     builder = Builder(filename, imports)
-    warnings = []
     model = None
-    errorlistener = BiPaGeErrorListener()
+    errorlistener = BiPaGeErrorListener(filename)
     walk(text, builder, errorlistener)
     errors = errorlistener.errors()
     if len(errors) == 0:
         model = builder.model()
-    return warnings, errors, model
+    return errors, model
 
 def _get_imported_models(file):
     imported_models = {}
-    total_warnings = []
-    total_errors = []
 
     tree, errors = get_import_tree(file)
     if len(errors) > 0:
@@ -49,32 +47,35 @@ def _get_imported_models(file):
         dependencies = tree.imports_for_node(file)
         assert all(dep.path() in imported_models for dep in
                    dependencies), "We should have already processed all dependencies at this point. This error indicates a problem with the import tree code"
-        warnings, errors, model = _build_model(open(file).read(), file,
+        errors, model = _build_model(open(file).read(), file,
                                                [imported_models[dep.path()] for dep in dependencies])
-        total_warnings.extend(warnings)
-        total_errors.extend(errors)
-        if len(total_errors) > 0:
+        if len(errors) > 0:
             break
         else:
             imported_models[file] = model
 
-    return total_warnings, total_errors, imported_models
+    return errors, imported_models
 
 
 def build_model_from_text(text, filename=None):
+    warnings = []
+
     if len(filename) == 0:
         filename = None
 
     if filename is not None:
         filename = os.path.abspath(filename)
-        warnings, errors, imported_models = _get_imported_models(filename)
+        errors, imported_models = _get_imported_models(filename)
         model = imported_models[filename]
     else:
         # No filename, probably a unit test. I can't do anything with imports
-        warnings, errors, model = _build_model(text, filename, [])
+        errors, model = _build_model(text, filename, [])
 
     if len(errors) == 0:
-        model.check_semantics(warnings, errors)
+        semantic_analysis_messages = BuildMessageContainer(filename)
+        model.check_semantics(semantic_analysis_messages)
+        warnings = semantic_analysis_messages.warnings()
+        errors = semantic_analysis_messages.errors()
 
     return warnings, errors, model
 
@@ -84,11 +85,14 @@ def build_model_test(text, imports=None):
     warnings = []
     model = None
 
-    errorlistener = BiPaGeErrorListener()
+    errorlistener = BiPaGeErrorListener("")
     walk(text, builder, errorlistener)
     errors = errorlistener.errors()
     if len(errors) == 0:
         model = builder.model()
-        model.check_semantics(warnings, errors)
+        semantic_analysis_messages = BuildMessageContainer("")
+        model.check_semantics(semantic_analysis_messages)
+        warnings = semantic_analysis_messages.warnings()
+        errors = semantic_analysis_messages.errors()
 
     return warnings, errors, model

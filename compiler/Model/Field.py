@@ -46,23 +46,22 @@ class Field(Node):
     def dynamic_capture_offset(self):
         return self._dynamic_capture_offset
 
-    def check_semantics(self, warnings, errors):
-        initial_error_count = len(errors)
-        self._type.check_semantics(warnings, errors)
-        if len(errors) > initial_error_count:
+    def check_semantics(self, messages):
+        initial_error_count = messages.error_count()
+        self._type.check_semantics(messages)
+        if messages.error_count() > initial_error_count:
             return True
 
         line, column = self.location()
         if isinstance(self._type, Reference) and type(self._type) not in [EnumerationReference, DataTypeReference]:
-                errors.append(BuildMessage(line, column,
-                                           f'Reference to {type(self._type.referenced_type()).__name__} is not a valid field type. Only reference to enumeration is allowed.'))
+            self.add_error(f'Reference to {type(self._type.referenced_type()).__name__} is not a valid field type. Only reference to enumeration is allowed.', messages)
         if type(self._type) is EnumerationReference and self.is_padding_field():
-                warnings.append(BuildMessage(line, column, 'Using enumeration as padding. Is this really what you want?'))
+            self.add_warning('Using enumeration as padding. Is this really what you want?', messages)
 
         if not type(self._type) is Collection and not type(self._type) is DataTypeReference and not self.scoped() and not self.is_standard_size():
-            errors.append(BuildMessage(line, column, f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.'))
+            self.add_error(f'Non standard ({self.size_in_bits()} bits) sized Field {self.name} should be in a capture scope.', messages)
 
-        return len(errors) > initial_error_count
+        return messages.error_count() > initial_error_count
 
     def capture_type_mask(self):
         offset_in_capture_type = 0 if self.offset_in_capture is None else self.offset_in_capture
