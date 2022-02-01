@@ -49,7 +49,8 @@ def get_imports_from_text(input, path):
 
 
 def get_imports_from_file(path):
-    return get_imports_from_text(open(path).read(), path)
+    with open(path) as f:
+        return get_imports_from_text(f.read(), path)
 
 def get_import_tree(path):
     path = _make_abs(path)

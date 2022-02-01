@@ -22,8 +22,9 @@ def walk(input, visitor, errorListener = None):
         ParseTreeWalker().walk(visitor, tree)
 
 def build_model_from_file(file):
-    text = open(file).read()
-    return build_model_from_text(text, file)
+    with open(file) as f:
+        text = f.read()
+        return build_model_from_text(text, file)
 
 
 def _build_model(text, filename, imports):
@@ -41,18 +42,19 @@ def _get_imported_models(file):
 
     tree, errors = get_import_tree(file)
     if len(errors) > 0:
-        return [], errors, None
+        return errors, {}
 
     for file in tree.imports_in_order():
         dependencies = tree.imports_for_node(file)
         assert all(dep.path() in imported_models for dep in
                    dependencies), "We should have already processed all dependencies at this point. This error indicates a problem with the import tree code"
-        errors, model = _build_model(open(file).read(), file,
+        with open(file) as f:
+            errors, model = _build_model(f.read(), file,
                                                [imported_models[dep.path()] for dep in dependencies])
-        if len(errors) > 0:
-            break
-        else:
-            imported_models[file] = model
+            if len(errors) > 0:
+                break
+            else:
+                imported_models[file] = model
 
     return errors, imported_models
 
