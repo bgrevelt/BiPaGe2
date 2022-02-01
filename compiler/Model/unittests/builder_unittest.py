@@ -4,7 +4,7 @@ from Model.types import SignedInteger, UnsignedInteger, Float
 
 class BuilderUnittests(unittest.TestCase):
     def test_simple(self):
-        _, _, model = build_model_from_text('''
+        _, _, models = build_model_from_text('''
 SomeDataType
 {
     field1 : int8;
@@ -19,7 +19,7 @@ SomeDataType
     field10 : float64;
 }
         ''', "")
-
+        model = models[0]
         self.assertEqual(len(model.datatypes), 1)
         datatype = model.datatypes[0]
 
@@ -37,7 +37,7 @@ SomeDataType
         ])
 
     def test_alias(self):
-            _, _, model = build_model_from_text('''
+            _, _, models = build_model_from_text('''
     SomeDataType
     {
         field1 : s8;
@@ -52,6 +52,7 @@ SomeDataType
         field10 : f64;
     }
             ''', "")
+            model = models[0]
 
             self.assertEqual(len(model.datatypes), 1)
             datatype = model.datatypes[0]
@@ -72,7 +73,7 @@ SomeDataType
             ])
 
     def test_reserved_fields(self):
-            _, _, model = build_model_from_text('''
+            _, _, models = build_model_from_text('''
     SomeDataType
     {
         field1 : s8;
@@ -87,6 +88,7 @@ SomeDataType
         f64;
     }
             ''', "")
+            model = models[0]
 
             self.assertEqual(len(model.datatypes), 1)
             datatype = model.datatypes[0]
@@ -101,7 +103,7 @@ SomeDataType
             ])
 
     def test_non_standard_width(self):
-        _, _, model = build_model_from_text('''
+        _, _, models = build_model_from_text('''
     SomeDataType
     {
         field1 : int32;   
@@ -113,6 +115,7 @@ SomeDataType
         field5 : float64;
     }
             ''', "")
+        model = models[0]
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', SignedInteger(32, None),   0, 32, 0,  0xffffffff),
@@ -123,7 +126,7 @@ SomeDataType
         ])
 
     def test_non_standard_width_with_padding(self):
-        _, _, model = build_model_from_text('''
+        _, _, models = build_model_from_text('''
     SomeDataType
     {
         field1 : int32;   
@@ -136,6 +139,7 @@ SomeDataType
         field5 : float64;
     }
             ''', "")
+        model = models[0]
         # name, type, offset, size, encapsulating_type_size, encalsulating_type_offset, encapsulating_type_mask
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', SignedInteger(32, None),    0, 32, 0,  0xffffffff),
@@ -146,7 +150,7 @@ SomeDataType
         ])
 
     def test_non_standard_width_alias(self):
-        _, _, model = build_model_from_text('''
+        _, _, models = build_model_from_text('''
     SomeDataType
     {
         field1 : s32;   
@@ -159,6 +163,7 @@ SomeDataType
         field5 : f64;
     }
             ''', "")
+        model = models[0]
 
         self.verify_datatype(model.datatypes[0], 'SomeDataType', [
             ('field1', SignedInteger(32, None),  0, 32,  0, 0xffffffff),

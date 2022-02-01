@@ -30,13 +30,13 @@ def main(argv):
     codegen = CppGen(args)
 
     for file in args.input:
-        warnings, errors, model = build_model_from_file(file)
-
+        warnings, errors, models = build_model_from_file(file)
         print_semantic_messages(warnings, errors)
         if len(errors) > 0:
             continue
 
-        codegen.generate(model)
+        for model in models:
+            codegen.generate(model)
 
 if __name__ == '__main__':
     main(sys.argv)

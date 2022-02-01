@@ -65,19 +65,21 @@ def build_model_from_text(text, filename=None):
 
     if filename is not None:
         filename = os.path.abspath(filename)
-        errors, imported_models = _get_imported_models(filename)
-        model = imported_models[filename]
+        errors, models = _get_imported_models(filename)
+        #model = imported_models[filename]
     else:
         # No filename, probably a unit test. I can't do anything with imports
         errors, model = _build_model(text, filename, [])
+        models = {filename:model}
 
-    if len(errors) == 0:
-        semantic_analysis_messages = BuildMessageContainer(filename)
-        model.check_semantics(semantic_analysis_messages)
-        warnings = semantic_analysis_messages.warnings()
-        errors = semantic_analysis_messages.errors()
+    for path, model in models.items():
+        if len(errors) == 0:
+            semantic_analysis_messages = BuildMessageContainer(path)
+            model.check_semantics(semantic_analysis_messages)
+            warnings.extend(semantic_analysis_messages.warnings())
+            errors.extend(semantic_analysis_messages.errors())
 
-    return warnings, errors, model
+    return warnings, errors, list(models.values())
 
 def build_model_test(text, imports=None):
     builder = Builder("test.bp", imports)

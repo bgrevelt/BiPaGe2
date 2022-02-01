@@ -182,7 +182,8 @@ class ExpressionUnittests(unittest.TestCase):
     field1 : u8[{expression}];
 }}'''
 
-        warnings, errors, model = build_model_from_text(template.format(expression=expression_text), '')
+        warnings, errors, models = build_model_from_text(template.format(expression=expression_text), '')
+        model = models[0]
         if not accept_semantic_errors:
             self.assertEqual(errors, [])
         assert len(model.datatypes) == 1
