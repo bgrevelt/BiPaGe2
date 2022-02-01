@@ -54,9 +54,8 @@ class IntegrationTest:
             f.write(content)
 
     def run_bipage(self, args=None):
-        input_files = []
-        for f in self._bipage_files:
-            input_files.extend(['-i', f])
+        # assume the last input file is the 'top level' input file
+        input_files = ['-i', self._bipage_files[-1]]
 
         to_execute = [self.python, self.bipage_path] + input_files + ['-o', f'temp_{self.test_name}']
         if args:
