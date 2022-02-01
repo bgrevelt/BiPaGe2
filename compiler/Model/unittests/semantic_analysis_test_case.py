@@ -5,9 +5,13 @@ class SemanticAnalysisUnitTestCase(unittest.TestCase):
         matched_errors = []
         matched_expected = []
         for ex in expected:
-            line, column, contains = ex
+            if len(ex) == 3:
+                line, column, contains = ex
+                path = None
+            else:
+                path, line, column, contains = ex
             for error in errors:
-                if error.line == line and error.column == column and contains in error.message:
+                if error.line == line and error.column == column and contains in error.message and (path is None or path in error.path):
                     matched_errors.append(error)
                     matched_expected.append(ex)
                     break
