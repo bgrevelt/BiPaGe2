@@ -2,6 +2,8 @@ from build_model import build_model_test, build_model_from_file
 from Model.Definition import Definition
 from Model.Enumeration import Enumeration
 from Model.types import UnsignedInteger
+from Model.DataType import DataType
+from Model.Field import Field
 from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
 import os
 
@@ -312,5 +314,64 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
 
         for path in files:
            os.remove(path)
+
+    def test_imported_datatype_in_namespace(self):
+        imports = [
+            Definition(
+                name='import',
+                endianness='little',
+                namespace=['some','name','space'],
+                imports=[],
+                datatypes=[
+                    DataType(
+                        identifier='Bar',
+                        capture_scopes = [],
+                        fields = [
+                            Field(
+                                name='field1',
+                                type=UnsignedInteger(8,None),
+                                static_offset=0,
+                                dynamic_offset=None,
+                                token=None)
+                        ],
+                        token=None)
+                ],
+                enumerations=[],
+                token=None)
+        ]
+
+        warnings, errors, _ = build_model_test('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : some.name.space.Bar;
+            field3 : float64;
+        }
+        ''', imports)
+        # Properly used the namespace. Should not lead to errors
+        self.checkErrors(errors, [])
+
+        warnings, errors, _ = build_model_test('''
+        namespace my.own.name.space;
+        Foo
+        {
+            field1 : uint8;
+            field2 : some.name.space.Bar;
+            field3 : float64;
+        }
+        ''', imports)
+        # Same as before only now the datatype is in a namespace as well. That shouldn't matter
+        self.checkErrors(errors, [])
+
+        warnings, errors, _ = build_model_test('''
+        Foo
+        {
+            field1 : uint8;
+            field2 : Bar;
+            field3 : float64;
+        }
+        ''', imports)
+        # Didn't include the namespace so we should get an unknown type error
+        self.checkErrors(errors, [(5, 21, "Reference \"Bar\" cannot be resolved")])
 
 
