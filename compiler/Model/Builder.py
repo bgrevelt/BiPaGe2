@@ -26,6 +26,7 @@ class Builder(BiPaGeListener):
         self._enumerations_by_name = {}
         self._data_types_by_name = {}
         self._imports = imports
+        self._imported_types_by_name = {}
         self._process_imports(imports)
 
         # We have this here to store fields in the current datatype as we encounter them. The reason that we can't
@@ -38,15 +39,20 @@ class Builder(BiPaGeListener):
         # have the same order as in the input file. So we use this approach to do just that.
         self._current_datatype_fields = []
 
+
     def _process_imports(self, imports:List[Definition]):
         for definition in imports:
+            ns = definition.namespace_as_string()
             for enum in definition.enumerations:
-                ns = definition.namespace_as_string()
                 enumeration_name = (ns + "." if ns else "") + enum.name()
                 self._imported_enumerations_by_name[enumeration_name] = enum
                 for enumerator_name,_ in enum.enumerators():
                     enumerator_fully_qualified_name = f'{enumeration_name}.{enumerator_name}'
                     self._enumerations_by_enumerator_fully_qualified_name[enumerator_fully_qualified_name] = enum
+            for dt in definition.datatypes:
+                data_type_name = (ns + "." if ns else "") + dt.identifier
+                self._data_types_by_name[data_type_name] = dt
+
 
     def exitDefinition(self, ctx:BiPaGeParser.DefinitionContext):
         namespace = []
