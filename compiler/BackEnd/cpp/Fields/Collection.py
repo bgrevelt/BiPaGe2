@@ -125,8 +125,8 @@ class Collection(Field):
 
 class DataTypeCollection(Collection):
     def __init__(self, type_name:str, field:ModelField, cpp_type, endianness:str):
-        self._view_type = f'{field.type().type().name()}_view'
-        self._builder_type = f'{field.type().type().name()}_builder'
+        self._view_type = f'{field.type().type().name().replace(".","::")}_view'
+        self._builder_type = f'{field.type().type().name().replace(".","::")}_builder'
         super().__init__(type_name, field, cpp_type, endianness)
 
     def cpp_type(self):

@@ -30,6 +30,7 @@ from integration_test.nested_data_type_no_cpp17_integrationtest import *
 from integration_test.double_nested_data_type_integrationtest import *
 from integration_test.nested_data_type_big_endian_integrationtest import *
 from integration_test.nested_data_type_collection_integrationtest import *
+from integration_test.nested_datatype_collection_import_integrationtest import *
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -64,6 +65,7 @@ def suite():
     test_suite.addTest(unittest.makeSuite(DoubleNestedDataType))
     test_suite.addTest(unittest.makeSuite(NestedDataTypeBigEndian))
     test_suite.addTest(unittest.makeSuite(NestedDataTypeCollection))
+    test_suite.addTest(unittest.makeSuite(ImportDataType))
     return test_suite
 
 mySuit=suite()
