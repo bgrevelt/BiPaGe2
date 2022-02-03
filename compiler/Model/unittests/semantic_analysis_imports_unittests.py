@@ -235,7 +235,6 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
         self.checkErrors(errors, [])
 
     # Verify that errors are reported in the right file
-    # TODO: extend this when we support nested data types. Then we can have warnings in multiple files and make sure they are reported correctly.
     def test_reporting_in_right_file(self):
         files = {
             'ext_enum.bp': '''
@@ -245,15 +244,51 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
                 fatal = -2,
                 error = -1,
                 OK = 0,
-                error = 1  // double enumerator name
+                awesome = 1
+            }''',
+            'ext_datatype1.bp' : '''
+            MyExternalDataType1
+            {
+                collection_size: s16;
+                collection: u8[collection_size];  // <-- Using a sized int for collection size should raise a warning in this file
+            }''',
+            'ext_datatype2.bp': '''
+            MyExternalDataType2
+            {
+                field1: f64;
+                {                   // <-- Capture scope that only contains standard size fields should raise a warning here
+                    field2:u32;
+                    field3:s8;
+                    field4:s16;
+                    field5:u8;
+                }
+                field6: u16;
+            }''',
+            'ext_datatype3.bp': '''
+            MyExternalDataType3
+            {
+                field1: f64;
+                field2: u8[0];      // <-- Empty collection should raise a warning here
+                field3: u16;
+            }''',
+            'ext_datatype4.bp': '''
+            MyExternalDataType4    // <-- Data type with only padding fields
+            {
+                f64;
+                u8;      
+                u16;
             }''',
             'root.bp': '''
+            import "ext_datatype1.bp";
+            import "ext_datatype2.bp";
+            import "ext_datatype3.bp";
+            import "ext_datatype4.bp";
             import "ext_enum.bp";
             MyRootDataType
             {
                 size : s8;
-                result: ThatOneEnumeration;
-                col: u32[result == ThatOneEnumeration.OK ? 10 : 0];         
+                ThatOneEnumeration; // <-- Using an enumeration for padding should raise a warning in this file
+                col: u32[10];         
             }'''
         }
 
@@ -263,9 +298,17 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
 
         # Do things
         warnings, errors, _ = build_model_from_file('root.bp')
-        self.checkErrors(errors, [
-           ('ext_enum.bp', 2, 12, 'Duplicated enumerand')
-        ], allow_extra_errors=True)
+
+        self.checkErrors(errors, [])
+
+        self.checkErrors(warnings, [
+            ('ext_datatype1.bp', 5, 16, 'Collection sized by signed integer'),
+            ('ext_datatype2.bp', 5, 16, 'Capture scope contains only standard types'),
+            ('ext_datatype3.bp', 5, 16, 'Collection with zero elements'),
+            ('ext_datatype4.bp', 2, 12, 'MyExternalDataType4 has no non-padding fields'),
+            ('root.bp', 10, 16, 'Using enumeration as padding'),
+
+        ])
 
         for path in files:
            os.remove(path)
