@@ -196,12 +196,12 @@ class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):
         Foo
         {
             field1 : uint8;
-            field2 : sMyEnum;
+            field2 : MyEnum;
             field3 : float64;
         }
         ''', imports)
         # Didn't include the namespace so we should get an unknown type error
-        self.checkErrors(errors, [(5, 21, "Reference \"sMyEnum\" cannot be resolved")])
+        self.checkErrors(errors, [(5, 21, "Reference \"MyEnum\" cannot be resolved")])
 
     def test_imported_enumerator(self):
         imports = [
