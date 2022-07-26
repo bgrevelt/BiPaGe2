@@ -7,7 +7,7 @@ import inspect
 class IntegrationTest:
 
     def __init__(self):
-        self.python = "python3.8"
+        self.python = "python3"
         self.bipage_path = "../bipage.py"
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
