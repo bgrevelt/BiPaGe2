@@ -1,5 +1,5 @@
 from antlr4.error.ErrorListener import ErrorListener
-from Model.BuildMessage import BuildMessage
+from compiler.Model.BuildMessage import BuildMessage
 
 class BiPaGeErrorListener(ErrorListener):
     def __init__(self, path):

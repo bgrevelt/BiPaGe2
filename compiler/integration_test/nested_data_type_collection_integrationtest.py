@@ -1,5 +1,5 @@
 import unittest
-from integration_test.integrationtest import IntegrationTest
+from compiler.integration_test.integrationtest import IntegrationTest
 
 class NestedDataTypeCollection(unittest.TestCase, IntegrationTest):
 

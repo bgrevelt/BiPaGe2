@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from Model.types import SignedInteger, UnsignedInteger, Float
-from Model.Node import Node
+from compiler.Model.types import SignedInteger, UnsignedInteger, Float
+from compiler.Model.Node import Node
 
 class Expression(Node, ABC):
     def __init__(self, token):
@@ -83,7 +83,7 @@ class FieldReference(Reference):
         return type(other) == FieldReference and self._name == other.name() and self._referenced_type.Equals(other.referenced_type())
 
     def return_type(self):
-        from Model.Field import Field
+        from compiler.Model.Field import Field
         if type(self.referenced_type()) is Field:
             if type(self.referenced_type().type()) in [FieldReference, EnumerationReference]:
                 return self.referenced_type().type().return_type()
@@ -489,7 +489,7 @@ class TernaryOperator(Expression):
         return_type_false = self._false.return_type()
         return_type_condition = self._condition.return_type()
 
-        from Model.types import Flag
+        from compiler.Model.types import Flag
         if return_type_condition not in [bool, Flag]:
             self.add_error(
                 f'{return_type_condition.__name__} not allowed as ternary condition',

@@ -1,6 +1,6 @@
 import unittest
-from build_model import build_model_from_text
-from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
+from compiler.build_model import build_model_from_text
+from compiler.Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
 
 class SemanticAnalysisUnittests(SemanticAnalysisUnitTestCase):
     def test_duplicate_field_name(self):

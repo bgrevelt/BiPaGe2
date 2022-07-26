@@ -4,12 +4,12 @@ from .DataType import DataType
 from .Field import Field
 from .Definition import Definition
 from .CaptureScope import CaptureScope
-from Model.types import Flag
-from Model.Enumeration import Enumeration
-from Model.Collection import Collection
-from Model.expressions import *
+from compiler.Model.types import Flag
+from compiler.Model.Enumeration import Enumeration
+from compiler.Model.Collection import Collection
+from compiler.Model.expressions import *
 import os
-from Model.helpers import *
+from compiler.Model.helpers import *
 from typing import List
 
 class Builder(BiPaGeListener):

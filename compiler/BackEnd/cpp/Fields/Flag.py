@@ -1,5 +1,5 @@
 from BackEnd.cpp.Fields.Integral import Integral
-from Model.Field import Field as ModelField
+from compiler.Model.Field import Field as ModelField
 
 class Flag(Integral):
     def __init__(self, type_name:str, field:ModelField, endianness:str, settings):

@@ -2,9 +2,9 @@ from generated.BiPaGeListener import BiPaGeListener
 import os
 from generated.BiPaGeLexer import BiPaGeLexer
 from antlr4 import *
-from ErrorListener import BiPaGeErrorListener
+from compiler.ErrorListener import BiPaGeErrorListener
 from generated.BiPaGeParser import BiPaGeParser
-from Model.imports.ImportTree import ImportTree
+from compiler.Model.imports.ImportTree import ImportTree
 
 def _set_error_listener(target, listener):
     target.removeErrorListeners()

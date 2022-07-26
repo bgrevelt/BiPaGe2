@@ -1,4 +1,4 @@
-from Model.Enumeration import Enumeration as ModelEnum
+from compiler.Model.Enumeration import Enumeration as ModelEnum
 from .Fields.Integer import Integer
 
 class Enumeration:

@@ -1,6 +1,6 @@
 import unittest
-from build_model import build_model_from_text
-from Model.types import SignedInteger, UnsignedInteger, Float
+from compiler.build_model import build_model_from_text
+from compiler.Model.types import SignedInteger, UnsignedInteger, Float
 
 class BuilderUnittests(unittest.TestCase):
     def test_simple(self):

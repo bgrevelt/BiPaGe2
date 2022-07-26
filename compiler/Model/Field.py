@@ -1,10 +1,10 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
 import math
-from Model.Collection import Collection
-from Model.expressions import FieldReference, EnumerationReference, DataTypeReference, Reference
-from Model.Enumeration import Enumeration
-from Model.helpers import to_standard_size
+from compiler.Model.Collection import Collection
+from compiler.Model.expressions import FieldReference, EnumerationReference, DataTypeReference, Reference
+from compiler.Model.Enumeration import Enumeration
+from compiler.Model.helpers import to_standard_size
 def _standard_size(size):
     return to_standard_size(size) if size > 0 else size # # Yes negative size is a problem, but we'll accept it here so semantic analysis can catch it
 

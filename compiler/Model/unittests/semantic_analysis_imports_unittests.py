@@ -1,10 +1,10 @@
-from build_model import build_model_test, build_model_from_file
-from Model.Definition import Definition
-from Model.Enumeration import Enumeration
-from Model.types import UnsignedInteger
-from Model.DataType import DataType
-from Model.Field import Field
-from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
+from compiler.build_model import build_model_test, build_model_from_file
+from compiler.Model.Definition import Definition
+from compiler.Model.Enumeration import Enumeration
+from compiler.Model.types import UnsignedInteger
+from compiler.Model.DataType import DataType
+from compiler.Model.Field import Field
+from compiler.Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
 import os
 
 class SemanticAnalysisImportsUnittests(SemanticAnalysisUnitTestCase):

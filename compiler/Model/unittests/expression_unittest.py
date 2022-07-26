@@ -1,8 +1,8 @@
 import unittest
-from build_model import build_model_from_text
-from Model.Collection import Collection
+from compiler.build_model import build_model_from_text
+from compiler.Model.Collection import Collection
 
-from Model.expressions import *
+from compiler.Model.expressions import *
 
 class ExpressionUnittests(unittest.TestCase):
     def test_simple_add(self):

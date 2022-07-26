@@ -1,5 +1,5 @@
-from Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
-from build_model import build_model_test
+from compiler.Model.unittests.semantic_analysis_test_case import SemanticAnalysisUnitTestCase
+from compiler.build_model import build_model_test
 
 
 class SemanticAnalysisExpressionsUnittests(SemanticAnalysisUnitTestCase):

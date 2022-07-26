@@ -1,8 +1,8 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
 from typing import List, Tuple
-from Model.expressions import NumberLiteral
-from Model.helpers import to_standard_size
+from compiler.Model.expressions import NumberLiteral
+from compiler.Model.helpers import to_standard_size
 
 class Enumeration(Node):
     def __init__(self, name:str, base_type, enumerators:List[Tuple[str,int]], token):

@@ -1,5 +1,5 @@
 from typing import List
-from Model.BuildMessage import BuildMessageContainer
+from compiler.Model.BuildMessage import BuildMessageContainer
 
 class Node:
     def __init__(self, token):

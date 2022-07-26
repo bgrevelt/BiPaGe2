@@ -1,4 +1,4 @@
-from integration_test.integrationtest import IntegrationTest
+from compiler.integration_test.integrationtest import IntegrationTest
 import unittest
 
 class Namespace(unittest.TestCase, IntegrationTest):

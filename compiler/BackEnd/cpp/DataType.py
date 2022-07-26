@@ -2,8 +2,8 @@ from .Fields import factory as field_factory
 from .Beautifier import *
 import math
 from BackEnd.cpp.CaptureScope import CaptureScope
-from Model.Collection import Collection
-from Model.expressions import DataTypeReference
+from compiler.Model.Collection import Collection
+from compiler.Model.expressions import DataTypeReference
 from BackEnd.cpp.Fields.Field import Field
 
 class DataType:

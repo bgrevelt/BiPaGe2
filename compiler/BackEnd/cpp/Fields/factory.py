@@ -6,11 +6,11 @@ from BackEnd.cpp.Fields.Flag import Flag
 from BackEnd.cpp.Fields.Collection import Collection, DataTypeCollection
 from BackEnd.cpp.Fields.DataTypeReference import DataTypeReference
 
-from Model.types import Integer as ModelInt, Float as ModelFloat, Flag as ModelFlag
-from Model.expressions import FieldReference as ModelFieldReference, EnumerationReference as ModelEnumRef, DataTypeReference as ModelDataTypeRef
-from Model.Enumeration import Enumeration as ModelEnum
-from Model.Collection import Collection as ModelCollection
-from Model.Field import Field as ModelField
+from compiler.Model.types import Integer as ModelInt, Float as ModelFloat, Flag as ModelFlag
+from compiler.Model.expressions import FieldReference as ModelFieldReference, EnumerationReference as ModelEnumRef, DataTypeReference as ModelDataTypeRef
+from compiler.Model.Enumeration import Enumeration as ModelEnum
+from compiler.Model.Collection import Collection as ModelCollection
+from compiler.Model.Field import Field as ModelField
 
 def create(type_name, field, endianness, settings):
     if isinstance(field.type(), ModelInt):

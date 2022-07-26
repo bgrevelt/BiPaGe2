@@ -1,7 +1,7 @@
 import sys
 import argparse
 from compiler.BackEnd.cpp.Generator import Generator as CppGen
-from build_model import build_model_from_file
+from compiler.build_model import build_model_from_file
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Process some integers.')

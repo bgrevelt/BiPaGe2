@@ -1,6 +1,6 @@
 from .Node import Node
 from .BuildMessage import BuildMessage
-from Model.Collection import Collection
+from compiler.Model.Collection import Collection
 
 class CaptureScope(Node):
     def __init__(self, offset, fields, token):

@@ -1,5 +1,5 @@
 import unittest
-from integration_test.integrationtest import IntegrationTest
+from compiler.integration_test.integrationtest import IntegrationTest
 
 #NOTE: This is basically a copy of nested_data_type_colleciton_integration test. Only in this test we
 # import the nested data type from another file and we added a namespace

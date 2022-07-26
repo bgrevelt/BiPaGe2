@@ -1,11 +1,11 @@
 from generated.BiPaGeListener import BiPaGeListener
 from generated.BiPaGeParser import BiPaGeParser
-from Model.types import SignedInteger, UnsignedInteger
-from Model.Enumeration import Enumeration
+from compiler.Model.types import SignedInteger, UnsignedInteger
+from compiler.Model.Enumeration import Enumeration
 import os
-from Model.expressions import NumberLiteral
-from Model.helpers import *
-from Model.Definition import Definition
+from compiler.Model.expressions import NumberLiteral
+from compiler.Model.helpers import *
+from compiler.Model.Definition import Definition
 
 class ImportAnalyzer(BiPaGeListener):
     def __init__(self, path):

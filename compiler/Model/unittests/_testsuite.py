@@ -1,8 +1,8 @@
-from Model.unittests.builder_unittest import *
-from Model.unittests.semantic_analysis_expressions_unittest import *
-from Model.unittests.semantic_analysis_imports_unittests import *
-from Model.unittests.semantic_analysis_unittests import *
-from Model.unittests.expression_unittest import *
+from compiler.Model.unittests.builder_unittest import *
+from compiler.Model.unittests.semantic_analysis_expressions_unittest import *
+from compiler.Model.unittests.semantic_analysis_imports_unittests import *
+from compiler.Model.unittests.semantic_analysis_unittests import *
+from compiler.Model.unittests.expression_unittest import *
 
 def suite():
     test_suite = unittest.TestSuite()

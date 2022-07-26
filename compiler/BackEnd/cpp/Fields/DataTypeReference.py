@@ -1,5 +1,5 @@
 from BackEnd.cpp.Fields.Field import Field
-from Model.Field import Field as ModelField
+from compiler.Model.Field import Field as ModelField
 
 class DataTypeReference(Field):
     def __init__(self, type_name:str, field:ModelField, endianness:str, settings):

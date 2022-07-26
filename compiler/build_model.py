@@ -1,11 +1,11 @@
-from Model.Builder import Builder
+from compiler.Model.Builder import Builder
 import os
 from generated.BiPaGeLexer import BiPaGeLexer
 from antlr4 import *
-from ErrorListener import BiPaGeErrorListener
+from compiler.ErrorListener import BiPaGeErrorListener
 from generated.BiPaGeParser import BiPaGeParser
-from Model.imports.ImportAnalyzer import get_import_tree
-from Model.BuildMessage import BuildMessageContainer
+from compiler.Model.imports.ImportAnalyzer import get_import_tree
+from compiler.Model.BuildMessage import BuildMessageContainer
 
 def _set_error_listener(target, listener):
     target.removeErrorListeners()
