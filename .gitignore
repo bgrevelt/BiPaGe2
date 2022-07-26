@@ -1,0 +1,3 @@
+generated/
+compiler/integration_test/temp_*
+.idea/
